@@ -1,0 +1,14 @@
+# Set default behavior to automatically normalize line endings
+* text=auto
+
+# Python files
+*.py text eol=lf
+
+# Markdown files
+*.md text eol=lf
+
+# Image files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
