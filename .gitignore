@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# CircuitPython
+.fseventsd/
+.metadata_never_index
+.Trashes
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Internal files
+_Todos
+.claude/
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Test files
+test_*.py
