@@ -1,0 +1,47 @@
+# CircuitPython MIDI Arpeggiator - Library Requirements
+# For Adafruit M4 Express (Feather/Metro/etc)
+#
+# Verified with CircuitPython 10.0.1 (latest stable as of Oct 2025)
+# Download CircuitPython: https://circuitpython.org/board/feather_m4_express/
+#
+# Installation Instructions:
+# 1. Install CircuitPython 10.0.1 on your M4 Express board
+# 2. Download the latest Adafruit CircuitPython Bundle:
+#    https://circuitpython.org/libraries
+# 3. Copy the libraries listed below from the bundle to your CIRCUITPY/lib folder
+
+# === Required Adafruit Libraries ===
+# These must be copied from the CircuitPython Bundle to CIRCUITPY/lib/
+
+# MIDI Support
+adafruit_midi/                    # v1.0+ - MIDI encoding/decoding (copy entire folder)
+
+# Display Support
+adafruit_displayio_ssd1306.mpy    # v1.0+ - DisplayIO driver for SSD1306 OLED
+adafruit_display_text/            # v3.3.3+ - Text rendering library (copy entire folder)
+
+# === Built-in CircuitPython Modules ===
+# These are included with CircuitPython and do NOT need to be installed:
+# - board
+# - busio
+# - digitalio
+# - displayio
+# - terminalio
+# - time
+# - usb_midi
+# - supervisor
+# - alarm
+# - sys
+# - random
+
+# === Hardware Requirements ===
+# - Adafruit M4 Express (Feather M4, Metro M4, etc)
+# - 2x Adafruit MIDI FeatherWing (for MIDI I/O and Clock)
+# - 1x Adafruit OLED FeatherWing (128x32, SSD1306)
+# - Stacking headers for connecting FeatherWings
+
+# === Optional Tools ===
+# For development and debugging:
+# - Mu Editor (recommended for CircuitPython): https://codewith.mu/
+# - Thonny IDE: https://thonny.org/
+# - Serial terminal (screen, minicom, or Arduino Serial Monitor)
