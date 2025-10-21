@@ -1,6 +1,6 @@
 # Project Methodology & Workflow Guide
 
-**Last Updated:** 2025-10-21
+**Last Updated:** 2025-10-21 (v1.1 - Added handoff protocol)
 **Project:** Arp - CircuitPython MIDI Arpeggiator
 **Purpose:** This document guides all development, git workflows, and collaboration practices for this project.
 
@@ -9,10 +9,11 @@
 ## Table of Contents
 1. [Git Workflow & Version Control](#git-workflow--version-control)
 2. [Backup Strategy](#backup-strategy)
-3. [Development Guidelines](#development-guidelines)
-4. [Testing Procedures](#testing-procedures)
-5. [Documentation Standards](#documentation-standards)
-6. [Hardware Development](#hardware-development)
+3. [Claude Instance Handoff Protocol](#claude-instance-handoff-protocol)
+4. [Development Guidelines](#development-guidelines)
+5. [Testing Procedures](#testing-procedures)
+6. [Documentation Standards](#documentation-standards)
+7. [Hardware Development](#hardware-development)
 
 ---
 
@@ -82,6 +83,146 @@ The following are excluded from backups:
 - `*.pyc` files
 - `.DS_Store` files
 - Virtual environments (if any)
+
+---
+
+## Claude Instance Handoff Protocol
+
+### Token Budget Management
+Claude Code sessions have a token budget that auto-compacts when exceeded. To ensure smooth continuity:
+
+**When token usage reaches 90% (180,000 of 200,000 tokens):**
+
+1. **Stop at a Clean Checkpoint**
+   - Complete current task if nearly done
+   - Otherwise, pause at a logical stopping point
+   - Commit and push any uncommitted work (following the git workflow above)
+   - Run backup: `python3 backup.py`
+
+2. **Create Handoff Document**
+   Create `HANDOFF.md` in the project root with the following sections:
+
+   ```markdown
+   # Claude Instance Handoff
+
+   **Date:** YYYY-MM-DD HH:MM
+   **Token Usage at Handoff:** XXX,XXX / 200,000
+   **Last Commit:** [commit hash] - [commit message]
+
+   ## Session Summary
+   Brief overview of what was accomplished in this session (3-5 bullet points)
+
+   ## Current Context
+   What we were working on and why:
+   - Primary task/goal
+   - Approach being taken
+   - Key decisions made
+
+   ## Progress Made
+   Detailed list of what was completed:
+   - Feature X implemented (files: a.py, b.py)
+   - Bug Y fixed in module Z
+   - Documentation updated (files: DOC1.md, DOC2.md)
+
+   ## In-Progress Work
+   What's partially done (if applicable):
+   - Task description
+   - What's complete vs. what remains
+   - Files being modified
+   - Any blockers or challenges encountered
+
+   ## Next Steps
+   Clear, prioritized list of what to do next:
+   1. [High priority task]
+   2. [Medium priority task]
+   3. [Nice to have]
+
+   ## Important Context for Next Instance
+   Critical information the next Claude needs to know:
+   - Architectural decisions and rationale
+   - Gotchas or tricky areas to be aware of
+   - Dependencies between components
+   - Testing considerations
+
+   ## Files Modified This Session
+   List of all files touched:
+   - `file1.py` - [what changed]
+   - `file2.md` - [what changed]
+
+   ## Open Questions/Decisions Needed
+   Things that require user input or clarification:
+   - Question 1?
+   - Decision needed on approach X vs Y?
+
+   ## Git Status
+   ```
+   [paste output of `git status`]
+   ```
+
+   ## Recent Commits
+   ```
+   [paste output of `git log -5 --oneline`]
+   ```
+   ```
+
+3. **Verify Handoff Quality**
+   - Read through `HANDOFF.md` - would YOU understand what to do next?
+   - Ensure all context is clear and unambiguous
+   - Include specific file paths and line numbers where relevant
+   - Don't assume knowledge - be explicit
+
+4. **Stage and Commit Handoff**
+   ```bash
+   git add HANDOFF.md
+   git commit -m "docs: Add Claude instance handoff document"
+   git push origin main
+   ```
+
+5. **Inform User**
+   Tell the user:
+   - Token budget is at 90%
+   - Handoff document has been created
+   - Current work status (complete, paused, blocked)
+   - What the next instance should do first
+
+### Starting a New Session (After Handoff)
+
+When a new Claude instance begins and finds a `HANDOFF.md`:
+
+1. **Read `HANDOFF.md` FIRST** - Before doing anything else
+2. **Read `METHODOLOGY.md`** - Understand the project workflows
+3. **Verify git state** - Run `git status` and compare to handoff
+4. **Review recent commits** - Run `git log -5 --oneline`
+5. **Check `todo` file** - See if there are active tasks
+6. **Ask clarifying questions** - If anything is unclear, ask the user
+7. **Delete or archive `HANDOFF.md`** - Once context is absorbed, remove it or move to `_archive/`
+
+### Handoff Best Practices
+
+**DO:**
+- Be specific with file paths (e.g., `settings.py:127`)
+- Explain WHY decisions were made, not just WHAT was done
+- Include code snippets for complex logic
+- List any new dependencies or requirements
+- Document any workarounds or temporary solutions
+- Note any performance or memory concerns
+
+**DON'T:**
+- Assume the next instance has your context
+- Use vague language ("fix the thing", "update that file")
+- Skip documenting in-progress work
+- Leave uncommitted changes without explanation
+- Forget to push the handoff document
+
+### Emergency Handoffs
+
+If a session is interrupted unexpectedly (crash, user needs to stop immediately):
+
+The user can ask the next Claude instance to check:
+- Latest commit message (often contains context)
+- Git diff for uncommitted changes
+- The `todo` file
+- Recent backups in `/Users/keegandewitt/Cursor/_Backups/`
 
 ---
 
@@ -189,18 +330,20 @@ See `ENCLOSURE_ROADMAP.md` for current enclosure development status and plans.
 
 When starting a new Claude Code session:
 
-1. **Read this document first** - Understand our methodologies
-2. **Check `git status`** - Understand current state
-3. **Review `todo`** - See active tasks
-4. **Read recent commits** - `git log -5 --oneline`
-5. **Ask clarifying questions** - Don't assume, ask the user
+1. **Check for `HANDOFF.md`** - If present, read it FIRST (see [Claude Instance Handoff Protocol](#claude-instance-handoff-protocol))
+2. **Read this document** - Understand our methodologies
+3. **Check `git status`** - Understand current state
+4. **Review `todo`** - See active tasks
+5. **Read recent commits** - `git log -5 --oneline`
+6. **Ask clarifying questions** - Don't assume, ask the user
 
 ### Key Commands to Run
 ```bash
-git status              # Current state
-git log -5 --oneline    # Recent history
-cat todo               # Active tasks
-ls -la                 # Project structure
+ls -la                 # Check for HANDOFF.md first
+cat HANDOFF.md         # If present, read handoff context
+git status             # Current state
+git log -5 --oneline   # Recent history
+cat todo              # Active tasks
 ```
 
 ---
@@ -252,6 +395,12 @@ git reset --hard origin/main
 ---
 
 ## Version History
+
+- **v1.1** (2025-10-21) - Added Claude instance handoff protocol
+  - Token budget management at 90% threshold
+  - Detailed handoff document template
+  - Best practices for session continuity
+  - Emergency handoff procedures
 
 - **v1.0** (2025-10-21) - Initial methodology document created
   - Established git workflow
