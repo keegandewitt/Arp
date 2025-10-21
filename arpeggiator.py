@@ -11,16 +11,18 @@ from adafruit_midi.note_off import NoteOff
 class Arpeggiator:
     """Main arpeggiator engine"""
 
-    def __init__(self, settings, midi_io):
+    def __init__(self, settings, midi_io, cv_output=None):
         """
         Initialize the arpeggiator
 
         Args:
             settings: Global settings object
             midi_io: MidiIO object for sending notes
+            cv_output: CVOutput object for CV/trigger output (optional)
         """
         self.settings = settings
         self.midi_io = midi_io
+        self.cv_output = cv_output
 
         # Note buffer - stores currently held notes
         self.note_buffer = []  # List of (note, velocity) tuples
@@ -39,10 +41,13 @@ class Arpeggiator:
             note: MIDI note number
             velocity: Note velocity
         """
+        # Quantize note to current scale
+        quantized_note = self.settings.quantize_to_scale(note)
+
         # Add to buffer if not already present
-        if not any(n[0] == note for n in self.note_buffer):
-            self.note_buffer.append((note, velocity))
-            self.note_order.append(note)
+        if not any(n[0] == quantized_note for n in self.note_buffer):
+            self.note_buffer.append((quantized_note, velocity))
+            self.note_order.append(quantized_note)
 
             # Regenerate sequence
             self._generate_sequence()
@@ -58,16 +63,19 @@ class Arpeggiator:
         Args:
             note: MIDI note number
         """
+        # Quantize note to match what was added
+        quantized_note = self.settings.quantize_to_scale(note)
+
         # Remove from buffer
-        self.note_buffer = [(n, v) for n, v in self.note_buffer if n != note]
+        self.note_buffer = [(n, v) for n, v in self.note_buffer if n != quantized_note]
 
         # Remove from order tracking
-        if note in self.note_order:
-            self.note_order.remove(note)
+        if quantized_note in self.note_order:
+            self.note_order.remove(quantized_note)
 
         # If we were playing this note, send note off
-        if self.current_note == note:
-            self.midi_io.send_note_off(note, self.settings.midi_channel)
+        if self.current_note == quantized_note:
+            self.midi_io.send_note_off(quantized_note, self.settings.midi_channel)
             self.current_note = None
 
         # Regenerate sequence
@@ -129,6 +137,106 @@ class Arpeggiator:
             else:
                 self.step_sequence = list(reversed(expanded_notes))
 
+        elif self.settings.pattern == self.settings.ARP_UP_DOWN_INC:
+            # Up then down, repeat top note (inclusive)
+            if len(expanded_notes) > 1:
+                self.step_sequence = expanded_notes + list(reversed(expanded_notes[1:]))
+            else:
+                self.step_sequence = expanded_notes
+
+        elif self.settings.pattern == self.settings.ARP_DOWN_UP_INC:
+            # Down then up, repeat bottom note (inclusive)
+            if len(expanded_notes) > 1:
+                reversed_notes = list(reversed(expanded_notes))
+                self.step_sequence = reversed_notes + expanded_notes[1:]
+            else:
+                self.step_sequence = list(reversed(expanded_notes))
+
+        elif self.settings.pattern == self.settings.ARP_UP_2X:
+            # Each note twice going up
+            self.step_sequence = []
+            for note in expanded_notes:
+                self.step_sequence.append(note)
+                self.step_sequence.append(note)
+
+        elif self.settings.pattern == self.settings.ARP_DOWN_2X:
+            # Each note twice going down
+            self.step_sequence = []
+            for note in reversed(expanded_notes):
+                self.step_sequence.append(note)
+                self.step_sequence.append(note)
+
+        elif self.settings.pattern == self.settings.ARP_CONVERGE:
+            # Alternate between lowest and highest, moving inward
+            self.step_sequence = []
+            if len(expanded_notes) > 0:
+                left = 0
+                right = len(expanded_notes) - 1
+                while left <= right:
+                    self.step_sequence.append(expanded_notes[left])
+                    if left < right:
+                        self.step_sequence.append(expanded_notes[right])
+                    left += 1
+                    right -= 1
+
+        elif self.settings.pattern == self.settings.ARP_DIVERGE:
+            # Alternate from middle out
+            self.step_sequence = []
+            if len(expanded_notes) > 0:
+                middle = len(expanded_notes) // 2
+                self.step_sequence.append(expanded_notes[middle])
+                for i in range(1, max(middle + 1, len(expanded_notes) - middle)):
+                    if middle - i >= 0:
+                        self.step_sequence.append(expanded_notes[middle - i])
+                    if middle + i < len(expanded_notes):
+                        self.step_sequence.append(expanded_notes[middle + i])
+
+        elif self.settings.pattern == self.settings.ARP_PINKY_UP:
+            # Pinky pattern: 1-2-3-highest, repeat
+            self.step_sequence = []
+            if len(expanded_notes) >= 4:
+                highest = expanded_notes[-1]
+                for i in range(len(expanded_notes) - 1):
+                    self.step_sequence.append(expanded_notes[i])
+                    if (i + 1) % 3 == 0:  # Every 3 notes
+                        self.step_sequence.append(highest)
+            else:
+                self.step_sequence = expanded_notes
+
+        elif self.settings.pattern == self.settings.ARP_THUMB_UP:
+            # Thumb pattern: lowest-2-3-4, repeat
+            self.step_sequence = []
+            if len(expanded_notes) >= 4:
+                lowest = expanded_notes[0]
+                for i in range(1, len(expanded_notes)):
+                    if i % 3 == 1:  # Every 3 notes
+                        self.step_sequence.append(lowest)
+                    self.step_sequence.append(expanded_notes[i])
+            else:
+                self.step_sequence = expanded_notes
+
+        elif self.settings.pattern == self.settings.ARP_OCTAVE_UP:
+            # Play root note then jump octaves up
+            self.step_sequence = []
+            if sorted_notes:
+                root_note = sorted_notes[0][0]
+                root_velocity = sorted_notes[0][1]
+                # Add root in each octave
+                for octave in range(self.settings.octave_range):
+                    transposed = root_note + (octave * 12)
+                    if transposed <= 127:
+                        self.step_sequence.append((transposed, root_velocity))
+
+        elif self.settings.pattern == self.settings.ARP_CHORD_REPEAT:
+            # Play all notes as chord (multiple times), then arpeggio
+            # For hardware limitation, we'll play notes rapidly in succession to simulate chord
+            self.step_sequence = []
+            # Add all notes quickly (simulated chord)
+            for _ in range(2):  # Repeat chord twice
+                self.step_sequence.extend(expanded_notes)
+            # Then arpeggio up
+            self.step_sequence.extend(expanded_notes)
+
         elif self.settings.pattern == self.settings.ARP_RANDOM:
             # Random order (will randomize on each step)
             self.step_sequence = expanded_notes
@@ -164,6 +272,9 @@ class Arpeggiator:
         # Turn off previous note if still playing
         if self.current_note is not None:
             self.midi_io.send_note_off(self.current_note, self.settings.midi_channel)
+            # Send CV note off (for gate mode)
+            if self.cv_output:
+                self.cv_output.note_off()
 
         # For random mode, pick a random note each time
         if self.settings.pattern == self.settings.ARP_RANDOM:
@@ -176,9 +287,13 @@ class Arpeggiator:
         if not self.settings.velocity_passthrough:
             velocity = self.settings.fixed_velocity
 
-        # Play the note
+        # Play the note via MIDI
         self.midi_io.send_note_on(note, velocity, self.settings.midi_channel)
         self.current_note = note
+
+        # Send CV output
+        if self.cv_output:
+            self.cv_output.note_on(note)
 
         # Advance step counter
         self.current_step = (self.current_step + 1) % len(self.step_sequence)
@@ -212,6 +327,10 @@ class Arpeggiator:
         if self.current_note is not None:
             self.midi_io.send_note_off(self.current_note, self.settings.midi_channel)
             self.current_note = None
+
+        # Reset CV output
+        if self.cv_output:
+            self.cv_output.reset()
 
     def get_status(self):
         """

@@ -101,6 +101,7 @@ class Display:
         # UI state
         self.selection_mode = False
         self.clock_source_selection_mode = False
+        self.settings_menu_mode = False
         self.selected_pattern = None
 
         # Sleep state
@@ -238,6 +239,41 @@ class Display:
         if confirmed:
             self.show_message("Clock Set!", duration=1.0)
 
+    def enter_settings_menu(self, line1, line2, line3):
+        """
+        Enter settings menu mode (wakes display)
+
+        Args:
+            line1, line2, line3: Text for each display line
+        """
+        if self.is_sleeping:
+            self.wake()
+        self.settings_menu_mode = True
+        self.bpm_label.text = line1
+        self.pattern_label.text = line2
+        self.status_label.text = line3
+
+    def update_settings_menu(self, line1, line2, line3):
+        """
+        Update settings menu display
+
+        Args:
+            line1, line2, line3: Text for each display line
+        """
+        if self.is_sleeping:
+            return
+        if self.settings_menu_mode:
+            self.bpm_label.text = line1
+            self.pattern_label.text = line2
+            self.status_label.text = line3
+
+    def exit_settings_menu(self):
+        """Exit settings menu mode"""
+        if self.is_sleeping:
+            return
+        self.settings_menu_mode = False
+        self.status_label.text = ""
+
     def sleep(self):
         """Put display to sleep (turns off display)"""
         if not self.is_sleeping:
@@ -272,8 +308,8 @@ class Display:
         Returns:
             True if display went to sleep, False otherwise
         """
-        # Don't sleep if in selection mode
-        if self.selection_mode or self.clock_source_selection_mode:
+        # Don't sleep if in any menu mode
+        if self.selection_mode or self.clock_source_selection_mode or self.settings_menu_mode:
             return False
 
         # Initialize on first check
@@ -365,7 +401,8 @@ class Display:
         if self.is_sleeping:
             return
 
-        if not self.selection_mode and not self.clock_source_selection_mode:
+        # Skip updates if in any menu mode
+        if not self.selection_mode and not self.clock_source_selection_mode and not self.settings_menu_mode:
             self.update_bpm(bpm, clock_source_short)
             self.update_pattern(pattern_name)
 

@@ -18,6 +18,12 @@ from clock_handler import ClockHandler
 from arpeggiator import Arpeggiator
 from display import Display
 from button_handler import ButtonHandler, PatternSelector, ClockSourceSelector
+from cv_output import CVOutput
+from settings_menu import SettingsMenu
+from test_commands import (
+    test_i2c_scan, test_oled_quick, test_buttons_quick,
+    test_midi_quick, test_dac_quick, run_all_tests
+)
 
 
 # Hardware Setup
@@ -161,11 +167,53 @@ def check_serial_commands():
     """Check for serial debug commands from USB"""
     if supervisor.runtime.serial_bytes_available:
         command = sys.stdin.readline().strip().lower()
+
+        # Legacy connection test
         if command == "test m4 to oled":
             print("\nDebug command received: Running connection test...")
             run_connection_test()
             print("Connection test complete. Resuming normal operation...\n")
             return True
+
+        # New modular hardware tests
+        elif command == "test i2c":
+            test_i2c_scan()
+            return True
+
+        elif command == "test oled":
+            test_oled_quick()
+            return True
+
+        elif command == "test buttons":
+            test_buttons_quick()
+            return True
+
+        elif command == "test midi":
+            test_midi_quick(uart_midi)
+            return True
+
+        elif command == "test dac":
+            test_dac_quick()
+            return True
+
+        elif command == "test all":
+            run_all_tests(uart_midi)
+            return True
+
+        elif command == "help" or command == "test help":
+            print("\n" + "="*50)
+            print("AVAILABLE TEST COMMANDS")
+            print("="*50)
+            print("  test i2c      - Scan I2C bus")
+            print("  test oled     - Quick OLED display test")
+            print("  test buttons  - Test buttons (10s)")
+            print("  test midi     - Test MIDI I/O (10s)")
+            print("  test dac      - Test MCP4728 DAC")
+            print("  test all      - Run all tests")
+            print("  help          - Show this menu")
+            print("="*50 + "\n")
+            return True
+
     return False
 
 
@@ -177,11 +225,14 @@ print("Initializing MIDI Arpeggiator...")
 # Create MIDI I/O handler
 midi_io = MidiIO(uart_midi, uart_midi)
 
+# Create CV output handler
+cv_output = CVOutput(i2c, settings)
+
 # Create clock handler
 clock = ClockHandler(uart_clock)
 
-# Create arpeggiator
-arp = Arpeggiator(settings, midi_io)
+# Create arpeggiator with CV output
+arp = Arpeggiator(settings, midi_io, cv_output)
 
 # Set clock division from settings
 clock.set_clock_division(settings.clock_division)
@@ -206,6 +257,9 @@ pattern_selector = PatternSelector(settings)
 
 # Initialize clock source selector
 clock_source_selector = ClockSourceSelector(settings)
+
+# Initialize settings menu
+settings_menu = SettingsMenu(settings)
 
 print("Arpeggiator ready!")
 print(f"Pattern: {settings.get_pattern_name()}")
@@ -259,18 +313,65 @@ while True:
             midi_io.process_passthrough([msg], settings.midi_channel)
 
     # NON-CRITICAL PATH: UI handling (lower priority)
-    # Button handling
-    button_a, button_b, button_c, button_ac_combo = buttons.check_buttons()
+    # Button handling (now includes long press detection)
+    button_a, button_b, button_c, button_ac_combo, a_long_press, b_long_press = buttons.check_buttons()
 
     # Track button activity for display wake/sleep and power management
-    button_activity = button_a or button_b or button_c or button_ac_combo
+    button_activity = button_a or button_b or button_c or button_ac_combo or a_long_press or b_long_press
     if button_activity:
         current_time = time.monotonic()
         display.record_activity(current_time)
         last_activity_time = current_time  # Update power management activity
 
+    # Process CV trigger timing (for pulse mode)
+    cv_output.process()
+
+    # Priority 0: Settings menu mode (highest priority)
+    if settings_menu.menu_active:
+        if button_a or button_c:
+            # Navigate in settings menu
+            if button_a:
+                settings_menu.navigate_previous()
+            else:
+                settings_menu.navigate_next()
+
+            # Update display
+            line1, line2, line3 = settings_menu.get_display_text()
+            display.update_settings_menu(line1, line2, line3)
+
+            # Apply real-time updates for certain settings
+            if settings_menu.current_level == settings_menu.LEVEL_VALUE:
+                # Update BPM in real-time
+                if settings_menu.current_category == settings_menu.CATEGORY_BPM:
+                    clock.set_internal_bpm(settings.internal_bpm)
+                # Regenerate arp sequence when pattern or octaves change
+                elif settings_menu.current_category == settings_menu.CATEGORY_ARP:
+                    arp._generate_sequence()
+                # Regenerate arp sequence when scale changes (re-quantize existing notes)
+                elif settings_menu.current_category == settings_menu.CATEGORY_SCALE:
+                    # Clear and re-add all notes to re-quantize them
+                    if arp.note_buffer:
+                        old_notes = [(n, v) for n, v in arp.note_buffer]
+                        arp.clear_notes()
+                        for note, velocity in old_notes:
+                            arp.add_note(note, velocity)
+
+        if button_b:
+            # Select/confirm in settings menu
+            if settings_menu.is_at_top_level():
+                # At top level, B exits the menu
+                settings_menu.exit_menu()
+                display.exit_settings_menu()
+                # Force display update
+                display_update_count = 5000
+            else:
+                settings_menu.select()
+                # Update display
+                line1, line2, line3 = settings_menu.get_display_text()
+                display.update_settings_menu(line1, line2, line3)
+
     # Priority 1: Clock source selection mode
-    if clock_source_selector.selection_active:
+    elif clock_source_selector.selection_active:
         if button_a or button_c:
             # Toggle clock source selection
             clock_source_selector.toggle_source()
@@ -311,8 +412,14 @@ while True:
 
     # Priority 3: Normal mode
     else:
+        # Check for long press of A or B to enter settings menu
+        if a_long_press or b_long_press:
+            settings_menu.enter_menu()
+            line1, line2, line3 = settings_menu.get_display_text()
+            display.enter_settings_menu(line1, line2, line3)
+
         # Check for A+C combo to enter clock source selection
-        if button_ac_combo:
+        elif button_ac_combo:
             clock_source_selector.start_selection()
             display.enter_clock_source_selection(clock_source_selector.get_selected_source_name())
 
@@ -378,10 +485,12 @@ while True:
 
     # Update display much less frequently (every ~5000 loops = ~5 seconds)
     # Display updates are SLOW due to I2C communication
-    # Skipped entirely if display is sleeping
+    # Skipped entirely if display is sleeping or in a menu
     display_update_count += 1
     if display_update_count >= 5000:
-        if not pattern_selector.selection_active and not clock_source_selector.selection_active:
+        if (not pattern_selector.selection_active and
+            not clock_source_selector.selection_active and
+            not settings_menu.menu_active):
             display.update_display(
                 clock.get_bpm(),
                 settings.get_pattern_name(),
