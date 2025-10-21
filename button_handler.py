@@ -44,25 +44,68 @@ class ButtonHandler:
         self.last_c_press_time = 0
 
         self.debounce_time = 0.05  # 50ms debounce
+        self.long_press_time = 0.8  # 800ms for long press
+
+        # Long press tracking
+        self.a_press_start_time = None
+        self.b_press_start_time = None
+        self.a_long_press_triggered = False
+        self.b_long_press_triggered = False
 
     def check_buttons(self):
         """
         Check button states and return which buttons were pressed
 
         Returns:
-            Tuple of (a_pressed, b_pressed, c_pressed, ac_combo) as booleans
+            Tuple of (a_pressed, b_pressed, c_pressed, ac_combo, a_long_press, b_long_press) as booleans
             ac_combo is True if A and C are pressed simultaneously
+            a_long_press is True if A is held for long press duration
+            b_long_press is True if B is held for long press duration
         """
         current_time = time.monotonic()
         a_pressed = False
         b_pressed = False
         c_pressed = False
         ac_combo = False
+        a_long_press = False
+        b_long_press = False
 
         # Read current states
         current_a = self.button_a.value
         current_b = self.button_b.value
         current_c = self.button_c.value
+
+        # Track button A press start for long press detection
+        if not current_a:  # Button A is pressed
+            if self.a_press_start_time is None:
+                # Just started pressing
+                self.a_press_start_time = current_time
+                self.a_long_press_triggered = False
+            elif not self.a_long_press_triggered:
+                # Check if held long enough
+                if current_time - self.a_press_start_time >= self.long_press_time:
+                    a_long_press = True
+                    self.a_long_press_triggered = True
+        else:
+            # Button A released
+            self.a_press_start_time = None
+            self.a_long_press_triggered = False
+
+        # Track button B press start for long press detection
+        if not current_b:  # Button B is pressed
+            if self.b_press_start_time is None:
+                # Just started pressing
+                self.b_press_start_time = current_time
+                self.b_long_press_triggered = False
+            elif not self.b_long_press_triggered:
+                # Check if held long enough
+                if current_time - self.b_press_start_time >= self.long_press_time:
+                    b_long_press = True
+                    self.b_long_press_triggered = True
+        else:
+            # Button B released
+            self.b_press_start_time = None
+            self.b_long_press_triggered = False
 
         # Check for A+C combination (both pressed at same time)
         if not current_a and not current_c:
@@ -74,8 +117,8 @@ class ButtonHandler:
                     self.last_a_press_time = current_time
                     self.last_c_press_time = current_time
 
-        # Check individual buttons only if not part of combo
-        if not ac_combo:
+        # Check individual buttons only if not part of combo and not long press
+        if not ac_combo and not a_long_press and not b_long_press:
             # Check button A (active low - pressed = False)
             if not current_a and self.last_a_state:  # Button just pressed
                 if current_time - self.last_a_press_time > self.debounce_time:
@@ -99,7 +142,7 @@ class ButtonHandler:
         self.last_b_state = current_b
         self.last_c_state = current_c
 
-        return (a_pressed, b_pressed, c_pressed, ac_combo)
+        return (a_pressed, b_pressed, c_pressed, ac_combo, a_long_press, b_long_press)
 
     def wait_for_release(self, button='all'):
         """
