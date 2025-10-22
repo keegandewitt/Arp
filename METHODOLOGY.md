@@ -424,7 +424,7 @@ git commit -m "docs: Add working library versions for CP 10.0.3"
 | Library | Version | Issue | Alternative |
 |---------|---------|-------|-------------|
 | `adafruit_ssd1306` | 2.x | Hard crash - memory fault | Use raw I2C commands or older CP version |
-| `adafruit_displayio_ssd1306` | 3.0.4 | `displayio.I2CDisplay` removed from API | Waiting for library update |
+| `adafruit_displayio_ssd1306` | 3.0.4 | Wrong driver for 128x64 FeatherWing | Use `adafruit_displayio_sh1107` instead |
 
 **API Changes to Watch For:**
 - `displayio.I2CDisplay()` - **Removed** in CP 10.x (use direct bus passing)
@@ -440,7 +440,8 @@ git commit -m "docs: Add working library versions for CP 10.0.3"
 | `neopixel` | 6.3.18 | ✅ Working | No issues |
 | `adafruit_pixelbuf` | 2.0.10 | ✅ Working | Dependency for neopixel |
 | `adafruit_ssd1306` | Latest | ❌ Crashes | Hard fault - avoid |
-| `adafruit_displayio_ssd1306` | 3.0.4 | ❌ Crashes | API incompatibility |
+| `adafruit_displayio_ssd1306` | 3.0.4 | ❌ Wrong driver | For 128x32 FeatherWing only |
+| `adafruit_displayio_sh1107` | Latest | ✅ Working | For 128x64 FeatherWing (#4650) |
 
 ### Compatibility Testing Script
 
@@ -640,14 +641,14 @@ circup will download the correct bundle (e.g., 10.x-mpy) automatically.
 
 **Required External Libraries:**
 - `adafruit_midi` - MIDI communication
-- `adafruit_displayio_ssd1306` - OLED display
+- `adafruit_displayio_sh1107` - OLED display (128x64 FeatherWing #4650)
 - `adafruit_display_text` - Text on display
 - `adafruit_debouncer` - Button handling
 - `neopixel` - Status LED (for testing)
 
 **Install All At Once:**
 ```bash
-circup install adafruit_midi adafruit_displayio_ssd1306 adafruit_display_text adafruit_debouncer neopixel
+circup install adafruit_midi adafruit_displayio_sh1107 adafruit_display_text adafruit_debouncer neopixel
 ```
 
 **Or use project installer:**
@@ -708,6 +709,60 @@ Every significant feature or hardware change requires documentation:
 ---
 
 ## Hardware Development
+
+### CRITICAL LESSON: Always Verify Hardware Specifications FIRST
+
+**Date Learned:** 2025-10-22
+**Context:** OLED FeatherWing 128x64 displaying garbled output
+
+**What Happened:**
+- Spent hours troubleshooting garbled OLED display output
+- Tried multiple library versions, initialization sequences, COM configurations
+- Problem: Using SSD1306 driver for a display that has SH1107 chip
+
+**Root Cause:**
+- Did NOT check the actual hardware specifications first
+- Assumed OLED FeatherWing used SSD1306 (like the 128x32 version)
+- Product #4650 (128x64) actually uses **SH1107 driver**
+
+**What Should Have Been Done:**
+1. **Go to the product page FIRST:** adafruit.com/product/[ID]
+2. **Read the specifications carefully:** Look for "Driver:", "Chip:", etc.
+3. **Verify before coding:** Confirm chip model matches library
+4. **Then proceed with code**
+
+**The Fix:**
+- Checked product page → Found "Driver: SH1107"
+- Installed correct library: `circup install adafruit_displayio_sh1107`
+- Changed one line in display.py: `SSD1306` → `SH1107`
+- **Display worked immediately**
+
+**Time Saved by This Approach:**
+- Previous approach: 2+ hours of troubleshooting
+- Correct approach: 5 minutes to identify and fix
+
+**New Protocol - Hardware Troubleshooting:**
+
+When hardware doesn't work:
+1. ✅ **Check product page specifications FIRST**
+2. ✅ **Verify chip/driver model**
+3. ✅ **Confirm library matches hardware**
+4. ✅ **Search for product-specific guides/examples**
+5. ✅ **Only then try code variations**
+
+**DO NOT:**
+- ❌ Assume specifications based on similar products
+- ❌ Try random code variations without understanding root cause
+- ❌ Test library updates before confirming correct library
+- ❌ Spend hours on initialization parameters when using wrong driver
+
+**This lesson applies to ALL hardware integration:**
+- Displays (check driver chip)
+- Sensors (check communication protocol)
+- Motors (check voltage/current requirements)
+- Any component (check actual specs vs. assumptions)
+
+---
 
 ### Rigorous Hardware Validation Philosophy
 

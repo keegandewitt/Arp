@@ -3,18 +3,21 @@ OLED Display Handler for Adafruit FeatherWing OLED
 Manages display output and user interface
 
 Required CircuitPython Libraries:
-- adafruit_displayio_ssd1306 (install via: circup install adafruit_displayio_ssd1306)
+- adafruit_displayio_sh1107 (install via: circup install adafruit_displayio_sh1107)
 - adafruit_display_text (install via: circup install adafruit_display_text)
 
 Built-in Dependencies:
 - displayio, terminalio, i2cdisplaybus (CircuitPython 10.x+)
+
+IMPORTANT: OLED FeatherWing 128x64 (Product #4650) uses SH1107 driver, NOT SSD1306!
+The older 128x32 FeatherWing uses SSD1306, but the 128x64 uses a different chip.
 """
 
 import displayio
 import terminalio
 import i2cdisplaybus  # New in CircuitPython 10.x
 from adafruit_display_text import label
-import adafruit_displayio_ssd1306
+import adafruit_displayio_sh1107
 
 
 class Display:
@@ -36,7 +39,8 @@ class Display:
 
         # Create display (128x64 for Adafruit OLED FeatherWing #4650)
         # Hardware: Adafruit OLED FeatherWing 128x64 (Product ID: 4650)
-        self.display = adafruit_displayio_ssd1306.SSD1306(
+        # CRITICAL: This uses SH1107 driver, NOT SSD1306!
+        self.display = adafruit_displayio_sh1107.SH1107(
             display_bus,
             width=128,
             height=64

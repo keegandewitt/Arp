@@ -36,7 +36,7 @@
 ### Pin Assignments (Active)
 | Pin | Function | Notes |
 |-----|----------|-------|
-| D21 (SDA) | OLED Display | I2C SSD1306 128x32 or 128x64 |
+| D21 (SDA) | OLED Display | I2C SH1107 128x64 (Product #4650) |
 | D22 (SCL) | OLED Display | I2C bus |
 | D0 (RX) | MIDI In | UART RX |
 | D1 (TX) | MIDI Out | UART TX |
@@ -123,7 +123,8 @@
    - Rationale: Human-readable, debuggable, no EEPROM needed
 
 3. **OLED Display over LCD**
-   - I2C SSD1306 (128x32 or 128x64)
+   - I2C SH1107 128x64 (OLED FeatherWing Product #4650)
+   - **CRITICAL:** Uses SH1107 driver, NOT SSD1306! (128x32 FeatherWing uses SSD1306, 128x64 uses SH1107)
    - Rationale: Low power, high contrast, easy library support
    - **CP 10.x Migration:** Updated to use `i2cdisplaybus.I2CDisplayBus` (new API)
    - Old CP 9.x `displayio.I2CDisplay` deprecated and incompatible
@@ -287,19 +288,19 @@
 
 ### Hardware
 - Adafruit Feather M4 CAN Express (or compatible SAMD51 board)
-- SSD1306 OLED Display (I2C, 128x32 or 128x64)
+- Adafruit OLED FeatherWing 128x64 (Product #4650, uses SH1107 driver)
 - MIDI TRS jacks or DIN connectors
 - Push buttons (3 minimum)
 - LiPo battery (optional, not yet integrated)
 
 ### Software
-- CircuitPython 9.x
+- CircuitPython 10.0.3
 - Libraries:
   - `adafruit_midi` (MIDI handling)
-  - `adafruit_displayio_ssd1306` (OLED display)
+  - `adafruit_displayio_sh1107` (OLED display - SH1107 driver for 128x64 FeatherWing)
   - `adafruit_debouncer` (button handling)
   - `adafruit_display_text` (text rendering)
-  - Built-in: `board`, `digitalio`, `busio`, `analogio`, `json`, `time`
+  - Built-in: `board`, `digitalio`, `busio`, `analogio`, `json`, `time`, `i2cdisplaybus`
 
 ### Development Tools
 - CircuitPython serial console (screen, minicom, Mu editor)
