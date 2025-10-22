@@ -24,7 +24,6 @@ __pycache__/
 
 # Internal files
 _Todos
-.claude/
 
 # Backup files
 *.bak
