@@ -34,11 +34,12 @@ class Display:
         # NOTE: CP 10.x uses i2cdisplaybus.I2CDisplayBus (NOT displayio.I2CDisplay)
         display_bus = i2cdisplaybus.I2CDisplayBus(i2c, device_address=0x3C)
 
-        # Create display (128x32 for FeatherWing OLED)
+        # Create display (128x64 for Adafruit OLED FeatherWing #4650)
+        # Hardware: Adafruit OLED FeatherWing 128x64 (Product ID: 4650)
         self.display = adafruit_displayio_ssd1306.SSD1306(
             display_bus,
             width=128,
-            height=32
+            height=64
         )
 
         # Set optimal brightness for readability and power efficiency
@@ -69,14 +70,14 @@ class Display:
             y=0
         )
 
-        # Create text labels
+        # Create text labels (positioned for 128x64 display)
         # Line 1: BPM
         self.bpm_label = label.Label(
             terminalio.FONT,
             text="BPM: ---",
             color=0xFFFFFF,
             x=0,
-            y=10  # Moved down to make room for indicators
+            y=20  # Positioned for 64-pixel height
         )
 
         # Line 2: Pattern (current)
@@ -85,7 +86,7 @@ class Display:
             text="Pattern: Up",
             color=0xFFFFFF,
             x=0,
-            y=20  # Moved down
+            y=35  # Middle of display
         )
 
         # Line 3: Status/Selection indicator
@@ -94,7 +95,7 @@ class Display:
             text="",
             color=0xFFFFFF,
             x=0,
-            y=30  # Moved down
+            y=50  # Lower third of display
         )
 
         # Add labels to group
