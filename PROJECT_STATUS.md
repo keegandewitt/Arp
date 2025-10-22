@@ -1,8 +1,8 @@
 # Project Status & Roadmap
 
-**Last Updated:** 2025-10-22
+**Last Updated:** 2025-10-22 (OLED FeatherWing Integration Complete)
 **Project:** Arp - CircuitPython MIDI Arpeggiator
-**Current Version:** Hardware v1.0, Software v0.9 (pre-release)
+**Current Version:** Hardware v1.0, Software v0.95 (OLED working, pre-release)
 
 > **Purpose:** This is a living document that tracks project state, key decisions, and roadmap. Update this regularly to ensure continuity across Claude instances and recovery from crashes/compacts.
 
@@ -12,8 +12,9 @@
 
 | Item | Status | Notes |
 |------|--------|-------|
-| **Hardware Platform** | Adafruit Feather M4 CAN Express | Migration to new M4 planned |
+| **Hardware Platform** | Adafruit Feather M4 CAN Express | CircuitPython 10.0.3 |
 | **Core Functionality** | ✅ Working | MIDI arp, display, buttons, settings |
+| **OLED Display** | ✅ Working | CP 10.x API, fully integrated |
 | **CV/Gate Output** | 🚧 In Progress | DAC on A0/A1, see docs/features/CV_GATE_INTEGRATION.md |
 | **Hardware Testing** | ✅ Complete | Comprehensive pin test suite created |
 | **Enclosure** | 📋 Planned | See docs/features/ENCLOSURE_ROADMAP.md |
@@ -29,7 +30,7 @@
 - **Processor:** ATSAMD51J19 (ARM Cortex M4, 120MHz)
 - **RAM:** 192KB
 - **Flash:** 512KB
-- **CircuitPython Version:** 9.x
+- **CircuitPython Version:** 10.0.3 (October 2025 release)
 - **USB:** Native USB for MIDI and serial
 
 ### Pin Assignments (Active)
@@ -124,6 +125,8 @@
 3. **OLED Display over LCD**
    - I2C SSD1306 (128x32 or 128x64)
    - Rationale: Low power, high contrast, easy library support
+   - **CP 10.x Migration:** Updated to use `i2cdisplaybus.I2CDisplayBus` (new API)
+   - Old CP 9.x `displayio.I2CDisplay` deprecated and incompatible
 
 4. **DAC for CV Output**
    - Using SAMD51's built-in DACs on A0/A1
@@ -146,7 +149,7 @@
 - [x] **Note Division** - Quarter, 8th, 16th notes
 - [x] **Settings Menu** - Navigate and save settings
 - [x] **Settings Persistence** - JSON-based, survives reboots
-- [x] **OLED Display** - Real-time status and menus
+- [x] **OLED Display** - Real-time status and menus (CP 10.x API, fully tested)
 - [x] **Button Handling** - Debounced, responsive UI
 - [x] **Installation Script** - `install.py` for easy deployment
 - [x] **Hardware Test Suite** - Comprehensive pin validation
@@ -204,12 +207,28 @@
 
 ## Recent Milestones
 
-### 2025-10-22
+### 2025-10-22 (Latest)
+- **OLED FeatherWing Integration Complete** ✅
+  - **Problem:** OLED not working with CircuitPython 10.0.3 due to API changes
+  - **Root Cause:** CP 10.x deprecated `displayio.I2CDisplay`, requires new `i2cdisplaybus` module
+  - **Solution:** Updated `display.py` to use `i2cdisplaybus.I2CDisplayBus` (display.py:35)
+  - **Testing:** Created `tests/display_integration_test.py` - all tests passed
+  - **Status:** Display class fully functional with CP 10.x
+  - **Files Modified:** display.py (added i2cdisplaybus import and updated initialization)
+
+- **Dependency Management & Compatibility Validation**
+  - Added comprehensive dependency section to METHODOLOGY.md (v1.3)
+  - Documented CircuitPython library compatibility validation workflow
+  - Created safe library testing procedures
+  - Documented CP 10.x breaking changes and known incompatibilities
+  - Added recovery procedures for incompatible libraries
+
 - **Hardware Testing Infrastructure**
   - Created `tests/comprehensive_pin_test.py` with systematic validation
-  - Added `docs/hardware/HARDWARE_TEST_RESULTS.md` template for logging
+  - Added `docs/hardware/M4_TEST_BASELINE.md` with complete test results
   - Added `docs/hardware/HARDWARE_TESTING_README.md` documentation
   - Follows "test EVERYTHING" philosophy from methodology
+  - All GPIO, I2C, SPI, UART, ADC, DAC, PWM validated and working
 
 - **Methodology Enhancement**
   - Added rigorous hardware validation section (v1.2)
@@ -254,6 +273,10 @@
    - Next Step: Deploy to hardware, measure output with multimeter/scope
 
 ### Resolved Issues
+- ✅ **OLED FeatherWing not working with CP 10.x** (2025-10-22)
+  - Fixed by migrating to `i2cdisplaybus.I2CDisplayBus` API
+  - Replaced deprecated `displayio.I2CDisplay`
+  - Created comprehensive test suite (7 test files, display_integration_test.py validates)
 - ✅ Button debouncing (fixed with proper timing)
 - ✅ Display flickering (throttled updates)
 - ✅ Settings not persisting (JSON file permissions)
