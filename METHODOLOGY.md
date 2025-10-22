@@ -1,6 +1,6 @@
 # Project Methodology & Workflow Guide
 
-**Last Updated:** 2025-10-22 (v1.2 - Added rigorous hardware validation philosophy)
+**Last Updated:** 2025-10-22 (v1.3 - Added comprehensive dependency management)
 **Project:** Arp - CircuitPython MIDI Arpeggiator
 **Purpose:** This document guides all development, git workflows, and collaboration practices for this project.
 
@@ -264,19 +264,418 @@ The user can ask the next Claude instance to check:
 
 ---
 
+## Dependency Compatibility Validation
+
+### CRITICAL: Verify Compatibility BEFORE Installing or Deploying
+
+**The most important lesson: Library compatibility issues can brick your workflow, crash your device, and waste hours of debugging.**
+
+**NEW CORE PRINCIPLE: Test compatibility in a safe environment BEFORE deploying to hardware.**
+
+### The Problem We Experienced
+
+- Installed libraries without checking CircuitPython version compatibility
+- Libraries crashed the M4 with hard faults (memory access errors)
+- Multiple safe mode crashes required recovery
+- Wasted significant time debugging incompatible libraries
+- Could have been prevented with upfront compatibility checking
+
+### Compatibility Validation Workflow
+
+**BEFORE installing ANY library, follow these steps:**
+
+#### 1. Check CircuitPython Version on Device
+
+```bash
+# Always know what version you're running
+cat /Volumes/CIRCUITPY/boot_out.txt | grep "CircuitPython"
+# Example output: Adafruit CircuitPython 10.0.3
+```
+
+**Record this version** - it determines which library bundle you need.
+
+#### 2. Research Library Compatibility
+
+**For each library you need:**
+
+1. **Check Adafruit Learn Guides** - Look for "compatible with CircuitPython X.x" notes
+2. **Check GitHub Issues** - Search for your CP version + library name + "crash" or "incompatible"
+3. **Check CircuitPython Bundle Release Notes** - See what changed between versions
+4. **Look for Known Issues** - Check if others have reported crashes
+
+**Red Flags:**
+- Library hasn't been updated in over a year
+- GitHub issues mentioning crashes with your CP version
+- API changes between CP major versions (9.x → 10.x)
+- Libraries requiring `displayio.I2CDisplay` (removed in CP 10.x)
+
+#### 3. Create a Safe Test Environment
+
+**NEVER test untrusted libraries directly in your project code.**
+
+Create a minimal test file first:
+
+```python
+# test_library_import.py
+"""
+Safe library import test
+Tests if library loads without crashing
+"""
+
+import time
+
+print("Starting safe library test...")
+
+try:
+    print("Importing library...")
+    import library_name_here
+    print("✓ Import successful!")
+
+    # Try basic initialization if applicable
+    print("Testing basic usage...")
+    # obj = library_name_here.ClassName(...)
+
+    print("✓✓✓ Library appears compatible!")
+
+except ImportError as e:
+    print(f"✗ Import failed: {e}")
+    print("Library not installed or wrong name")
+
+except Exception as e:
+    print(f"✗ Runtime error: {type(e).__name__}: {e}")
+    print("Library may be incompatible with this CP version")
+
+print("\nTest complete - board still stable")
+while True:
+    time.sleep(1)
+```
+
+**Deploy this test FIRST** before integrating into your main code.
+
+#### 4. Test Library Incrementally
+
+When testing a new library:
+
+1. **Import only** - Does it load without crashing?
+2. **Initialize with minimal params** - Can you create an object?
+3. **Test basic operations** - Does the simple API work?
+4. **Test your use case** - Does your specific function work?
+
+**Stop at the first failure** and investigate before proceeding.
+
+#### 5. Document Working Configurations
+
+When you find a working library version:
+
+```bash
+# Freeze the working configuration
+circup freeze > requirements_circuitpy.txt
+```
+
+This creates a **locked dependency list** you can restore later.
+
+**Commit this file to git:**
+```bash
+git add requirements_circuitpy.txt
+git commit -m "docs: Add working library versions for CP 10.0.3"
+```
+
+### Pre-Deployment Compatibility Checklist
+
+**Before deploying code that uses external libraries:**
+
+- [ ] **CircuitPython version verified** - `cat /Volumes/CIRCUITPY/boot_out.txt`
+- [ ] **Library compatibility researched** - Checked Learn guides, GitHub issues
+- [ ] **Safe import test created** - Minimal test file prepared
+- [ ] **Import test passed** - Library loads without errors
+- [ ] **Basic usage tested** - Simple operations work
+- [ ] **No crashes in safe mode** - Board remains stable
+- [ ] **Dependencies documented** - `circup freeze` output saved
+- [ ] **Recovery code ready** - Know how to exit safe mode if crash occurs
+
+### Recovery from Incompatible Libraries
+
+**If a library causes a hard crash (safe mode):**
+
+1. **Don't panic** - The device is recoverable
+2. **Deploy safe code immediately:**
+   ```bash
+   cat > /Volumes/CIRCUITPY/code.py << 'EOF'
+   import time
+   print("Recovery mode - board stable")
+   while True:
+       time.sleep(1)
+   EOF
+   ```
+3. **Press RESET button** - Exit safe mode
+4. **Remove problematic library:**
+   ```bash
+   circup uninstall library_name
+   ```
+5. **Verify board is stable** - Should see "Recovery mode" message
+6. **Research alternative** - Find compatible library or different approach
+
+### Known Compatibility Issues
+
+#### CircuitPython 10.x Breaking Changes
+
+**Libraries that DON'T work with CP 10.0.3 (from our testing):**
+
+| Library | Version | Issue | Alternative |
+|---------|---------|-------|-------------|
+| `adafruit_ssd1306` | 2.x | Hard crash - memory fault | Use raw I2C commands or older CP version |
+| `adafruit_displayio_ssd1306` | 3.0.4 | `displayio.I2CDisplay` removed from API | Waiting for library update |
+
+**API Changes to Watch For:**
+- `displayio.I2CDisplay()` - **Removed** in CP 10.x (use direct bus passing)
+- Display initialization signatures changed
+- Some bus creation methods deprecated
+
+#### Working Configurations (Verified)
+
+**CircuitPython 10.0.3 + Feather M4 CAN:**
+
+| Library | Version | Status | Notes |
+|---------|---------|--------|-------|
+| `neopixel` | 6.3.18 | ✅ Working | No issues |
+| `adafruit_pixelbuf` | 2.0.10 | ✅ Working | Dependency for neopixel |
+| `adafruit_ssd1306` | Latest | ❌ Crashes | Hard fault - avoid |
+| `adafruit_displayio_ssd1306` | 3.0.4 | ❌ Crashes | API incompatibility |
+
+### Compatibility Testing Script
+
+Use `scripts/test_library_compatibility.py` to safely test libraries:
+
+```bash
+# Test a specific library
+python3 scripts/test_library_compatibility.py library_name
+
+# Deploy to device for hardware-specific testing
+cp scripts/safe_library_test.py /Volumes/CIRCUITPY/code.py
+# Edit code.py to test your specific library
+```
+
+---
+
+## Dependency Management
+
+### Core Principle: ALWAYS Check Dependencies First
+
+**Never deploy code without verifying all required libraries are installed AND compatible.**
+
+This applies to:
+- Deploying to hardware
+- Running tests
+- Using any script that imports external libraries
+- After any git pull or code update
+
+### CircuitPython Library Management
+
+#### Tool: circup (CircuitPython Library Manager)
+
+**Installation:**
+```bash
+# Install circup (one-time setup)
+pip3 install --upgrade circup
+
+# Add to PATH if needed (check installation warnings)
+# macOS: Add to ~/.zshrc or ~/.bash_profile:
+export PATH="$HOME/Library/Python/3.9/bin:$PATH"
+```
+
+**Usage:**
+```bash
+# Check what's installed on connected device
+circup list
+
+# Check for required libraries
+circup freeze
+
+# Install a library
+circup install <library_name>
+
+# Install multiple libraries
+circup install neopixel adafruit_midi adafruit_displayio_ssd1306
+
+# Update all libraries to latest compatible versions
+circup update --all
+```
+
+### Dependency Checking Workflow
+
+#### Before Every Deployment:
+
+1. **Identify Required Libraries**
+   - Check all `import` statements in the code
+   - Check for external dependencies (not built-in CircuitPython modules)
+   - Review code comments or requirements files
+
+2. **Verify CircuitPython Built-ins vs External**
+
+   **Built-in (no installation needed):**
+   - `board`, `digitalio`, `analogio`, `busio`, `time`, `json`, `sys`, `os`
+   - `pwmio`, `microcontroller`, `storage`, `supervisor`
+
+   **External (require installation):**
+   - `neopixel` - NeoPixel/RGB LED control
+   - `adafruit_midi` - MIDI input/output
+   - `adafruit_displayio_ssd1306` - OLED display driver
+   - `adafruit_display_text` - Text rendering on displays
+   - `adafruit_debouncer` - Button debouncing
+   - Any library starting with `adafruit_*`
+
+3. **Check Installed Libraries**
+   ```bash
+   # Connect device, then:
+   circup list
+
+   # Or manually check:
+   ls /Volumes/CIRCUITPY/lib/
+   ```
+
+4. **Install Missing Dependencies**
+   ```bash
+   # Use circup to install missing libraries
+   circup install <library_name>
+
+   # Or use our helper script:
+   scripts/install_libs.py
+   ```
+
+5. **Verify Installation**
+   ```bash
+   # List installed libraries again
+   circup list
+
+   # Check file sizes (should be > 0 bytes)
+   ls -lh /Volumes/CIRCUITPY/lib/
+   ```
+
+### Automated Dependency Checking
+
+**Use helper scripts that check dependencies automatically:**
+
+```bash
+# Before deploying pin test:
+scripts/deploy_pin_test.sh  # Should auto-check dependencies
+
+# Before deploying main code:
+scripts/install.py  # Should verify all libs before copying files
+```
+
+**All deployment scripts MUST:**
+1. Check for CIRCUITPY mount point
+2. Verify required libraries are installed
+3. Install missing libraries automatically (with user confirmation)
+4. Report what was installed
+5. Only proceed with deployment after dependencies are satisfied
+
+### Dependency Documentation
+
+**Every Python file that requires external libraries MUST include:**
+
+At the top of the file (after docstring):
+```python
+"""
+Module description here.
+
+Required CircuitPython Libraries:
+- neopixel (install via: circup install neopixel)
+- adafruit_midi (install via: circup install adafruit_midi)
+
+Built-in Dependencies:
+- board, digitalio, time
+"""
+```
+
+**In README or installation docs:**
+- List ALL external library dependencies
+- Provide circup install command for all dependencies at once
+- Note CircuitPython version compatibility
+
+### Common Pitfall: "ImportError: no module named X"
+
+**When you see this error:**
+
+1. **DO NOT ignore it** - Fix it immediately
+2. **Identify the missing library**
+3. **Check if it's external or a typo**
+4. **Install via circup**
+5. **Verify installation**
+6. **Test again**
+
+**Example Fix:**
+```bash
+# Error: ImportError: no module named 'neopixel'
+
+# Fix:
+circup install neopixel
+
+# Verify:
+circup list | grep neopixel
+# Should show: neopixel
+
+# Device auto-reloads, test again
+```
+
+### Version Compatibility
+
+**CircuitPython Library Bundles:**
+- Libraries are version-specific to CircuitPython major version
+- 9.x libraries for CircuitPython 9.x
+- 10.x libraries for CircuitPython 10.x
+- circup handles this automatically
+
+**Check Your Version:**
+```bash
+cat /Volumes/CIRCUITPY/boot_out.txt | grep "CircuitPython"
+# Example: Adafruit CircuitPython 10.0.3
+```
+
+circup will download the correct bundle (e.g., 10.x-mpy) automatically.
+
+### Project-Specific Requirements
+
+**For Arp Project:**
+
+**Required External Libraries:**
+- `adafruit_midi` - MIDI communication
+- `adafruit_displayio_ssd1306` - OLED display
+- `adafruit_display_text` - Text on display
+- `adafruit_debouncer` - Button handling
+- `neopixel` - Status LED (for testing)
+
+**Install All At Once:**
+```bash
+circup install adafruit_midi adafruit_displayio_ssd1306 adafruit_display_text adafruit_debouncer neopixel
+```
+
+**Or use project installer:**
+```bash
+python3 scripts/install_libs.py
+```
+
+---
+
 ## Testing Procedures
 
 ### Pre-Deployment Testing
 Before deploying to hardware:
 
-1. **Hardware Tests:** `python hardware_tests.py` or load on device
-2. **Functionality Tests:**
+1. **Check Dependencies FIRST:**
+   ```bash
+   circup list
+   # Verify all required libraries are installed
+   ```
+
+2. **Hardware Tests:** `python tests/hardware_tests.py` or load on device
+3. **Functionality Tests:**
    - MIDI input/output
    - Button responsiveness
    - Display updates
    - Settings persistence
    - Arpeggiator patterns
-3. **Integration Tests:**
+4. **Integration Tests:**
    - Full workflow from boot to arpeggiating
    - Settings changes and persistence across reboots
 
@@ -438,6 +837,17 @@ git reset --hard origin/main
 ---
 
 ## Version History
+
+- **v1.3** (2025-10-22) - Added Comprehensive Dependency Management
+  - **Core Principle:** ALWAYS check dependencies before deployment
+  - Documented circup installation and usage
+  - Created dependency checking workflow (5-step process)
+  - Distinguished built-in vs external CircuitPython libraries
+  - Added project-specific library requirements
+  - Created automated dependency checker script (`scripts/check_dependencies.py`)
+  - Updated deployment scripts to auto-check/install dependencies
+  - Documented dependency headers for all Python files
+  - Updated testing procedures to include dependency verification
 
 - **v1.2** (2025-10-22) - Added Rigorous Hardware Validation Philosophy
   - Established "test everything" principle for hardware bring-up
