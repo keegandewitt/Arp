@@ -15,6 +15,18 @@ Hardware Required:
 - USB connection for serial monitor
 - Optional: Multimeter for voltage verification
 - Optional: Jumper wire for loopback tests
+
+Required CircuitPython Libraries:
+- neopixel (install via: circup install neopixel)
+
+Built-in Dependencies:
+- board, digitalio, analogio, pwmio, busio, time
+
+To install dependencies:
+    circup install neopixel
+
+Or use the deployment script which auto-checks dependencies:
+    ./scripts/deploy_pin_test.sh
 """
 
 import board
