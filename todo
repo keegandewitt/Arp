@@ -2,3 +2,4 @@ add startup error check protocal and confirmation
 add battery integration
 eventually migrate to new M4
 make sure the connection debug i implemented actually works? not sure how to prompt from serial etc
+add LEDS to back that are linked to the midi activity LEDs on the featherwing
