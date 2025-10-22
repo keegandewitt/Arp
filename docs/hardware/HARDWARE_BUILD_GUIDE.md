@@ -318,10 +318,10 @@
 
 ## Step 4: Panel Assembly
 
-**Purpose:** Mount all panel connectors before final wiring.
+**Purpose:** Mount all panel connectors on the rear panel before final wiring.
 
 ### Parts Needed:
-- Front panel (3D printed or fabricated)
+- Rear panel (3D printed or fabricated)
 - 2× TRS jacks (from Step 3)
 - 2× DIN-5 MIDI jacks (panel mount)
 - Hex nuts (included with jacks)
@@ -330,41 +330,46 @@
 ### Instructions:
 
 1. **Verify panel holes:**
-   - **CV/Gate jacks:** 2× 6mm diameter holes, 15mm apart
-   - **MIDI jacks:** 2× 14mm diameter holes, 25mm apart
+   - **MIDI jacks:** 2× 14mm diameter holes, 30mm apart (left side)
+   - **CV/Gate jacks:** 2× 6mm diameter holes, 17mm apart (right side)
+   - **USB-C cutout:** 10mm × 5mm rectangle (center)
    - Deburr holes if needed (file or sandpaper)
 
-2. **Mount TRS jacks (CV/Gate):**
+2. **Mount DIN-5 MIDI jacks (left side):**
+   - Insert jack from **outside** of panel
+   - Thread retaining nut from **inside**
+   - Tighten securely
+   - Align pins correctly (check orientation)
+   - **Far left:** MIDI IN
+   - **Center left:** MIDI OUT
+
+3. **Mount TRS jacks (CV/Gate, right side):**
    - Insert jack from **outside** of panel
    - Jack body should sit flush against panel
    - Thread retaining nut from **inside**
    - Tighten with wrench (don't overtighten plastic threads)
    - Ensure jack is straight and seated properly
-   - **Left jack:** CV Pitch
-   - **Right jack:** Gate
+   - **Center right:** CV Pitch
+   - **Far right:** Gate
 
-3. **Mount DIN-5 MIDI jacks:**
-   - Insert jack from **outside** of panel
-   - Thread retaining nut from **inside**
-   - Tighten securely
-   - Align pins correctly (check orientation)
-   - **Left jack:** MIDI IN
-   - **Right jack:** MIDI OUT
+4. **Verify USB-C alignment:**
+   - Check that M4 Feather USB-C port aligns with rear panel cutout
+   - Adjust internal mounting if needed for proper alignment
 
-4. **Label panel (optional but recommended):**
+5. **Label panel (optional but recommended):**
    - Use vinyl labels, laser engraving, or permanent marker
-   - Labels: "CV", "GATE", "MIDI IN", "MIDI OUT"
+   - Labels: "MIDI IN", "OUT", "USB-C", "CV", "GATE"
    - Optional: Add polarity indicator "V-TRIG" or voltage range "0-5V"
 
-**Panel layout:**
+**Rear panel layout:**
 ```
 ┌──────────────────────────────────────────────┐
-│  [MIDI IN]  [MIDI OUT]    [CV]    [GATE]    │
-│    DIN-5      DIN-5       TRS      TRS       │
+│  [MIDI IN]  [OUT]  [USB-C]  [CV]   [GATE]   │
+│    DIN-5    DIN-5  10×5mm   TRS     TRS      │
 └──────────────────────────────────────────────┘
 ```
 
-**✅ Checkpoint:** All panel connectors mounted securely, aligned properly, labeled.
+**✅ Checkpoint:** All panel connectors mounted securely on rear panel, aligned properly, labeled.
 
 ---
 
@@ -374,15 +379,15 @@
 
 ### Parts Needed:
 - MCP4728 DAC board (with capacitor and resistors from Steps 1-2)
-- 2× TRS jacks (mounted in panel from Step 4)
+- 2× TRS jacks (mounted in rear panel from Step 4)
 - Signal wires already attached
 - Soldering iron
 
 ### Instructions:
 
-1. **Route wires from DAC to panel:**
-   - Position DAC near front panel (leave 6-8 inches of wire)
-   - Route signal wires neatly
+1. **Route wires from DAC to rear panel:**
+   - Position DAC near rear panel (leave 6-8 inches of wire for routing)
+   - Route signal wires neatly along the internal path
    - Avoid crossing power wires
 
 2. **Verify connections (before power-on):**
@@ -419,7 +424,7 @@
 
 ## Step 6: FeatherWing Stack Assembly
 
-**Purpose:** Build the M4 + OLED + MIDI stack with proper standoffs.
+**Purpose:** Build the M4 + OLED stack and mount MIDI FeatherWing beside it for a low-profile footprint.
 
 ### Parts Needed:
 - Adafruit M4 Feather CAN Express
@@ -427,44 +432,63 @@
 - MIDI FeatherWing
 - M2.5 standoffs (8-12mm height)
 - M2.5 screws (6-10mm)
-- Stacking headers (if not pre-installed)
+- Stacking headers for OLED
+- Female-to-female jumper wires (for MIDI wing connections)
 
 ### Instructions:
 
-1. **Prepare headers (if needed):**
+1. **Prepare headers:**
    - M4 Feather may need female headers soldered
-   - MIDI and OLED Wings need male headers
+   - OLED Wing needs male stacking headers
+   - **MIDI Wing:** Install male headers (NOT stacking - it will be mounted beside the stack)
    - See Adafruit assembly guides for header installation
 
-2. **Stack order (bottom to top):**
+2. **Stack order (M4 + OLED only):**
    ```
    ┌──────────────────────┐
    │   OLED FeatherWing   │ ← Top (display + buttons)
    ├──────────────────────┤
-   │   MIDI FeatherWing   │ ← Middle (MIDI In/Out)
-   ├──────────────────────┤
    │ M4 Feather CAN (base)│ ← Bottom (USB-C rear-facing)
+   └──────────────────────┘
+
+   Mounted beside stack:
+   ┌──────────────────────┐
+   │   MIDI FeatherWing   │ ← Side-mounted (MIDI In/Out jacks to rear)
    └──────────────────────┘
    ```
 
-3. **Install standoffs:**
-   - Use M2.5 standoffs between each board
+3. **Install standoffs for M4+OLED stack:**
+   - Use M2.5 standoffs between M4 and OLED
    - Install at 4 mounting holes (corners)
-   - Height: 8-12mm per level (allows clearance for components)
+   - Height: 8-12mm (allows clearance for components)
 
-4. **Orient USB-C port:**
+4. **Mount MIDI FeatherWing beside stack:**
+   - Use separate standoffs or foam tape to mount MIDI wing horizontally
+   - Position with MIDI jacks facing **rear panel**
+   - Leave 5-10mm gap between MIDI wing and M4 stack for wire routing
+   - Ensure MIDI wing is at similar height to M4 for easy wiring
+
+5. **Orient USB-C port:**
    - **Critical:** Position M4 with USB-C facing **rear panel**
    - Allows direct access for charging/programming
    - No panel-mount USB extension needed
 
-5. **Connect I2C for MCP4728:**
+6. **Connect MIDI FeatherWing to M4:**
+   - Use jumper wires (F/F) to connect MIDI wing to M4:
+     - MIDI Wing **VIN** → M4 **USB** or **3V** (power)
+     - MIDI Wing **GND** → M4 **GND**
+     - MIDI Wing **TX** → M4 **RX** (UART serial)
+     - MIDI Wing **RX** → M4 **TX** (UART serial)
+   - Route wires neatly between boards
+
+7. **Connect I2C for MCP4728:**
    - MCP4728 needs I2C connection to M4
    - Use jumper wires (F/F or M/F):
      - M4 **SCL** → MCP4728 **SCL**
      - M4 **SDA** → MCP4728 **SDA**
    - Note: OLED also uses I2C (address 0x3C, no conflict with DAC at 0x60)
 
-**✅ Checkpoint:** Stack assembled securely, USB-C accessible, I2C wired to DAC.
+**✅ Checkpoint:** M4+OLED stack assembled, MIDI wing mounted beside stack, all connections wired, USB-C accessible.
 
 ---
 
@@ -542,39 +566,49 @@ Battery (Black -) ─────→ Common GND (M4 + Boost + DAC)
 
 ### Instructions:
 
-1. **Mount FeatherWing stack:**
+1. **Mount M4+OLED stack:**
    - Install in enclosure with standoffs or mounting brackets
    - Ensure USB-C port aligns with rear panel cutout
    - Leave access to reset button
+   - Position toward front/center of enclosure
 
-2. **Mount MCP4728 DAC:**
+2. **Mount MIDI FeatherWing:**
+   - Install beside M4 stack using standoffs or foam tape
+   - Position with MIDI jacks facing rear panel
+   - Ensure MIDI jacks align with rear panel DIN-5 holes
+   - Leave clearance for jumper wires to M4
+
+3. **Mount MCP4728 DAC:**
    - Use double-sided foam tape OR small standoffs
-   - Position near front panel for short wire runs
+   - Position near rear panel for short wire runs to CV/Gate jacks
    - Ensure I2C wires reach M4 SCL/SDA
 
-3. **Mount boost module:**
+4. **Mount boost module:**
    - Use double-sided foam tape
    - Position near battery and slide switch
    - Ensure wires not strained
 
-4. **Mount slide switch:**
+5. **Mount slide switch:**
    - Install in side panel cutout (see `805 slide switch.f3d` for dimensions)
    - Secure with mounting screws or clips
    - Label panel: "POWER" with ON/OFF indicators
 
-5. **Install battery:**
+6. **Install battery:**
    - Use Velcro strap or foam padding
    - Position away from PCBs (3-5mm clearance)
    - Ensure JST connector reaches switch
 
-6. **Cable management:**
+7. **Cable management:**
    - Route power and signal wires separately (5-10mm gap)
+   - Route MIDI wing jumper wires neatly to M4 stack
    - Use cable ties or wire clips
    - Leave slack for serviceability (~10mm)
-   - Organize wire bundle neatly
+   - Organize wire bundles neatly
 
-7. **Verify clearances:**
+8. **Verify clearances:**
    - All components clear enclosure walls
+   - MIDI wing jacks align with rear panel DIN-5 holes
+   - M4 USB-C aligns with rear panel cutout
    - No wires pinched or strained
    - Panel cutouts align with ports
    - Battery has room for expansion

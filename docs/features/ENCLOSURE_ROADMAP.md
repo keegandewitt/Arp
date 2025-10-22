@@ -121,13 +121,16 @@ Custom enclosure for MIDI Arpeggiator based on Adafruit M4 Express with FeatherW
   - Find/create models for Teyleten Boost Module and MCP4728 breakout
 
 - [ ] Create enclosure assembly:
-  - Stack FeatherWings in proper order (bottom to top):
+  - **M4+OLED Stack** (2-board stack for low profile):
     1. M4 Express (base) - **USB-C port facing rear for charging/programming**
-    2. MIDI FeatherWing (DIN-5 MIDI note data IN/OUT)
-    3. OLED FeatherWing (display on top)
-  - Position Teyleten Boost Module alongside stack
-  - Position MCP4728 DAC breakout near front panel (short wiring to TRS jacks)
-  - Position battery in remaining space (not underneath stack)
+    2. OLED FeatherWing (display on top)
+  - **MIDI FeatherWing** mounted **beside** M4 stack (not stacked):
+    - Position horizontally next to M4, MIDI jacks facing rear panel
+    - Connected via jumper wires (VIN, GND, TX, RX)
+    - Provides low-profile footprint (no tall stack)
+  - Position Teyleten Boost Module near power switch
+  - Position MCP4728 DAC breakout near rear panel (short wiring to TRS jacks)
+  - Position battery in remaining space
   - Define mounting strategy (M2.5 or M3 standoffs for stack, double-sided tape or standoffs for Boost/DAC)
   - **Plan wire routing (Slide Switch as Power Distribution Hub):**
     - Battery + (red) → Slide Switch IN terminal
@@ -137,22 +140,28 @@ Custom enclosure for MIDI Arpeggiator based on Adafruit M4 Express with FeatherW
     - Battery - (black) → Common GND (M4 + Boost Module + MCP4728)
     - Teyleten Boost 5V OUT → MCP4728 VCC (powers DAC)
     - M4 SCL/SDA → MCP4728 I2C (control)
-    - MCP4728 outputs (A, B, C, D) → Front panel TRS jacks (CV)
+    - MCP4728 outputs (A, B, C, D) → Rear panel TRS jacks (CV)
 
 - [ ] Design enclosure components:
   - **Bottom shell:** Main electronics cavity with integrated standoffs for stack, mounting posts for Boost and DAC
   - **Top panel:** Display window cutout + button access holes
-  - **Front panel:** 2x DIN-5 MIDI jack mounting holes (IN + OUT) + 4x 1/8" TRS jack mounting holes (CV 1-4)
-  - **Rear panel:** USB-C cutout (M4 charging + programming) - single port!
+  - **Front panel:** Clean panel with no cutouts (all I/O consolidated on rear)
+  - **Rear panel:** USB-C cutout + 2x DIN-5 MIDI jack mounting holes (IN + OUT) + 4x 1/8" TRS jack mounting holes (CV 1-4)
   - **Side panel:** Slide switch cutout and mounting features (acts as power distribution point)
   - Optional: Integrated corner posts for screw assembly
   - Ensure adequate space for internal wiring and component placement
 
 ### 2.2 Mounting & Support
-- [ ] **PCB Stack Mounting:**
+- [ ] **M4+OLED Stack Mounting:**
   - M2.5 or M3 standoffs (8-12mm height)
   - Align with Feather mounting holes
-  - Ensure stack stability (3 boards stacked)
+  - Only 2 boards stacked (much lower profile)
+
+- [ ] **MIDI FeatherWing Mounting (beside stack):**
+  - Separate standoffs or foam tape mounting
+  - Position horizontally next to M4 stack
+  - Orient MIDI jacks toward rear panel
+  - Allow 5-10mm gap for wire routing between boards
 
 - [ ] **Teyleten Boost Module Mounting:**
   - Double-sided foam tape OR small standoffs
@@ -162,7 +171,7 @@ Custom enclosure for MIDI Arpeggiator based on Adafruit M4 Express with FeatherW
 
 - [ ] **MCP4728 DAC Mounting:**
   - Double-sided foam tape OR small standoffs
-  - Position near front panel for short CV output wiring
+  - Position near rear panel for short CV output wiring
   - Ensure I2C wires can reach M4 SCL/SDA pins
   - Connect 5V from Boost Module to DAC VCC
 
@@ -204,13 +213,26 @@ Custom enclosure for MIDI Arpeggiator based on Adafruit M4 Express with FeatherW
   - Pattern cycle indicators
   - Status LEDs (optional)
 
-#### Front Panel (Connectors)
+#### Front Panel
+- [ ] **Clean Design:**
+  - No cutouts or connectors (all I/O consolidated on rear panel)
+  - Can add branding, labeling, or decorative elements
+  - Optional: Add ventilation slots if needed
+
+#### Rear Panel (All Connectors)
 - [ ] **MIDI Jacks (2 total - MIDI FeatherWing):**
   - Standard panel-mount DIN-5 (14mm holes)
   - MIDI IN: Note data input from keyboard/controller
   - MIDI OUT: Arpeggiated output to synthesizer
   - Label: "MIDI IN", "MIDI OUT"
   - Spacing: 20-25mm center-to-center
+
+- [ ] **USB-C Port (M4 Express):**
+  - Cutout for M4 Express USB-C port (direct access for charging AND programming)
+  - Size: 9mm x 4mm (with clearance for connector + cable strain relief)
+  - Position enclosure to align M4 USB-C with rear panel opening
+  - No panel-mount connector needed - direct board access
+  - Label: "USB-C" or "CHARGE/PROG"
 
 - [ ] **CV Output Jacks (4 total - MCP4728 Quad DAC):**
   - Panel-mount 3.5mm mono jacks (6mm holes)
@@ -221,22 +243,15 @@ Custom enclosure for MIDI Arpeggiator based on Adafruit M4 Express with FeatherW
   - Spacing: 12-15mm center-to-center (closer spacing for 4 jacks)
   - **Wiring:** Short jumper wires from MCP4728 breakout to TRS jack tips + grounds
 
-**Front Panel Layout Suggestion:**
+**Rear Panel Layout Suggestion:**
 ```
-[MIDI IN] [MIDI OUT]         [CV 1] [CV 2] [CV 3] [CV 4]
-  DIN-5     DIN-5               TRS    TRS    TRS    TRS
+[MIDI IN] [MIDI OUT]  [USB-C]  [CV 1] [CV 2] [CV 3] [CV 4]
+  DIN-5     DIN-5      9×4mm     TRS    TRS    TRS    TRS
                                (0-5V) (0-5V) (0-5V) (0-5V)
 ```
 
-#### Rear/Side Panel (Power & Programming)
-- [ ] **USB-C Port (M4 Express - Rear Panel):**
-  - Cutout for M4 Express USB-C port (direct access for charging AND programming)
-  - Size: 9mm x 4mm (with clearance for connector + cable strain relief)
-  - Position enclosure to align M4 USB-C with rear panel opening
-  - No panel-mount connector needed - direct board access
-  - Label: "USB-C" or "CHARGE/PROG"
-
-- [ ] **Slide Switch (Side Panel):**
+#### Side Panel (Power Switch)
+- [ ] **Slide Switch:**
   - Cutout for Model 805 slide switch (power distribution hub)
   - Reference `_hardware_files/805 slide switch.f3d` for exact dimensions
   - Mount switch through side panel for easy access

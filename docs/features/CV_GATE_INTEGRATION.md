@@ -91,9 +91,9 @@ MCP4728 Quad DAC Breakout
 └─────────────────────────┘
            │
            ↓
-   Wire 1 & 2 go to front panel jacks
+   Wire 1 & 2 go to rear panel jacks
 
-Front Panel - CV/Gate Jacks
+Rear Panel - CV/Gate Jacks
 ┌──────────────────────────────────┐
 │  Jack 1: CV PITCH                │
 │  ┌─────┐                         │
@@ -118,7 +118,7 @@ Note: Ring (R) and Sleeve (S) are soldered together
 
 ## Physical Integration into Enclosure
 
-### Front Panel Layout
+### Rear Panel Layout
 
 **Suggested arrangement (left to right):**
 ```
@@ -127,6 +127,8 @@ Note: Ring (R) and Sleeve (S) are soldered together
 │    DIN-5      DIN-5       3.5mm   3.5mm   │
 └────────────────────────────────────────────┘
 ```
+
+**Note:** All jacks are mounted on the rear panel for a cleaner front appearance and consolidated I/O.
 
 **Dimensions:**
 - **DIN-5 MIDI jacks:** 14mm mounting holes, ~25mm center-to-center spacing
@@ -172,7 +174,7 @@ Note: Ring (R) and Sleeve (S) are soldered together
    - Strip and tin one end
    - Solder to Sleeve terminal (common point with Ring)
 
-### Step 2: Mount Jacks to Front Panel
+### Step 2: Mount Jacks to Rear Panel
 
 1. **Drill/3D-print panel holes:**
    - 2× 6mm holes for CV/Gate jacks
@@ -208,7 +210,7 @@ Note: Ring (R) and Sleeve (S) are soldered together
 1. **Double-sided foam tape** (easiest):
    - Clean mounting surface
    - Apply foam tape to bottom of DAC breakout
-   - Press firmly onto enclosure floor near front panel
+   - Press firmly onto enclosure floor near rear panel
    - Ensure wires have slack for strain relief
 
 2. **Standoffs/screws** (more secure):
@@ -216,7 +218,7 @@ Note: Ring (R) and Sleeve (S) are soldered together
    - Secure with small screws from bottom of enclosure
 
 **Wire routing:**
-- Route CV/Gate wires neatly from DAC to front panel
+- Route CV/Gate wires neatly from DAC to rear panel
 - Avoid crossing power wires (keep 5-10mm separation)
 - Use cable ties or wire clips to secure bundle
 - Leave ~10mm slack for serviceability
