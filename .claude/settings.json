@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "arp-docs": {
+      "command": "python",
+      "args": [
+        "-m",
+        "mcp_server_docs",
+        "--directory",
+        "/home/user/Arp",
+        "--include",
+        "*.md",
+        "--recursive"
+      ]
+    }
+  }
+}
