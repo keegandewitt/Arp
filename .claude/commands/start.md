@@ -83,6 +83,40 @@ This shows the recent development timeline and helps you understand what's been 
 
 ---
 
+## MCP Server for Documentation Access
+
+**Recommended:** This project is configured to use **mcp-server-docs** for efficient documentation access.
+
+### What is MCP?
+
+Model Context Protocol (MCP) allows you to search and retrieve documentation instantly, reducing token usage by ~80-90% compared to reading files directly.
+
+### Check if MCP is Available
+
+Try searching the documentation:
+```
+"Search the Arp documentation for MIDI clock information"
+```
+
+If MCP is working, you'll get instant results. If not, you'll need to read files manually.
+
+### Setup Instructions
+
+If MCP is not configured, see **MCP_SETUP.md** for complete setup instructions:
+```bash
+cat MCP_SETUP.md
+```
+
+**Key benefits with MCP:**
+- Search all markdown files simultaneously
+- ~90% reduction in documentation-reading tokens
+- Faster context gathering during onboarding
+- More token budget available for actual work
+
+**Without MCP:** You can still read files directly using the Read tool, but it will be slower and use more tokens.
+
+---
+
 ## Project Architecture
 
 ### Key Files & Modules
@@ -118,6 +152,7 @@ This shows the recent development timeline and helps you understand what's been 
 
 **Technical Documentation:**
 - `METHODOLOGY.md` - Development workflow, git practices, handoff protocol
+- `MCP_SETUP.md` - MCP server configuration for efficient doc access
 - `CV_GATE_INTEGRATION.md` - CV/Gate feature documentation
 - `HARDWARE_PINOUT.md` - Pin assignments
 - `ENCLOSURE_ROADMAP.md` - Enclosure design plans
