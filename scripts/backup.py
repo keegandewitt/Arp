@@ -19,7 +19,7 @@ from pathlib import Path
 
 # Configuration
 PROJECT_NAME = "Arp"
-PROJECT_DIR = Path(__file__).parent.resolve()
+PROJECT_DIR = Path(__file__).parent.parent.resolve()  # Go up from scripts/ to project root
 BACKUP_DIR = Path.home() / "Cursor" / "_Backups"
 MAX_BACKUPS = 5
 

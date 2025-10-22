@@ -36,18 +36,21 @@
     ┌─────────────────────────────────────┐
     │         [OLED Display]              │
     │          [A] [B] [C]                │
+    │                                     │
+    │   [M4+OLED]      [MIDI Wing]       │  ← Side-by-side
     └─────────────────────────────────────┘
 
                    FRONT VIEW
     ┌─────────────────────────────────────┐
-    │  [MIDI IN] [MIDI OUT] [CV] [GATE]  │ ← Front Panel
+    │                                     │ ← Front Panel (Clean)
     │                                     │
-    │        [Internal Stack]             │
+    │     [M4+OLED]    [MIDI Wing]        │  ← Low profile
     │                                     │
     └─────────────────────────────────────┘
          ↑                        ↑
-    Slide Switch              USB-C Port
-    (Left Side)              (Rear Panel)
+    Slide Switch          [MIDI IN] [MIDI OUT]
+    (Left Side)           [USB-C] [CV] [GATE]
+                              (Rear Panel)
 ```
 
 ---
@@ -257,7 +260,7 @@ The bottom shell is the main structural component with integrated standoffs and 
 
 ## Part 2: Front Panel
 
-Front panel mounts MIDI DIN-5 jacks and CV/Gate TRS jacks.
+Front panel is now a clean, solid panel with no cutouts (all jacks moved to rear).
 
 ### Step 2.1: Create Front Panel Base
 
@@ -273,61 +276,7 @@ Front panel mounts MIDI DIN-5 jacks and CV/Gate TRS jacks.
    - Distance: **2.5mm** (wall thickness)
    - Operation: New Body
 
-### Step 2.2: Add MIDI Jack Holes (DIN-5)
-
-**Layout:**
-- 2 MIDI jacks, spaced 30mm apart
-- Positioned left side of panel
-- Center height: 30mm from bottom
-
-**Hole diameter:** 14mm (DIN-5 standard)
-
-1. **Create → Create Sketch** on front face of panel
-2. **Sketch → Circle**
-   - MIDI IN: X = -40mm, Y = 30mm, Diameter = **14mm**
-   - MIDI OUT: X = -10mm, Y = 30mm, Diameter = **14mm**
-3. **Finish Sketch**
-4. **Create → Extrude**
-   - Distance: **-2.5mm** (cut through panel)
-   - Operation: Cut
-
-### Step 2.3: Add CV/Gate TRS Jack Holes (3.5mm)
-
-**Layout:**
-- 2 TRS jacks, spaced 15mm apart
-- Positioned right side of panel
-- Center height: 30mm from bottom
-
-**Hole diameter:** 6mm (3.5mm TRS standard)
-
-1. **Create → Create Sketch** on front face
-2. **Sketch → Circle**
-   - CV (Pitch): X = 25mm, Y = 30mm, Diameter = **6mm**
-   - GATE: X = 42mm, Y = 30mm, Diameter = **6mm**
-3. **Finish Sketch**
-4. **Create → Extrude**
-   - Distance: **-2.5mm** (cut through)
-   - Operation: Cut
-
-### Step 2.4: Add Labels (Engraved)
-
-**Optional: Add text labels below each jack:**
-
-1. **Create → Create Sketch** on front face
-2. **Sketch → Text**
-   - Font: Arial, Bold
-   - Height: **3mm**
-   - Text positioning:
-     - Below MIDI IN hole: "MIDI IN"
-     - Below MIDI OUT hole: "MIDI OUT"
-     - Below CV hole: "CV"
-     - Below GATE hole: "GATE"
-3. **Finish Sketch**
-4. **Create → Extrude**
-   - Distance: **-0.5mm** (shallow engraving)
-   - Operation: Cut
-
-### Step 2.5: Add Mounting Tabs
+### Step 2.2: Add Mounting Tabs
 
 **Create tabs to attach panel to bottom shell:**
 
@@ -348,7 +297,7 @@ Front panel mounts MIDI DIN-5 jacks and CV/Gate TRS jacks.
 
 ## Part 3: Rear Panel
 
-Rear panel has USB-C cutout only.
+Rear panel now houses all connections: USB-C, MIDI jacks, and CV/Gate outputs.
 
 ### Step 3.1: Create Rear Panel Base
 
@@ -363,7 +312,25 @@ Rear panel has USB-C cutout only.
    - Distance: **2.5mm**
    - Operation: New Body
 
-### Step 3.2: Add USB-C Port Cutout
+### Step 3.2: Add MIDI Jack Holes (DIN-5)
+
+**Layout:**
+- 2 MIDI jacks, spaced 30mm apart
+- Positioned left side of panel
+- Center height: 30mm from bottom
+
+**Hole diameter:** 14mm (DIN-5 standard)
+
+1. **Create → Create Sketch** on rear face of panel
+2. **Sketch → Circle**
+   - MIDI IN: X = -45mm, Y = 30mm, Diameter = **14mm**
+   - MIDI OUT: X = -15mm, Y = 30mm, Diameter = **14mm**
+3. **Finish Sketch**
+4. **Create → Extrude**
+   - Distance: **-2.5mm** (cut through panel)
+   - Operation: Cut
+
+### Step 3.3: Add USB-C Port Cutout
 
 **USB-C position:** Centered horizontally, 15mm from bottom (aligned with M4 Feather USB port)
 
@@ -381,19 +348,44 @@ Rear panel has USB-C cutout only.
    - Distance: **-2.5mm** (cut through)
    - Operation: Cut
 
-### Step 3.3: Add Label
+### Step 3.4: Add CV/Gate TRS Jack Holes (3.5mm)
+
+**Layout:**
+- 2 TRS jacks, spaced 15mm apart
+- Positioned right side of panel
+- Center height: 30mm from bottom
+
+**Hole diameter:** 6mm (3.5mm TRS standard)
+
+1. **Create → Create Sketch** on rear face
+2. **Sketch → Circle**
+   - CV (Pitch): X = 30mm, Y = 30mm, Diameter = **6mm**
+   - GATE: X = 47mm, Y = 30mm, Diameter = **6mm**
+3. **Finish Sketch**
+4. **Create → Extrude**
+   - Distance: **-2.5mm** (cut through)
+   - Operation: Cut
+
+### Step 3.5: Add Labels (Engraved)
+
+**Add text labels below each jack:**
 
 1. **Create → Create Sketch** on rear face
 2. **Sketch → Text**
-   - Text: "USB-C"
+   - Font: Arial, Bold
    - Height: **3mm**
-   - Position: Below cutout
+   - Text positioning:
+     - Below MIDI IN hole: "MIDI IN"
+     - Below MIDI OUT hole: "OUT"
+     - Below USB-C cutout: "USB-C"
+     - Below CV hole: "CV"
+     - Below GATE hole: "GATE"
 3. **Finish Sketch**
 4. **Create → Extrude**
-   - Distance: **-0.5mm**
+   - Distance: **-0.5mm** (shallow engraving)
    - Operation: Cut
 
-### Step 3.4: Add Mounting Tabs
+### Step 3.6: Add Mounting Tabs
 
 **Same as front panel:**
 
@@ -587,9 +579,9 @@ Top panel has OLED window and button access holes.
 
 ### Step 6.3: Add Strain Relief for Jacks
 
-**Create recessed pockets on inside of front panel for jack nuts:**
+**Create recessed pockets on inside of rear panel for jack nuts:**
 
-1. **Activate Front Panel component**
+1. **Activate Rear Panel component**
 2. **Create → Create Sketch** on inside face
 3. **Sketch → Concentric circles** around each jack hole
    - Outer diameter: 16mm (MIDI), 8mm (TRS)
@@ -685,8 +677,8 @@ Top panel has OLED window and button access holes.
 Before printing, verify:
 
 - [ ] Bottom shell has all mounting features (standoffs, posts, battery compartment)
-- [ ] Front panel holes: 2× 14mm (MIDI), 2× 6mm (CV/Gate)
-- [ ] Rear panel cutout: 10mm × 5mm (USB-C)
+- [ ] Front panel: Clean/solid (no cutouts)
+- [ ] Rear panel holes: 2× 14mm (MIDI), 2× 6mm (CV/Gate), 1× USB-C cutout (10mm × 5mm)
 - [ ] Left side cutout: Slide switch (verify with .f3d model)
 - [ ] Top panel: 30mm × 15mm OLED window, 3× 4mm button holes
 - [ ] All panels have mounting tabs with 3.2mm screw holes

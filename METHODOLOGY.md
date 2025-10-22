@@ -1,6 +1,6 @@
 # Project Methodology & Workflow Guide
 
-**Last Updated:** 2025-10-21 (v1.1 - Added handoff protocol)
+**Last Updated:** 2025-10-22 (v1.2 - Added rigorous hardware validation philosophy)
 **Project:** Arp - CircuitPython MIDI Arpeggiator
 **Purpose:** This document guides all development, git workflows, and collaboration practices for this project.
 
@@ -49,7 +49,7 @@ Before every commit and push to the remote repository, **ALWAYS**:
 ### Backup Script Usage
 ```bash
 # Run before every push
-python backup.py
+python scripts/backup.py
 ```
 
 The backup script will:
@@ -97,7 +97,7 @@ Claude Code sessions have a token budget that auto-compacts when exceeded. To en
    - Complete current task if nearly done
    - Otherwise, pause at a logical stopping point
    - Commit and push any uncommitted work (following the git workflow above)
-   - Run backup: `python3 backup.py`
+   - Run backup: `python3 scripts/backup.py`
 
 2. **Create Handoff Document**
    Create `HANDOFF.md` in the project root with the following sections:
@@ -281,7 +281,7 @@ Before deploying to hardware:
    - Settings changes and persistence across reboots
 
 ### Hardware Testing
-See `TESTING_GUIDE.md` for comprehensive hardware validation procedures.
+See `docs/features/TESTING_GUIDE.md` for comprehensive hardware validation procedures.
 
 ---
 
@@ -293,22 +293,65 @@ Every significant feature or hardware change requires documentation:
 - **Code Comments:** Complex logic should have inline comments
 - **Module Docstrings:** Every `.py` file should have a module-level docstring
 - **Function Docstrings:** Public functions should document parameters and return values
-- **README Updates:** Keep `INSTALLER_README.md` current
-- **Hardware Docs:** Update `HARDWARE_BUILD_GUIDE.md` for any hardware changes
+- **README Updates:** Keep `docs/installation/INSTALLER_README.md` current
+- **Hardware Docs:** Update `docs/hardware/HARDWARE_BUILD_GUIDE.md` for any hardware changes
 
 ### Documentation Files
 - `README.md` - Project overview (create if needed)
-- `INSTALLER_README.md` - Installation instructions
-- `HARDWARE_BUILD_GUIDE.md` - Hardware assembly
-- `TESTING_GUIDE.md` - Testing procedures
-- `CV_GATE_INTEGRATION.md` - CV/Gate feature documentation
-- `ENCLOSURE_ROADMAP.md` - Enclosure design plans
-- `BOM.md` - Bill of materials
+- `docs/installation/INSTALLER_README.md` - Installation instructions
+- `docs/hardware/HARDWARE_BUILD_GUIDE.md` - Hardware assembly
+- `docs/features/TESTING_GUIDE.md` - Testing procedures
+- `docs/features/CV_GATE_INTEGRATION.md` - CV/Gate feature documentation
+- `docs/features/ENCLOSURE_ROADMAP.md` - Enclosure design plans
+- `docs/hardware/BOM.md` - Bill of materials
 - `METHODOLOGY.md` - This document
 
 ---
 
 ## Hardware Development
+
+### Rigorous Hardware Validation Philosophy
+
+**Core Principle:** Test EVERYTHING, not just what we're using.
+
+When bringing up new hardware or validating soldering/assembly:
+
+1. **Complete Pin Testing**
+   - Test ALL pins on the microcontroller, not just pins used by the project
+   - Validate every GPIO, analog input, communication bus, power pin
+   - Document which pins pass/fail testing
+   - Rationale: Verifies assembly quality, catches cold solder joints, identifies damaged components
+
+2. **Systematic Test Approach**
+   - Follow a methodical, pin-by-pin testing sequence
+   - Test basic functionality first (GPIO toggle, analog read, pull-up/down)
+   - Progress to advanced functions (PWM, I2C, SPI, UART, DAC, ADC)
+   - Document every test result in a test log
+
+3. **Test Before Integration**
+   - Validate hardware independently before running application code
+   - Use dedicated test scripts that exercise individual subsystems
+   - Verify power rails, voltage levels, current draw
+   - Check for shorts, opens, and intermittent connections
+
+4. **Documentation Requirements**
+   - Create comprehensive test scripts that others can replicate
+   - Log all test results with pass/fail status
+   - Note any anomalies, even if they don't cause immediate failure
+   - Include scope traces or multimeter readings for critical signals
+
+5. **Failure Analysis**
+   - If ANY pin fails, investigate thoroughly before proceeding
+   - Use continuity testing, voltage measurements, scope traces
+   - Check solder joints under magnification
+   - Don't assume "it's probably fine" - verify and document
+
+**Benefits of This Approach:**
+- Catches manufacturing/assembly defects early
+- Builds confidence in hardware reliability
+- Creates reusable test infrastructure
+- Provides baseline for troubleshooting future issues
+- Documents hardware capabilities comprehensively
 
 ### Design Process
 1. **Schematic Design:** Use KiCad, store in `_hardware_files/`
@@ -395,6 +438,12 @@ git reset --hard origin/main
 ---
 
 ## Version History
+
+- **v1.2** (2025-10-22) - Added Rigorous Hardware Validation Philosophy
+  - Established "test everything" principle for hardware bring-up
+  - Defined systematic pin-by-pin testing approach
+  - Documented comprehensive validation requirements
+  - Added failure analysis procedures
 
 - **v1.1** (2025-10-21) - Added Claude instance handoff protocol
   - Token budget management at 90% threshold
