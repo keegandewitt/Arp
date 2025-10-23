@@ -1,4 +1,17 @@
 """
+⚠️  DEPLOYMENT WARNING ⚠️
+=======================
+This file (main.py) is the SOURCE OF TRUTH in the repository.
+It is deployed as code.py on the CircuitPython device.
+
+ALWAYS EDIT: main.py (in repository)
+NEVER EDIT:  code.py (on device) - it will be overwritten!
+
+To deploy changes:
+    python3 scripts/deploy.py
+
+=======================
+
 Arp - Hardware Arpeggiator (Phase 1: MIDI Core)
 Main application entry point
 
@@ -104,6 +117,7 @@ print("      ✓ Buttons ready (A, B, C)")
 print("[4/5] Initializing Settings...")
 # Global settings object
 settings = Settings()
+settings.load()  # Load saved settings from file (or use defaults if no file exists)
 menu = SettingsMenu(settings)
 print("      ✓ Settings ready")
 
@@ -118,9 +132,9 @@ print("\n" + "="*60)
 print("SYSTEM READY")
 print("="*60)
 print("Button A (short):  Previous pattern")
-print("Button A (long):   Settings menu")
+print("Button A+C (long): Settings menu")
 print("Button B:          Demo arpeggio")
-print("Button C:          Next pattern")
+print("Button C (short):  Next pattern")
 print("MIDI IN:           Send notes to arpeggiate")
 print("Clock:             " + settings.get_clock_source_name())
 if DEBUG_MEMORY:
@@ -226,6 +240,7 @@ last_display_update = time.monotonic()
 display_update_interval = 0.1  # Update display every 100ms
 gc_counter = 0
 gc_interval = 100  # Run garbage collection every 100 loops (~100ms)
+button_cooldown_end = 0.0  # Cooldown timer to prevent demo after settings exit
 
 while True:
     loop_count += 1
@@ -321,7 +336,7 @@ while True:
     # -------------------------------------------------------------------------
     # Button Input & Menu Handling
     # -------------------------------------------------------------------------
-    button_a, button_b, button_c, button_ac_combo, a_long, b_long = buttons.check_buttons()
+    button_a, button_b, button_c, button_ac_combo, a_long, b_long, ac_long = buttons.check_buttons()
 
     if menu.menu_active:
         # Menu navigation mode
@@ -331,7 +346,28 @@ while True:
             menu.navigate_next()
         if button_b:
             menu.select()
-        if a_long:
+            # Check if we exited menu after selecting (B at VALUE level)
+            if not menu.menu_active:
+                display.exit_settings_menu()
+                # Show "SETTINGS SAVED!" confirmation if flag is set
+                if menu.show_saved_confirmation:
+                    display.show_status("SETTINGS SAVED!", 2.0)  # Show for 2 seconds
+                    menu.show_saved_confirmation = False
+                    # Set cooldown to prevent demo from triggering if B still held
+                    button_cooldown_end = current_time + 0.5  # 500ms cooldown
+                # Refresh main display
+                clock_src_label = settings.get_clock_source_short()
+                display.update_display(clock.get_bpm(), settings.get_pattern_name(), clock.is_running(), clock_src_label)
+                print("Settings saved and exited menu")
+        if ac_long:
+            # Long press A+C: Exit settings menu
+            menu.exit_menu()
+            display.exit_settings_menu()
+            # Refresh main display
+            clock_src_label = settings.get_clock_source_short()
+            display.update_display(clock.get_bpm(), settings.get_pattern_name(), clock.is_running(), clock_src_label)
+            print("Exited settings menu")
+        elif a_long:
             menu.back()
             # Check if we exited the menu
             if not menu.menu_active:
@@ -360,8 +396,8 @@ while True:
 
     else:
         # Normal mode (not in menu)
-        if a_long:
-            # Long press A: Enter settings menu
+        if ac_long:
+            # Long press A+C: Enter settings menu
             menu.enter_menu()
             print("Entered settings menu")
         elif button_a:
@@ -371,6 +407,7 @@ while True:
             print(f"Pattern: {settings.get_pattern_name()}")
             clock_src_label = settings.get_clock_source_short()
             display.update_display(clock.get_bpm(), settings.get_pattern_name(), clock.is_running(), clock_src_label)
+            settings.save()  # Auto-save pattern change
 
         if button_c:
             # Next pattern
@@ -379,8 +416,10 @@ while True:
             print(f"Pattern: {settings.get_pattern_name()}")
             clock_src_label = settings.get_clock_source_short()
             display.update_display(clock.get_bpm(), settings.get_pattern_name(), clock.is_running(), clock_src_label)
+            settings.save()  # Auto-save pattern change
 
-    if button_b:
+    # Button B: Demo arpeggio (only on main screen, not in menu, and after cooldown)
+    if button_b and not menu.menu_active and current_time >= button_cooldown_end:
         # Demo: Play C major chord arpeggio
         print("Button B: Playing C major arpeggio demo")
         note_buffer = list(DEMO_CHORD)  # Use pre-allocated demo chord

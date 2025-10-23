@@ -20,6 +20,9 @@ adafruit_midi/                    # v1.0+ - MIDI encoding/decoding (copy entire 
 adafruit_displayio_ssd1306.mpy    # v1.0+ - DisplayIO driver for SSD1306 OLED
 adafruit_display_text/            # v3.3.3+ - Text rendering library (copy entire folder)
 
+# DAC Support (CV/Gate Output)
+adafruit_mcp4728.mpy              # v1.0+ - MCP4728 Quad 12-bit DAC driver
+
 # === Built-in CircuitPython Modules ===
 # These are included with CircuitPython and do NOT need to be installed:
 # - board

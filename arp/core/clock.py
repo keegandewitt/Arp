@@ -43,9 +43,11 @@ class ClockHandler:
 
         # BPM calculation (for external clock)
         self.bpm = None
+        self.displayed_bpm = None  # Last BPM shown to user (for stability)
         self.last_tick_time = None
         self.tick_intervals = []  # Store recent intervals for averaging
-        self.max_intervals = 24  # Average over 24 ticks (1 beat at 24 PPQN)
+        self.max_intervals = 96  # Average over 96 ticks (4 beats at 24 PPQN) for stability
+        self.bpm_update_threshold = 5  # Only update displayed BPM if change is >= 5 BPM
 
         # Internal clock
         self.clock_source = self.CLOCK_INTERNAL  # Default to internal
@@ -196,17 +198,47 @@ class ClockHandler:
                     current_time = time.monotonic()
                     if self.last_tick_time is not None:
                         interval = current_time - self.last_tick_time
+
+                        # Detect tempo change: if interval is very different from average, clear buffer
+                        if len(self.tick_intervals) >= 12:
+                            avg_interval = sum(self.tick_intervals) / len(self.tick_intervals)
+                            # If new interval differs by more than 15% from average, tempo changed
+                            if abs(interval - avg_interval) > (avg_interval * 0.15):
+                                print(f"Tempo change detected - clearing buffer (interval: {interval:.4f}s, avg: {avg_interval:.4f}s)")
+                                self.tick_intervals = []
+                                self.displayed_bpm = None
+
                         self.tick_intervals.append(interval)
 
                         # Keep only recent intervals
                         if len(self.tick_intervals) > self.max_intervals:
                             self.tick_intervals.pop(0)
 
+                        # Debug: print buffer status every 24 ticks
+                        if len(self.tick_intervals) % 24 == 0:
+                            print(f"Buffer: {len(self.tick_intervals)} samples")
+
                         # Calculate average interval and BPM
-                        if len(self.tick_intervals) >= 4:  # Need at least a few samples
+                        if len(self.tick_intervals) >= 12:  # Need at least half a beat of samples
                             avg_interval = sum(self.tick_intervals) / len(self.tick_intervals)
                             # BPM = 60 / (avg_interval * 24) since 24 PPQN
-                            self.bpm = 60.0 / (avg_interval * 24)
+                            calculated_bpm = 60.0 / (avg_interval * 24)
+
+                            # Round to nearest integer for stability
+                            rounded_bpm = round(calculated_bpm)
+
+                            # Only update displayed BPM if change is significant (hysteresis)
+                            if self.displayed_bpm is None:
+                                self.displayed_bpm = rounded_bpm
+                                self.bpm = rounded_bpm
+                                print(f"External BPM: {self.bpm}")
+                            elif abs(rounded_bpm - self.displayed_bpm) >= self.bpm_update_threshold:
+                                self.displayed_bpm = rounded_bpm
+                                self.bpm = rounded_bpm
+                                print(f"External BPM: {self.bpm}")
+                            else:
+                                # Keep the stable displayed value
+                                self.bpm = self.displayed_bpm
 
                     self.last_tick_time = current_time
 
@@ -228,6 +260,7 @@ class ClockHandler:
         self.running = False
         self.tick_count = 0
         self.bpm = None
+        self.displayed_bpm = None
         self.last_tick_time = None
         self.tick_intervals = []
         self.last_internal_tick = None

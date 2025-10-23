@@ -52,15 +52,20 @@ class ButtonHandler:
         self.a_long_press_triggered = False
         self.b_long_press_triggered = False
 
+        # A+C combo long press tracking (for settings menu)
+        self.ac_long_press_start_time = None
+        self.ac_long_press_triggered = False
+
     def check_buttons(self):
         """
         Check button states and return which buttons were pressed
 
         Returns:
-            Tuple of (a_pressed, b_pressed, c_pressed, ac_combo, a_long_press, b_long_press) as booleans
-            ac_combo is True if A and C are pressed simultaneously
+            Tuple of (a_pressed, b_pressed, c_pressed, ac_combo, a_long_press, b_long_press, ac_long_press) as booleans
+            ac_combo is True if A and C are pressed simultaneously (short press)
             a_long_press is True if A is held for long press duration
             b_long_press is True if B is held for long press duration
+            ac_long_press is True if A and C are held together for long press duration (for settings menu)
         """
         current_time = time.monotonic()
         a_pressed = False
@@ -69,14 +74,41 @@ class ButtonHandler:
         ac_combo = False
         a_long_press = False
         b_long_press = False
+        ac_long_press = False
 
         # Read current states
         current_a = self.button_a.value
         current_b = self.button_b.value
         current_c = self.button_c.value
 
-        # Track button A press start for long press detection
-        if not current_a:  # Button A is pressed
+        # Check for A+C combo (both pressed) - this has two modes:
+        # 1. Short press = ac_combo (existing behavior)
+        # 2. Long press = ac_long_press (NEW - for settings menu)
+        ac_combo_active = not current_a and not current_c
+
+        if ac_combo_active:  # Both A and C are pressed
+            # Track for long press detection
+            if self.ac_long_press_start_time is None:
+                # Just started pressing both
+                self.ac_long_press_start_time = current_time
+                self.ac_long_press_triggered = False
+            elif not self.ac_long_press_triggered:
+                # Check if held long enough for settings menu
+                if current_time - self.ac_long_press_start_time >= self.long_press_time:
+                    ac_long_press = True
+                    self.ac_long_press_triggered = True
+
+            # When A+C are both pressed, reset individual trackers to prevent conflicts
+            self.a_press_start_time = None
+            self.c_press_start_time = None
+            self.a_long_press_triggered = False
+        else:
+            # A+C combo released
+            self.ac_long_press_start_time = None
+            self.ac_long_press_triggered = False
+
+        # Track button A press start for long press detection (only if not in A+C combo)
+        if not current_a and not ac_combo_active:  # Button A pressed alone
             if self.a_press_start_time is None:
                 # Just started pressing
                 self.a_press_start_time = current_time
@@ -86,8 +118,8 @@ class ButtonHandler:
                 if current_time - self.a_press_start_time >= self.long_press_time:
                     a_long_press = True
                     self.a_long_press_triggered = True
-        else:
-            # Button A released
+        elif current_a or ac_combo_active:
+            # Button A released or in combo
             self.a_press_start_time = None
             self.a_long_press_triggered = False
 
@@ -107,18 +139,20 @@ class ButtonHandler:
             self.b_press_start_time = None
             self.b_long_press_triggered = False
 
-        # Check for A+C combination (both pressed at same time)
-        if not current_a and not current_c:
+        # Check for A+C short combo (both pressed simultaneously - existing behavior)
+        # This is different from ac_long_press which is for settings menu
+        if ac_combo_active:
             # Both buttons are currently pressed
             if self.last_a_state and self.last_c_state:
-                # Both were released before, this is a new press
+                # Both were released before, this is a new SHORT press (not long press)
                 if current_time - max(self.last_a_press_time, self.last_c_press_time) > self.debounce_time:
-                    ac_combo = True
-                    self.last_a_press_time = current_time
-                    self.last_c_press_time = current_time
+                    if not ac_long_press:  # Only trigger short combo if long press hasn't fired
+                        ac_combo = True
+                        self.last_a_press_time = current_time
+                        self.last_c_press_time = current_time
 
         # Check individual buttons only if not part of combo and not long press
-        if not ac_combo and not a_long_press and not b_long_press:
+        if not ac_combo and not a_long_press and not b_long_press and not ac_long_press:
             # Check button A (active low - pressed = False)
             if not current_a and self.last_a_state:  # Button just pressed
                 if current_time - self.last_a_press_time > self.debounce_time:
@@ -142,7 +176,7 @@ class ButtonHandler:
         self.last_b_state = current_b
         self.last_c_state = current_c
 
-        return (a_pressed, b_pressed, c_pressed, ac_combo, a_long_press, b_long_press)
+        return (a_pressed, b_pressed, c_pressed, ac_combo, a_long_press, b_long_press, ac_long_press)
 
     def wait_for_release(self, button='all'):
         """

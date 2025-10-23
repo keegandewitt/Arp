@@ -123,6 +123,10 @@ class Display:
         self.sleep_timeout = 15.0  # seconds
         self.last_activity_time = None
 
+        # Status message timing
+        self.status_message = None
+        self.status_end_time = None
+
         # MIDI activity indicators
         self.midi_in_active = False
         self.midi_out_active = False
@@ -420,8 +424,33 @@ class Display:
             self.update_bpm(bpm, clock_source_short)
             self.update_pattern(pattern_name)
 
-            # Show clock status if not running (external only)
-            if not clock_running and self.status_label.text == "":
+            # Check for timed status message
+            import time
+            current_time = time.monotonic()
+            if self.status_end_time and current_time >= self.status_end_time:
+                # Status message expired, clear it
+                self.status_label.text = ""
+                self.status_message = None
+                self.status_end_time = None
+
+            # Show status message if active
+            if self.status_message:
+                self.status_label.text = self.status_message
+            # Otherwise show clock status if not running (external only)
+            elif not clock_running:
                 self.status_label.text = "No Clock"
             elif clock_running and self.status_label.text == "No Clock":
                 self.status_label.text = ""
+
+    def show_status(self, message, duration_seconds=2.0):
+        """
+        Show a temporary status message on line 3
+
+        Args:
+            message: The message to show
+            duration_seconds: How long to show it (default 2 seconds)
+        """
+        import time
+        self.status_message = message
+        self.status_end_time = time.monotonic() + duration_seconds
+        self.status_label.text = message
