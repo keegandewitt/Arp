@@ -39,6 +39,8 @@ import busio
 import time
 import digitalio
 import usb_midi
+import gc
+import random
 from adafruit_midi import MIDI
 from adafruit_midi.note_on import NoteOn
 from adafruit_midi.note_off import NoteOff
@@ -66,6 +68,16 @@ from arp.utils.config import Settings
 print("\n" + "="*60)
 print("ARP - Hardware Arpeggiator v1.0")
 print("="*60)
+
+# =============================================================================
+# Configuration
+# =============================================================================
+
+# Enable memory monitoring for debugging (set to True to see memory stats)
+DEBUG_MEMORY = False
+
+if DEBUG_MEMORY:
+    print(f"[DEBUG] Startup memory: {gc.mem_free()} bytes free")
 
 # =============================================================================
 # Hardware Initialization
@@ -111,6 +123,8 @@ print("Button B:          Demo arpeggio")
 print("Button C:          Next pattern")
 print("MIDI IN:           Send notes to arpeggiate")
 print("Clock:             " + settings.get_clock_source_name())
+if DEBUG_MEMORY:
+    print(f"[DEBUG] Post-init memory: {gc.mem_free()} bytes free")
 print("-"*60 + "\n")
 
 # =============================================================================
@@ -126,6 +140,9 @@ arp_sequence = []
 
 # Currently playing note (for note-off)
 current_playing_note = None
+
+# Pre-allocate demo chord (C major: C, E, G) - avoid allocations in button handler
+DEMO_CHORD = [(60, 100), (64, 100), (67, 100)]
 
 def generate_arp_sequence(notes):
     """Generate arpeggiated sequence from note buffer based on current pattern"""
@@ -144,7 +161,7 @@ def generate_arp_sequence(notes):
     elif settings.pattern == Settings.ARP_DOWN_UP:
         return list(reversed(note_nums)) + note_nums[1:-1] if len(note_nums) > 2 else list(reversed(note_nums))
     elif settings.pattern == Settings.ARP_RANDOM:
-        import random
+        # random imported at module level - no memory allocation here
         shuffled = note_nums.copy()
         random.shuffle(shuffled)
         return shuffled
@@ -207,6 +224,8 @@ display.update_display(clock.get_bpm(), settings.get_pattern_name(), clock.is_ru
 loop_count = 0
 last_display_update = time.monotonic()
 display_update_interval = 0.1  # Update display every 100ms
+gc_counter = 0
+gc_interval = 100  # Run garbage collection every 100 loops (~100ms)
 
 while True:
     loop_count += 1
@@ -265,23 +284,17 @@ while True:
                 except Exception as e:
                     print(f"⚠️  Failed real-time pass: {type(msg).__name__}: {e}")
 
-            elif isinstance(msg, MIDIUnknownEvent):
-                # Truly unknown MIDI event - not in library's registered types
-                # Fall back to raw byte pass-through
+            elif isinstance(msg, (MIDIUnknownEvent, MIDIBadEvent)):
+                # Unknown or unparseable MIDI events - fall back to raw byte pass-through
                 try:
-                    uart.write(bytes([msg.status]))
-                    print(f"Pass-through (raw): Unknown MIDI 0x{msg.status:02X}")
+                    if isinstance(msg, MIDIUnknownEvent):
+                        uart.write(bytes([msg.status]))
+                        print(f"Pass-through (raw): Unknown MIDI 0x{msg.status:02X}")
+                    else:  # MIDIBadEvent
+                        uart.write(msg.data)
+                        print(f"Pass-through (raw): Bad MIDI event ({len(msg.data)} bytes)")
                 except Exception as e:
-                    print(f"⚠️  Failed unknown pass: {e}")
-
-            elif isinstance(msg, MIDIBadEvent):
-                # MIDIBadEvent: library couldn't parse the message properly
-                # Has full message bytes stored in msg.data
-                try:
-                    uart.write(msg.data)
-                    print(f"Pass-through (raw): Bad MIDI event ({len(msg.data)} bytes)")
-                except Exception as e:
-                    print(f"⚠️  Failed bad event pass: {e}")
+                    print(f"⚠️  Failed raw pass-through: {e}")
             else:
                 # Normal MIDI messages - send via library
                 try:
@@ -370,7 +383,7 @@ while True:
     if button_b:
         # Demo: Play C major chord arpeggio
         print("Button B: Playing C major arpeggio demo")
-        note_buffer = [(60, 100), (64, 100), (67, 100)]  # C, E, G
+        note_buffer = list(DEMO_CHORD)  # Use pre-allocated demo chord
         arp_sequence = generate_arp_sequence(note_buffer)
         current_step = 0
 
@@ -401,6 +414,21 @@ while True:
         display.update_display(bpm, settings.get_pattern_name(), is_running, clock_src_label)
 
         last_display_update = current_time
+
+    # -------------------------------------------------------------------------
+    # Periodic Garbage Collection
+    # -------------------------------------------------------------------------
+    gc_counter += 1
+    if gc_counter >= gc_interval:
+        if DEBUG_MEMORY:
+            mem_before = gc.mem_free()
+        gc.collect()  # Clean up phantom objects and reduce fragmentation
+        if DEBUG_MEMORY:
+            mem_after = gc.mem_free()
+            mem_freed = mem_after - mem_before
+            if mem_freed > 0:
+                print(f"[DEBUG] GC freed {mem_freed} bytes ({mem_after} bytes free)")
+        gc_counter = 0
 
     # Small delay to prevent CPU spinning
     time.sleep(0.001)
