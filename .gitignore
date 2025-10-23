@@ -33,3 +33,16 @@ _Todos
 
 # Test files
 test_*.py
+
+# VintageCapture VST Build Artifacts
+VintageCapture/analyzer_test
+VintageCapture/Builds/*
+!VintageCapture/Builds/.gitkeep
+*.o
+*.a
+*.dylib
+*.dll
+*.exe
+*.vst3
+*.component
+*.app
