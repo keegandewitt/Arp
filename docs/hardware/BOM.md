@@ -32,11 +32,11 @@
 
 | Item | Qty | Unit Price | Total | Source | Notes |
 |------|-----|------------|-------|--------|-------|
-| **3.5mm TRS Panel Mount Jacks** (Thonkiconn PJ301M-12) | 2 | $1.25 | $2.50 | Thonkiconn, Tayda, Mouser | CV Pitch + Gate outputs (mono wiring: Tip=signal, Ring+Sleeve=GND) |
+| **3.5mm TRS Panel Mount Jacks** (Lsgoodcare 20-pack) | 2 | $0.50 | $1.00 | Amazon B01DBOBRHQ | CV Pitch + Gate outputs (mono wiring: Tip=signal, Ring+Sleeve=GND) - purchased as 20-pack (~$10) |
 | **DIN-5 Panel Mount Jacks** | 2 | $2.50 | $5.00 | Generic | MIDI In/Out passthrough |
 | **USB-C Panel Mount Extension** | 0 | $0.00 | $0.00 | N/A | Direct cutout in rear panel for M4's onboard USB-C |
 
-**Subtotal (Connectors):** $7.50
+**Subtotal (Connectors):** $6.00
 
 ---
 
@@ -120,8 +120,8 @@
 | **3D Printed Parts** | $4.00-11.50 |
 | **Wire & Cabling** | $4.50-5.00 |
 | **Optional Components** | $0-25.90 |
-| **TOTAL (without optional)** | **$90.04-105.54** |
-| **TOTAL (with all optional)** | **$90.04-131.44** |
+| **TOTAL (without optional)** | **$88.54-104.04** |
+| **TOTAL (with all optional)** | **$88.54-129.94** |
 
 ---
 
@@ -148,7 +148,7 @@
 
 ### Amazon/Generic Components
 - Teyleten Boost Modules (pack of 10: ~$7.00)
-- 3.5mm TRS jacks (pack of 10: ~$10-15)
+- **Lsgoodcare 3.5mm TRS jacks** (pack of 20: ~$10) - Amazon B01DBOBRHQ
 - Wire, heat shrink, hardware (various)
 
 ### 3D Printing Costs

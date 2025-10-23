@@ -7,37 +7,56 @@
 
 ## Session Handoff
 
-**Last Updated:** 2025-10-22 21:15
-**Session Status:** ✅ COMPLETE - VintageCapture VST Plugin Built!
-**Token Usage:** ~117K / 200K
+**Last Updated:** 2025-10-23
+**Session Status:** 🔄 IN PROGRESS - CV/Gate Hardware Planning & Clock Sync Discovery
+**Token Usage:** ~66K / 200K
 
-### Current Session Summary (Session 5)
-**What was accomplished:**
-- ✅ Built complete VintageCapture VST plugin (1800+ lines)
-- ✅ Implemented DurationAnalyzer with RMS envelope analysis
-- ✅ Created KeystrokeCapture for MIDI performance recording
-- ✅ Built MonitoringEngine with 16-voice polyphonic playback
-- ✅ Implemented PluginProcessor state machine (Idle/Calibrating/Recording/PlayingBack)
-- ✅ Created PluginEditor UI framework
-- ✅ Added CMakeLists.txt for JUCE build system
-- ✅ Wrote comprehensive WORKFLOW.md user guide
-- ✅ Documented ARP_FIRMWARE_SPEC.md for Vintage Mode
-- ✅ All analyzer tests passing (<50ms accuracy)
+### Current Session Summary (Session 6)
+**What was discussed:**
+- ✅ Reviewed CV/Gate hardware integration plan (MCP4728 DAC + 3.5mm jacks)
+- ✅ Clarified why external MCP4728 is needed (12-bit, 5V) vs built-in DAC (10-bit, 3.3V)
+- ✅ Confirmed S-Trigger implementation (software-switchable polarity on same jack as V-trig)
+- ✅ Identified hardware I/O confusion: need centralized tracking document
+- ✅ **CRITICAL DISCOVERY:** External MIDI clock sync not integrated (ClockHandler exists but unused)
+- ✅ Verified jack selection: Longdex 3.5mm TRS panel mount jacks suitable for CV/Gate
+- ✅ User purchased prototype board for jack mounting
+
+**Critical Realizations:**
+1. **MIDI Port Occupancy:** Only ONE MIDI FeatherWing (D0/D1 for note path)
+   - Cannot add 2nd MIDI wing for dedicated clock input
+   - DIN MIDI clock must share same port as notes
+
+2. **Clock Status:** `ClockHandler` class exists in `arp/core/clock.py` but NOT used in `main.py`
+   - Current: Hardcoded 120 BPM internal clock only
+   - MIDI clock messages received but only passed through, not used for sync
+   - **Next priority:** Integrate ClockHandler to enable external MIDI clock sync
+
+3. **Terminology Established:**
+   - "Note Path" or "Arpeggio Translation Loop" = MIDI IN → Arp → MIDI OUT
+   - V-trig = standard gate (0V off, 5V on)
+   - S-trig = inverted gate for vintage Moog (5V off, 0V on)
 
 **Git Status:**
 - **Branch:** main
-- **Last Commit:** 1768555 - feat: Complete VintageCapture VST plugin implementation
+- **Last Commit:** 5154872 - chore: Clean up project - archive old files, add build ignores
 - **Working Tree:** Clean
 
-**What's Next:**
-1. Tomorrow: Fix Arp MIDI thru functionality
-2. Implement Arp Vintage Mode firmware (arp/modes/vintage_mode.py)
-3. Install JUCE and build VintageCapture VST
-4. Test full workflow with real vintage synth
+**What's Next (Priority Order):**
+1. **[CRITICAL]** Integrate ClockHandler into main.py for USB/DIN MIDI clock sync
+2. Create hardware I/O tracking document (hardware_io_map.md) to prevent confusion
+3. Test MIDI clock sync from USB DAW
+4. Consider CV clock input later (Phase 2) for Eurorack users
+5. Order 3.5mm jacks for CV/Gate outputs
 
 ---
 
 ## Session History
+
+### Session 6 (2025-10-23)
+- **Focus:** CV/Gate hardware planning and MIDI clock sync investigation
+- **Outcome:** Discovered MIDI clock not integrated, clarified hardware constraints
+- **Major Realization:** ClockHandler exists but unused - external sync is critical for vintage users
+- **Status:** 🔄 In Progress - Ready for clock integration
 
 ### Session 5 (2025-10-22)
 - **Focus:** VintageCapture VST plugin - Complete implementation
