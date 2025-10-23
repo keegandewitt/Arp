@@ -12,10 +12,10 @@ class SettingsMenu:
     LEVEL_SETTING = 1   # Setting level: specific settings within a category
     LEVEL_VALUE = 2     # Value level: adjusting a specific value
 
-    # Categories
-    CATEGORY_ARP = 0
-    CATEGORY_SCALE = 1
-    CATEGORY_CLOCK = 2
+    # Categories (ordered as they appear in menu)
+    CATEGORY_CLOCK = 0      # Clock first - most commonly adjusted
+    CATEGORY_ARP = 1
+    CATEGORY_SCALE = 2
     CATEGORY_TRIGGERS = 3
     CATEGORY_CV = 4
     CATEGORY_FIRMWARE = 5
@@ -51,17 +51,18 @@ class SettingsMenu:
         """
         self.settings = settings
         self.menu_active = False
+        self.show_saved_confirmation = False  # Flag to show "Settings Saved!" message
 
         # Navigation state
         self.current_level = self.LEVEL_CATEGORY
         self.current_category = self.CATEGORY_ARP
         self.current_setting = 0
 
-        # Category names
+        # Category names (ordered by category constant)
         self.category_names = {
+            self.CATEGORY_CLOCK: "Clock",
             self.CATEGORY_ARP: "Arp Mode",
             self.CATEGORY_SCALE: "Scale",
-            self.CATEGORY_CLOCK: "Clock",
             self.CATEGORY_TRIGGERS: "Triggers",
             self.CATEGORY_CV: "CV",
             self.CATEGORY_FIRMWARE: "Firmware"
@@ -105,14 +106,14 @@ class SettingsMenu:
         """Enter settings menu"""
         self.menu_active = True
         self.current_level = self.LEVEL_CATEGORY
-        self.current_category = self.CATEGORY_ARP
+        self.current_category = self.CATEGORY_CLOCK  # Start at Clock (now first)
         self.current_setting = 0
 
     def exit_menu(self):
         """Exit settings menu"""
         self.menu_active = False
         self.current_level = self.LEVEL_CATEGORY
-        self.current_category = self.CATEGORY_ARP
+        self.current_category = self.CATEGORY_CLOCK  # Reset to Clock (now first)
         self.current_setting = 0
 
     def navigate_previous(self):
@@ -174,9 +175,9 @@ class SettingsMenu:
         if self.current_level == self.LEVEL_CATEGORY:
             # Enter category
             if self.current_category == self.CATEGORY_CLOCK:
-                # Clock has multiple settings, go to setting selection
-                self.current_level = self.LEVEL_SETTING
-                self.current_setting = 0
+                # Clock goes directly to source selection (only one setting - BPM on main screen)
+                self.current_level = self.LEVEL_VALUE
+                self.current_setting = self.CLOCK_SOURCE
             elif self.current_category == self.CATEGORY_TRIGGERS:
                 # Triggers goes directly to polarity adjustment (only one setting)
                 self.current_level = self.LEVEL_VALUE
@@ -199,8 +200,10 @@ class SettingsMenu:
             self.current_level = self.LEVEL_VALUE
 
         elif self.current_level == self.LEVEL_VALUE:
-            # Toggle value (for settings with discrete options)
-            self._toggle_value()
+            # B button at value level = confirm selection and exit to main screen
+            self.exit_menu()
+            # Set flag to show "Settings Saved!" confirmation
+            self.show_saved_confirmation = True
 
     def back(self):
         """Go back to previous level"""
@@ -241,19 +244,24 @@ class SettingsMenu:
 
         elif self.current_category == self.CATEGORY_CLOCK:
             if self.current_setting == self.CLOCK_SOURCE:
-                # Toggle clock source
-                self.settings.toggle_clock_source()
+                # Cycle to next clock source
+                self.settings.next_clock_source()
             elif self.current_setting == self.CLOCK_BPM:
                 # Increase BPM by 1
                 self.settings.internal_bpm = min(300, self.settings.internal_bpm + 1)
 
         elif self.current_category == self.CATEGORY_TRIGGERS:
             if self.current_setting == self.TRIGGER_POLARITY:
-                self.settings.toggle_trigger_polarity()
+                # Cycle to next trigger polarity
+                self.settings.next_trigger_polarity()
 
         elif self.current_category == self.CATEGORY_CV:
             if self.current_setting == self.CV_SCALE:
-                self.settings.toggle_cv_scale()
+                # Cycle to next CV scale
+                self.settings.next_cv_scale()
+
+        # Auto-save settings after change
+        self.settings.save()
 
     def _decrease_value(self):
         """Decrease current setting value"""
@@ -275,19 +283,24 @@ class SettingsMenu:
 
         elif self.current_category == self.CATEGORY_CLOCK:
             if self.current_setting == self.CLOCK_SOURCE:
-                # Toggle clock source
-                self.settings.toggle_clock_source()
+                # Cycle to previous clock source
+                self.settings.previous_clock_source()
             elif self.current_setting == self.CLOCK_BPM:
                 # Decrease BPM by 1
                 self.settings.internal_bpm = max(30, self.settings.internal_bpm - 1)
 
         elif self.current_category == self.CATEGORY_TRIGGERS:
             if self.current_setting == self.TRIGGER_POLARITY:
-                self.settings.toggle_trigger_polarity()
+                # Cycle to previous trigger polarity
+                self.settings.previous_trigger_polarity()
 
         elif self.current_category == self.CATEGORY_CV:
             if self.current_setting == self.CV_SCALE:
-                self.settings.toggle_cv_scale()
+                # Cycle to previous CV scale
+                self.settings.previous_cv_scale()
+
+        # Auto-save settings after change
+        self.settings.save()
 
     def _toggle_value(self):
         """Toggle current setting value (for discrete options)"""
@@ -303,62 +316,98 @@ class SettingsMenu:
             Tuple of (line1, line2, line3) strings for display
         """
         if self.current_level == self.LEVEL_CATEGORY:
-            # Show category selection with current value
-            category_name = self.category_names[self.current_category]
+            # Show TWO categories: current (selected) and next
+            # Helper function to get category display text with preview
+            def get_category_text(cat_index):
+                cat_name = self.category_names[cat_index]
+                if cat_index == self.CATEGORY_ARP:
+                    preview = f"{self.settings.get_pattern_name()}/{self.settings.octave_range}oct"
+                    return f"{cat_name} ({preview})"
+                elif cat_index == self.CATEGORY_SCALE:
+                    preview = f"{self.settings.get_root_note_name()} {self.settings.get_scale_name()}"
+                    return f"{cat_name} ({preview})"
+                elif cat_index == self.CATEGORY_CLOCK:
+                    preview = f"{self.settings.get_clock_source_name()}/{self.settings.internal_bpm}"
+                    return f"{cat_name} ({preview})"
+                elif cat_index == self.CATEGORY_TRIGGERS:
+                    preview = f"{self.settings.get_trigger_polarity_name()}"
+                    return f"{cat_name} ({preview})"
+                elif cat_index == self.CATEGORY_CV:
+                    preview = f"{self.settings.get_cv_scale_name()}"
+                    return f"{cat_name} ({preview})"
+                elif cat_index == self.CATEGORY_FIRMWARE:
+                    from arp.utils.config import FIRMWARE_VERSION
+                    preview = f"v{FIRMWARE_VERSION}"
+                    return f"{cat_name} ({preview})"
+                else:
+                    return cat_name
 
-            # Add current value preview for each category
-            if self.current_category == self.CATEGORY_ARP:
-                preview = f"{self.settings.get_pattern_name()}/{self.settings.octave_range}oct"
-                display_text = f"{category_name} ({preview})"
-            elif self.current_category == self.CATEGORY_SCALE:
-                preview = f"{self.settings.get_root_note_name()} {self.settings.get_scale_name()}"
-                display_text = f"{category_name} ({preview})"
-            elif self.current_category == self.CATEGORY_CLOCK:
-                preview = f"{self.settings.get_clock_source_name()}/{self.settings.internal_bpm}"
-                display_text = f"{category_name} ({preview})"
-            elif self.current_category == self.CATEGORY_TRIGGERS:
-                preview = f"{self.settings.get_trigger_polarity_name()}"
-                display_text = f"{category_name} ({preview})"
-            elif self.current_category == self.CATEGORY_CV:
-                preview = f"{self.settings.get_cv_scale_name()}"
-                display_text = f"{category_name} ({preview})"
-            elif self.current_category == self.CATEGORY_FIRMWARE:
-                # Import firmware version
-                from settings import FIRMWARE_VERSION
-                preview = f"v{FIRMWARE_VERSION}"
-                display_text = f"{category_name} ({preview})"
-            else:
-                display_text = category_name
+            # Current category (selected)
+            current_text = get_category_text(self.current_category)
+
+            # Next category (preview)
+            next_category = (self.current_category + 1) % 6
+            next_text = get_category_text(next_category)
 
             return (
-                "Settings Menu:",
-                f"> {display_text} <",
-                "A/C:Nav B:Select"
+                "Settings:",
+                f"> {current_text}",
+                f"  {next_text}"
             )
 
         elif self.current_level == self.LEVEL_SETTING:
-            # Show setting selection within category
+            # Show TWO settings: current (selected) and next within category
             category_name = self.category_names[self.current_category]
 
+            # Helper to get setting name by index (with current value preview)
+            def get_setting_name(idx):
+                if self.current_category == self.CATEGORY_ARP:
+                    return self.arp_setting_names.get(idx, "")
+                elif self.current_category == self.CATEGORY_SCALE:
+                    return self.scale_setting_names.get(idx, "")
+                elif self.current_category == self.CATEGORY_CLOCK:
+                    # Add current value preview for Clock settings
+                    setting_name = self.clock_setting_names.get(idx, "")
+                    if idx == self.CLOCK_SOURCE:
+                        return f"{setting_name} ({self.settings.get_clock_source_name()})"
+                    elif idx == self.CLOCK_BPM:
+                        return f"{setting_name} ({self.settings.internal_bpm})"
+                    return setting_name
+                elif self.current_category == self.CATEGORY_TRIGGERS:
+                    return self.trigger_setting_names.get(idx, "")
+                elif self.current_category == self.CATEGORY_CV:
+                    return self.cv_setting_names.get(idx, "")
+                elif self.current_category == self.CATEGORY_FIRMWARE:
+                    return self.firmware_setting_names.get(idx, "")
+                else:
+                    return "Unknown"
+
+            # Get number of settings in this category
             if self.current_category == self.CATEGORY_ARP:
-                setting_name = self.arp_setting_names[self.current_setting]
+                num_settings = 2
             elif self.current_category == self.CATEGORY_SCALE:
-                setting_name = self.scale_setting_names[self.current_setting]
+                num_settings = 2
             elif self.current_category == self.CATEGORY_CLOCK:
-                setting_name = self.clock_setting_names[self.current_setting]
-            elif self.current_category == self.CATEGORY_TRIGGERS:
-                setting_name = self.trigger_setting_names[self.current_setting]
-            elif self.current_category == self.CATEGORY_CV:
-                setting_name = self.cv_setting_names[self.current_setting]
+                num_settings = 2
             elif self.current_category == self.CATEGORY_FIRMWARE:
-                setting_name = self.firmware_setting_names[self.current_setting]
+                num_settings = 2
             else:
-                setting_name = "Unknown"
+                num_settings = 1  # Triggers, CV only have 1 setting
+
+            # Current setting
+            current_setting_name = get_setting_name(self.current_setting)
+
+            # Next setting (if exists)
+            if num_settings > 1:
+                next_setting = (self.current_setting + 1) % num_settings
+                next_setting_name = get_setting_name(next_setting)
+            else:
+                next_setting_name = ""
 
             return (
                 f"{category_name}:",
-                f"> {setting_name} <",
-                "A/C:Nav B:Select"
+                f"> {current_setting_name}",
+                f"  {next_setting_name}" if next_setting_name else ""
             )
 
         elif self.current_level == self.LEVEL_VALUE:
@@ -369,14 +418,14 @@ class SettingsMenu:
                     return (
                         "Arp Pattern:",
                         f"> {value} <",
-                        "A/C:Change B:Done"
+                        ""
                     )
                 elif self.current_setting == self.ARP_OCTAVES:
                     value = self.settings.octave_range
                     return (
                         "Octave Range:",
                         f"> {value} <",
-                        "A/C:Adj B:Done"
+                        ""
                     )
 
             elif self.current_category == self.CATEGORY_SCALE:
@@ -385,62 +434,83 @@ class SettingsMenu:
                     return (
                         "Scale Type:",
                         f"> {value} <",
-                        "A/C:Change B:Done"
+                        ""
                     )
                 elif self.current_setting == self.SCALE_ROOT:
                     value = self.settings.get_root_note_name()
                     return (
                         "Root Note:",
                         f"> {value} <",
-                        "A/C:Change B:Done"
+                        ""
                     )
 
             elif self.current_category == self.CATEGORY_CLOCK:
                 if self.current_setting == self.CLOCK_SOURCE:
-                    value = self.settings.get_clock_source_name()
-                    return (
-                        "Clock Source:",
-                        f"> {value} <",
-                        "A/C:Toggle B:Done"
-                    )
+                    # Show both options with current selected
+                    if self.settings.clock_source == self.settings.CLOCK_INTERNAL:
+                        return (
+                            "Clock Source:",
+                            "> Internal",
+                            "  External"
+                        )
+                    else:
+                        return (
+                            "Clock Source:",
+                            "  Internal",
+                            "> External"
+                        )
                 elif self.current_setting == self.CLOCK_BPM:
                     return (
                         "BPM (Internal):",
                         f"> {self.settings.internal_bpm} <",
-                        "A/C:Adj B:Done"
+                        ""
                     )
 
             elif self.current_category == self.CATEGORY_TRIGGERS:
                 if self.current_setting == self.TRIGGER_POLARITY:
-                    value = self.settings.get_trigger_polarity_name()
-                    return (
-                        "Trigger Polarity:",
-                        f"> {value} <",
-                        "A/C:Toggle B:Done"
-                    )
+                    # Show both options with current selected
+                    if self.settings.trigger_polarity == self.settings.TRIGGER_VTRIG:
+                        return (
+                            "Trigger Polarity:",
+                            "> V-trig",
+                            "  S-trig"
+                        )
+                    else:
+                        return (
+                            "Trigger Polarity:",
+                            "  V-trig",
+                            "> S-trig"
+                        )
 
             elif self.current_category == self.CATEGORY_CV:
                 if self.current_setting == self.CV_SCALE:
-                    value = self.settings.get_cv_scale_name()
-                    return (
-                        "CV Scale:",
-                        f"> {value} <",
-                        "A/C:Toggle B:Done"
-                    )
+                    # Show both options with current selected
+                    if self.settings.cv_scale == self.settings.CV_SCALE_STANDARD:
+                        return (
+                            "CV Scale:",
+                            "> 1V/octave",
+                            "  Moog (1.035V)"
+                        )
+                    else:
+                        return (
+                            "CV Scale:",
+                            "  1V/octave",
+                            "> Moog (1.035V)"
+                        )
 
             elif self.current_category == self.CATEGORY_FIRMWARE:
                 if self.current_setting == self.FIRMWARE_INFO:
-                    from settings import FIRMWARE_VERSION, FIRMWARE_DATE
+                    from arp.utils.config import FIRMWARE_VERSION, FIRMWARE_DATE
                     return (
                         f"v{FIRMWARE_VERSION}",
                         f"{FIRMWARE_DATE}",
-                        "B:Back"
+                        ""
                     )
                 elif self.current_setting == self.FIRMWARE_UPDATE:
                     return (
                         "Update Firmware:",
                         "Connect to PC",
-                        "See docs B:Back"
+                        ""
                     )
 
         return ("Settings", "Error", "")

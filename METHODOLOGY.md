@@ -228,6 +228,59 @@ The user can ask the next Claude instance to check:
 
 ## Development Guidelines
 
+### CRITICAL: Deployment Workflow (main.py vs code.py)
+
+**The Problem:**
+- CircuitPython devices run `code.py` on boot
+- Our repository uses `main.py` as the source of truth
+- Editing one without deploying causes version mismatches and confusion
+
+**The Solution:**
+1. **ALWAYS** edit `main.py` in the repository (never edit `code.py` on device)
+2. **ALWAYS** deploy using the deployment script (never manually copy files)
+3. **VERIFY** deployment succeeded before testing
+
+**Deployment Commands:**
+```bash
+# Deploy all changed files
+python3 scripts/deploy.py
+
+# Check what needs deployment (dry run)
+python3 scripts/deploy.py --check
+
+# Force deploy everything
+python3 scripts/deploy.py --force
+
+# Watch for changes and auto-deploy
+python3 scripts/deploy.py --watch
+```
+
+**What Gets Deployed:**
+- `main.py` → `/Volumes/CIRCUITPY/code.py` (main entry point)
+- `arp/core/*.py` → `/Volumes/CIRCUITPY/arp/core/*.py` (core modules)
+- `arp/ui/*.py` → `/Volumes/CIRCUITPY/arp/ui/*.py` (UI modules)
+- `arp/utils/*.py` → `/Volumes/CIRCUITPY/arp/utils/*.py` (utilities)
+
+**Important Notes:**
+- Both files have warning comments at the top
+- Device auto-reloads after deployment (~2-3 seconds)
+- Deploy script checks file hashes to avoid unnecessary copies
+- Use `--check` to see what's out of sync without deploying
+
+**Never:**
+- ❌ Edit `code.py` directly on the device
+- ❌ Manually copy files with `cp` command
+- ❌ Forget to deploy after editing `main.py`
+- ❌ Assume changes are live without deploying
+
+**Always:**
+- ✅ Edit `main.py` in repository
+- ✅ Use `python3 scripts/deploy.py` to deploy
+- ✅ Wait for auto-reload (watch serial output)
+- ✅ Test on hardware after deployment
+
+---
+
 ### Core Development Philosophy: Verify-Then-Act Protocol
 
 **Principle:** Be extremely detailed and rigorous. Validate assumptions before acting on them.

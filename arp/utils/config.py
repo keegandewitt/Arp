@@ -3,9 +3,26 @@ Global settings for the MIDI Arpeggiator
 Manages configuration for arpeggiation patterns, timing, and behavior
 """
 
+import struct
+import microcontroller
+
 # Firmware version
 FIRMWARE_VERSION = "1.0.0"
 FIRMWARE_DATE = "2025-01-15"
+
+# Settings storage using NVM (non-volatile memory)
+# NVM is always writable, even when USB is connected
+# CircuitPython provides 256 bytes of NVM on most boards
+NVM_SETTINGS_MAGIC = b'ARP2'  # Magic bytes to identify valid settings (v2 = struct format)
+NVM_SETTINGS_START = 0  # Start offset in NVM
+
+# Struct format for compact binary storage
+# B = unsigned byte (0-255), H = unsigned short (0-65535), f = float
+# Total: 4 (magic) + 20 bytes = 24 bytes (well under 256 byte limit!)
+# Pattern, enabled, clock_source, internal_bpm, clock_division, octave_range,
+# midi_channel, velocity_passthrough, fixed_velocity, latch, cv_enabled,
+# cv_scale, trigger_polarity, scale_type, scale_root, gate_length (16 values)
+SETTINGS_STRUCT_FORMAT = 'BBBHBBBBBBBBBBBf'  # 16 values total
 
 class Settings:
     """Global settings container for the arpeggiator"""
@@ -163,12 +180,15 @@ class Settings:
         """Return short clock source indicator for display"""
         return "(Int)" if self.clock_source == self.CLOCK_INTERNAL else "(Ext)"
 
-    def toggle_clock_source(self):
-        """Toggle between internal and external clock"""
-        if self.clock_source == self.CLOCK_INTERNAL:
-            self.clock_source = self.CLOCK_EXTERNAL
-        else:
-            self.clock_source = self.CLOCK_INTERNAL
+    def next_clock_source(self):
+        """Cycle to next clock source (wraps around)"""
+        self.clock_source = (self.clock_source + 1) % 2  # 2 options: Internal, External
+        print(f"[DEBUG] Clock source: {self.get_clock_source_name()}")
+
+    def previous_clock_source(self):
+        """Cycle to previous clock source (wraps around)"""
+        self.clock_source = (self.clock_source - 1) % 2
+        print(f"[DEBUG] Clock source: {self.get_clock_source_name()}")
 
     def get_cv_scale_name(self):
         """Return human-readable CV scale name"""
@@ -177,23 +197,25 @@ class Settings:
         else:
             return "Moog (1.035V)"
 
-    def toggle_cv_scale(self):
-        """Toggle between standard and Moog CV scaling"""
-        if self.cv_scale == self.CV_SCALE_STANDARD:
-            self.cv_scale = self.CV_SCALE_MOOG
-        else:
-            self.cv_scale = self.CV_SCALE_STANDARD
+    def next_cv_scale(self):
+        """Cycle to next CV scale"""
+        self.cv_scale = (self.cv_scale + 1) % 2  # 2 options: Standard, Moog
+
+    def previous_cv_scale(self):
+        """Cycle to previous CV scale"""
+        self.cv_scale = (self.cv_scale - 1) % 2
 
     def get_trigger_polarity_name(self):
         """Return human-readable trigger polarity name"""
         return "V-trig" if self.trigger_polarity == self.TRIGGER_VTRIG else "S-trig"
 
-    def toggle_trigger_polarity(self):
-        """Toggle between V-trig and S-trig"""
-        if self.trigger_polarity == self.TRIGGER_VTRIG:
-            self.trigger_polarity = self.TRIGGER_STRIG
-        else:
-            self.trigger_polarity = self.TRIGGER_VTRIG
+    def next_trigger_polarity(self):
+        """Cycle to next trigger polarity"""
+        self.trigger_polarity = (self.trigger_polarity + 1) % 2  # 2 options: V-trig, S-trig
+
+    def previous_trigger_polarity(self):
+        """Cycle to previous trigger polarity"""
+        self.trigger_polarity = (self.trigger_polarity - 1) % 2
 
     def get_scale_name(self):
         """Return human-readable scale name"""
@@ -280,6 +302,102 @@ class Settings:
 
         # Make sure we stay in MIDI range
         return max(0, min(127, quantized_note))
+
+    def save(self):
+        """
+        Save current settings to NVM (non-volatile memory) using compact binary format
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            # Pack settings into compact binary format
+            # Order must match SETTINGS_STRUCT_FORMAT
+            packed_data = struct.pack(
+                SETTINGS_STRUCT_FORMAT,
+                self.pattern,              # B (byte)
+                int(self.enabled),         # B (byte as bool)
+                self.clock_source,         # B (byte)
+                self.internal_bpm,         # H (unsigned short)
+                self.clock_division,       # B (byte)
+                self.octave_range,         # B (byte)
+                self.midi_channel,         # B (byte)
+                int(self.velocity_passthrough),  # B (byte as bool)
+                self.fixed_velocity,       # B (byte)
+                int(self.latch),           # B (byte as bool)
+                int(self.cv_enabled),      # B (byte as bool)
+                self.cv_scale,             # B (byte)
+                self.trigger_polarity,     # B (byte)
+                self.scale_type,           # B (byte)
+                self.scale_root,           # B (byte)
+                self.gate_length           # f (float)
+            )
+
+            # Prepend magic bytes
+            nvm_data = NVM_SETTINGS_MAGIC + packed_data
+
+            # Write to NVM
+            microcontroller.nvm[NVM_SETTINGS_START:NVM_SETTINGS_START + len(nvm_data)] = nvm_data
+
+            print(f"Settings saved to NVM ({len(packed_data)} bytes)")
+            return True
+
+        except Exception as e:
+            print(f"Failed to save settings: {e}")
+            return False
+
+    def load(self):
+        """
+        Load settings from NVM (non-volatile memory) using compact binary format
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            # Calculate how many bytes we need to read
+            struct_size = struct.calcsize(SETTINGS_STRUCT_FORMAT)
+            total_size = len(NVM_SETTINGS_MAGIC) + struct_size
+
+            # Read from NVM
+            nvm_data = bytes(microcontroller.nvm[NVM_SETTINGS_START:NVM_SETTINGS_START + total_size])
+
+            # Check magic bytes
+            if not nvm_data.startswith(NVM_SETTINGS_MAGIC):
+                print("No saved settings found in NVM, using defaults")
+                return False
+
+            # Extract binary data (skip magic bytes)
+            packed_data = nvm_data[len(NVM_SETTINGS_MAGIC):]
+
+            # Unpack settings from binary format
+            # Order must match SETTINGS_STRUCT_FORMAT and save() method
+            unpacked = struct.unpack(SETTINGS_STRUCT_FORMAT, packed_data)
+
+            # Assign to settings (order must match pack() in save())
+            self.pattern = unpacked[0]
+            self.enabled = bool(unpacked[1])
+            self.clock_source = unpacked[2]
+            self.internal_bpm = unpacked[3]
+            self.clock_division = unpacked[4]
+            self.octave_range = unpacked[5]
+            self.midi_channel = unpacked[6]
+            self.velocity_passthrough = bool(unpacked[7])
+            self.fixed_velocity = unpacked[8]
+            self.latch = bool(unpacked[9])
+            self.cv_enabled = bool(unpacked[10])
+            self.cv_scale = unpacked[11]
+            self.trigger_polarity = unpacked[12]
+            self.scale_type = unpacked[13]
+            self.scale_root = unpacked[14]
+            self.gate_length = unpacked[15]
+
+            print(f"Settings loaded from NVM ({struct_size} bytes)")
+            return True
+
+        except Exception as e:
+            print(f"Failed to load settings from NVM: {e}")
+            print("Using default settings")
+            return False
 
 
 # Global settings instance
