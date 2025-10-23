@@ -18,17 +18,20 @@ class ClockHandler:
     CLOCK_INTERNAL = 0
     CLOCK_EXTERNAL = 1
 
-    def __init__(self, uart_clock):
+    def __init__(self, midi_in_port=None):
         """
         Initialize clock handler
 
         Args:
-            uart_clock: UART object for MIDI clock input
+            midi_in_port: MIDI input port for clock messages (UART or usb_midi.ports[])
+                         If None, external clock will not be available (internal only)
         """
-        self.midi_clock = adafruit_midi.MIDI(
-            midi_in=uart_clock,
-            in_channel=0  # Clock messages are channel-independent
-        )
+        self.midi_clock = None
+        if midi_in_port is not None:
+            self.midi_clock = adafruit_midi.MIDI(
+                midi_in=midi_in_port,
+                in_channel=0  # Clock messages are channel-independent
+            )
 
         # Clock state
         self.running = False
@@ -162,6 +165,10 @@ class ClockHandler:
 
     def _process_external_clock(self):
         """Process incoming MIDI clock messages"""
+        if self.midi_clock is None:
+            # No external clock source available
+            return
+
         msg = self.midi_clock.receive()
 
         while msg is not None:
