@@ -48,6 +48,29 @@ See [PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for detailed progress.
 
 ---
 
+## 🎹 NEW: VintageCapture VST Plugin
+
+**Bonus Project:** We've also built a complete VST plugin that solves the vintage synth "Local Control Off" problem!
+
+### The Problem
+Vintage synths (Moog Source, ARP Odyssey, Korg MS-20) don't have MIDI Local Control Off, making them incompatible with external arpeggiators.
+
+### The Solution
+**VintageCapture** is a VST plugin with a two-stage workflow:
+1. **Calibration:** "Press C3" - learns synth timing (attack/release)
+2. **Keystroke Capture:** Record your performance (notes, velocity, timing)
+3. **Playback:** Arp hardware plays back via MIDI while you tweak synth parameters
+
+**Benefits:**
+- ✅ Separate performance from sound design
+- ✅ Zero-latency monitoring during capture
+- ✅ Repeatable playback for multiple takes
+- ✅ Works with ANY vintage synth
+
+See [VintageCapture/README.md](VintageCapture/README.md) for full details.
+
+---
+
 ## Documentation
 
 ### Overview
