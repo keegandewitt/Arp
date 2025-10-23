@@ -8,7 +8,7 @@ import adafruit_midi
 from adafruit_midi.timing_clock import TimingClock
 from adafruit_midi.start import Start
 from adafruit_midi.stop import Stop
-from adafruit_midi.continue_ import Continue
+from adafruit_midi.midi_continue import Continue
 
 
 class ClockHandler:

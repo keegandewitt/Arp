@@ -17,10 +17,10 @@ Follow this procedure:
 ### Step 1: Review Changes
 Run `git status` and `git diff` to see what's changed. Present a summary to the user.
 
-### Step 2: Ask for Commit Message
-Ask the user: "What commit message would you like?"
+### Step 2: Generate Commit Message
+**AUTOMATICALLY** generate a commit message based on the changes you see. DO NOT ASK THE USER.
 
-Suggest a message based on the changes you see, following the format:
+Follow this format:
 - `feat: <description>` - New feature
 - `fix: <description>` - Bug fix
 - `docs: <description>` - Documentation changes
@@ -28,6 +28,9 @@ Suggest a message based on the changes you see, following the format:
 - `test: <description>` - Test changes
 - `chore: <description>` - Maintenance tasks
 - `hardware: <description>` - Hardware-related changes
+
+Analyze the git diff and create a concise, descriptive commit message.
+Show the user what commit message you generated.
 
 ### Step 3: Create Backup
 Run: `python3 scripts/backup.py`
@@ -37,13 +40,12 @@ Verify backup succeeded before proceeding.
 ### Step 4: Commit and Push
 ```bash
 git add .
-git commit -m "<user's message>
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "<generated message>"
 git push origin main
 ```
+
+**STRICT RULE:** NEVER include any mention of "Claude", "Claude Code", "AI", or "Generated with" in commit messages.
+Commit messages must be clean, professional, and contain ONLY the technical description of changes.
 
 ### Step 5: Update CONTEXT.md
 Update the "Session Handoff" section in `docs/context/CONTEXT.md`:
