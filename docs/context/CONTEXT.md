@@ -8,33 +8,32 @@
 ## Session Handoff
 
 **Last Updated:** 2025-10-23
-**Session Status:** 🔄 IN PROGRESS - CV/Gate Hardware Planning & Clock Sync Discovery
-**Token Usage:** ~66K / 200K
+**Session Status:** ✅ COMPLETE - USB MIDI Clock Sync Fully Integrated
+**Token Usage:** ~114K / 200K
 
-### Current Session Summary (Session 6)
-**What was discussed:**
-- ✅ Reviewed CV/Gate hardware integration plan (MCP4728 DAC + 3.5mm jacks)
-- ✅ Clarified why external MCP4728 is needed (12-bit, 5V) vs built-in DAC (10-bit, 3.3V)
-- ✅ Confirmed S-Trigger implementation (software-switchable polarity on same jack as V-trig)
-- ✅ Identified hardware I/O confusion: need centralized tracking document
-- ✅ **CRITICAL DISCOVERY:** External MIDI clock sync not integrated (ClockHandler exists but unused)
-- ✅ Verified jack selection: Longdex 3.5mm TRS panel mount jacks suitable for CV/Gate
-- ✅ User purchased prototype board for jack mounting
+### Current Session Summary (Session 7)
+**What was accomplished:**
+- ✅ **FULLY INTEGRATED USB MIDI CLOCK SYNC**
+- ✅ Modified ClockHandler to accept USB MIDI input (usb_midi.ports[0])
+- ✅ Created Hardware I/O Occupancy Map (HARDWARE_IO_MAP.md)
+  - Documented MIDI FeatherWing exclusive to "Arpeggio Translation Loop"
+  - Established USB MIDI for external clock
+- ✅ Restructured Settings Menu:
+  - Changed BPM category to CLOCK category
+  - Added Source (Internal/External) and BPM sub-settings
+  - BPM only shown/adjustable when Internal clock selected
+- ✅ Fully integrated Settings class into main.py
+  - Replaced all hardcoded state with Settings object
+  - Menu changes now affect ClockHandler in real-time
+  - Long-press Button A enters settings menu
+- ✅ Display updates show clock source (INT/EXT) and detected BPM
+- ✅ "Waiting for clock" behavior implemented (display shows "No Clock" when external selected but not running)
 
-**Critical Realizations:**
-1. **MIDI Port Occupancy:** Only ONE MIDI FeatherWing (D0/D1 for note path)
-   - Cannot add 2nd MIDI wing for dedicated clock input
-   - DIN MIDI clock must share same port as notes
-
-2. **Clock Status:** `ClockHandler` class exists in `arp/core/clock.py` but NOT used in `main.py`
-   - Current: Hardcoded 120 BPM internal clock only
-   - MIDI clock messages received but only passed through, not used for sync
-   - **Next priority:** Integrate ClockHandler to enable external MIDI clock sync
-
-3. **Terminology Established:**
-   - "Note Path" or "Arpeggio Translation Loop" = MIDI IN → Arp → MIDI OUT
-   - V-trig = standard gate (0V off, 5V on)
-   - S-trig = inverted gate for vintage Moog (5V off, 0V on)
+**Key Architecture Decisions:**
+1. **Clock Source Hierarchy:** USB MIDI clock only (for now)
+   - Future: Can add other sources (1/8" trigger jacks) without touching MIDI FeatherWing
+2. **Settings Integration:** Full Settings class integration throughout codebase
+3. **User Flow:** Clock → Source (Internal/External) → BPM (if Internal)
 
 **Git Status:**
 - **Branch:** main
@@ -42,9 +41,9 @@
 - **Working Tree:** Clean
 
 **What's Next (Priority Order):**
-1. **[CRITICAL]** Integrate ClockHandler into main.py for USB/DIN MIDI clock sync
-2. Create hardware I/O tracking document (hardware_io_map.md) to prevent confusion
-3. Test MIDI clock sync from USB DAW
+1. **[USER TESTING]** Test USB MIDI clock sync from DAW (Ableton, Logic, etc.)
+2. Verify detected BPM displays correctly when synced to external clock
+3. Test "Waiting for clock" display when external selected but no clock present
 4. Consider CV clock input later (Phase 2) for Eurorack users
 5. Order 3.5mm jacks for CV/Gate outputs
 
@@ -244,6 +243,22 @@ class Arpeggiator:
 ---
 
 ## Dependencies & Environment
+
+### CircuitPython Expertise
+
+**🎓 CRITICAL:** Before writing ANY CircuitPython code, read:
+- **`~/.claude/references/CIRCUITPYTHON_MASTERY.md`** - Comprehensive crash prevention guide
+- **Local copy:** `docs/context/CIRCUITPYTHON_MASTERY.md`
+
+This 600+ line reference covers:
+- Memory management & crash prevention
+- Safe mode debugging
+- MIDI programming patterns
+- busio (I2C, UART, SPI) best practices
+- SAMD51 specifics
+- Common pitfalls with solutions
+
+**Previous sessions struggled with basic CircuitPython issues causing crashes.** This reference makes you a CircuitPython ninja.
 
 ### Hardware
 - Feather M4 CAN Express

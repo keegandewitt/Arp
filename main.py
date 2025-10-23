@@ -38,6 +38,7 @@ import board
 import busio
 import time
 import digitalio
+import usb_midi
 from adafruit_midi import MIDI
 from adafruit_midi.note_on import NoteOn
 from adafruit_midi.note_off import NoteOff
@@ -58,6 +59,9 @@ from adafruit_midi.midi_message import MIDIUnknownEvent, MIDIBadEvent
 # Import our modules
 from arp.ui.display import Display
 from arp.ui.buttons import ButtonHandler
+from arp.core.clock import ClockHandler
+from arp.ui.menu import SettingsMenu
+from arp.utils.config import Settings
 
 print("\n" + "="*60)
 print("ARP - Hardware Arpeggiator v1.0")
@@ -85,22 +89,33 @@ print("[3/3] Initializing Buttons...")
 buttons = ButtonHandler(board.D9, board.D6, board.D5)
 print("      ✓ Buttons ready (A, B, C)")
 
+print("[4/5] Initializing Settings...")
+# Global settings object
+settings = Settings()
+menu = SettingsMenu(settings)
+print("      ✓ Settings ready")
+
+print("[5/5] Initializing Clock...")
+# Clock handler with USB MIDI input for external clock
+# Note: MIDI FeatherWing (UART) is exclusive to Arpeggio Translation Loop
+clock = ClockHandler(midi_in_port=usb_midi.ports[0])  # USB MIDI IN
+clock.set_internal_bpm(settings.internal_bpm)  # Use settings BPM
+print(f"      ✓ Clock ready (Internal: {settings.internal_bpm} BPM, External: USB)")
+
 print("\n" + "="*60)
 print("SYSTEM READY")
 print("="*60)
-print("Button A: Previous pattern")
-print("Button B: Play C major chord arpeggio (demo)")
-print("Button C: Next pattern")
-print("MIDI IN: Send notes to arpeggiate")
+print("Button A (short):  Previous pattern")
+print("Button A (long):   Settings menu")
+print("Button B:          Demo arpeggio")
+print("Button C:          Next pattern")
+print("MIDI IN:           Send notes to arpeggiate")
+print("Clock:             " + settings.get_clock_source_name())
 print("-"*60 + "\n")
 
 # =============================================================================
 # Arpeggiator State
 # =============================================================================
-
-# Pattern definitions
-PATTERNS = ['UP', 'DOWN', 'UP/DOWN', 'RANDOM']
-current_pattern_index = 0
 
 # Note buffer (stores held notes)
 note_buffer = []  # List of (note, velocity) tuples
@@ -108,48 +123,90 @@ note_buffer = []  # List of (note, velocity) tuples
 # Arpeggiator state
 current_step = 0
 arp_sequence = []
-last_note_time = 0
-note_interval = 0.125  # 1/8 note at 120 BPM = 125ms
-bpm = 120
 
 # Currently playing note (for note-off)
 current_playing_note = None
 
-def get_current_pattern():
-    """Get the current pattern name"""
-    return PATTERNS[current_pattern_index]
-
 def generate_arp_sequence(notes):
-    """Generate arpeggiated sequence from note buffer"""
+    """Generate arpeggiated sequence from note buffer based on current pattern"""
     if not notes:
         return []
 
-    pattern = get_current_pattern()
     note_nums = sorted([n for n, v in notes])  # Just note numbers, sorted
 
-    if pattern == 'UP':
+    # Use settings pattern
+    if settings.pattern == Settings.ARP_UP:
         return note_nums
-    elif pattern == 'DOWN':
+    elif settings.pattern == Settings.ARP_DOWN:
         return list(reversed(note_nums))
-    elif pattern == 'UP/DOWN':
+    elif settings.pattern == Settings.ARP_UP_DOWN:
         return note_nums + list(reversed(note_nums[1:-1])) if len(note_nums) > 2 else note_nums
-    elif pattern == 'RANDOM':
+    elif settings.pattern == Settings.ARP_DOWN_UP:
+        return list(reversed(note_nums)) + note_nums[1:-1] if len(note_nums) > 2 else list(reversed(note_nums))
+    elif settings.pattern == Settings.ARP_RANDOM:
         import random
         shuffled = note_nums.copy()
         random.shuffle(shuffled)
         return shuffled
+    else:
+        # Default to UP for any unhandled pattern
+        return note_nums
 
-    return note_nums
+def on_clock_step():
+    """
+    Callback function triggered by ClockHandler on each arpeggiator step
+    Plays the next note in the sequence
+    """
+    global current_step, current_playing_note
+
+    if not arp_sequence:
+        return
+
+    # Bounds check: ensure current_step is valid
+    if current_step >= len(arp_sequence):
+        current_step = 0
+
+    # Send note off for previous note
+    if current_playing_note is not None:
+        midi.send(NoteOff(current_playing_note, 0))
+
+    # Get next note in sequence
+    try:
+        note_to_play = arp_sequence[current_step]
+        velocity = 100  # Could use velocity from buffer
+
+        # Send note on
+        midi.send(NoteOn(note_to_play, velocity))
+        current_playing_note = note_to_play
+
+        # Advance step
+        current_step = (current_step + 1) % len(arp_sequence)
+
+    except IndexError as e:
+        print(f"ERROR: Index out of range - step:{current_step} len:{len(arp_sequence)}")
+        current_step = 0  # Reset on error
+
+# Configure clock handler
+clock.set_step_callback(on_clock_step)
+clock.set_clock_division(settings.clock_division)  # Use settings division
+clock.set_clock_source(settings.clock_source)  # Use settings clock source
+
+# Start clock if internal
+if settings.clock_source == Settings.CLOCK_INTERNAL:
+    clock.start()
 
 # Update display with initial state
 time.sleep(1)  # Let startup message show
-display.update_display(bpm, get_current_pattern(), True, "INT")
+clock_src_label = settings.get_clock_source_short()
+display.update_display(clock.get_bpm(), settings.get_pattern_name(), clock.is_running(), clock_src_label)
 
 # =============================================================================
 # Main Loop
 # =============================================================================
 
 loop_count = 0
+last_display_update = time.monotonic()
+display_update_interval = 0.1  # Update display every 100ms
 
 while True:
     loop_count += 1
@@ -243,53 +300,72 @@ while True:
                     print(f"⚠️  Failed to send {type(msg).__name__}: {e}")
 
     # -------------------------------------------------------------------------
-    # Arpeggiator Clock & Step
+    # Clock Processing
     # -------------------------------------------------------------------------
-    if arp_sequence and (current_time - last_note_time >= note_interval):
-        # Bounds check: ensure current_step is valid (sequence may have shrunk)
-        if current_step >= len(arp_sequence):
-            current_step = 0
-            print(f"DEBUG: Step reset due to sequence change (len={len(arp_sequence)})")
-
-        # Send note off for previous note
-        if current_playing_note is not None:
-            midi.send(NoteOff(current_playing_note, 0))
-
-        # Get next note in sequence (with safety check)
-        try:
-            note_to_play = arp_sequence[current_step]
-            velocity = 100  # Could use velocity from buffer
-
-            # Send note on
-            midi.send(NoteOn(note_to_play, velocity))
-            current_playing_note = note_to_play
-
-            # Advance step
-            current_step = (current_step + 1) % len(arp_sequence)
-            last_note_time = current_time
-
-        except IndexError as e:
-            print(f"ERROR: Index out of range - step:{current_step} len:{len(arp_sequence)}")
-            current_step = 0  # Reset on error
+    # Process clock - will call on_clock_step() callback when it's time to play next note
+    clock.process_clock_messages()
 
     # -------------------------------------------------------------------------
-    # Button Input
+    # Button Input & Menu Handling
     # -------------------------------------------------------------------------
     button_a, button_b, button_c, button_ac_combo, a_long, b_long = buttons.check_buttons()
 
-    if button_a:
-        # Previous pattern
-        current_pattern_index = (current_pattern_index - 1) % len(PATTERNS)
-        arp_sequence = generate_arp_sequence(note_buffer)
-        print(f"Pattern: {get_current_pattern()}")
-        display.update_display(bpm, get_current_pattern(), True, "INT")
+    if menu.menu_active:
+        # Menu navigation mode
+        if button_a:
+            menu.navigate_previous()
+        if button_c:
+            menu.navigate_next()
+        if button_b:
+            menu.select()
+        if a_long:
+            menu.back()
+            # Check if we exited the menu
+            if not menu.menu_active:
+                display.exit_settings_menu()
+                # Refresh main display
+                clock_src_label = settings.get_clock_source_short()
+                display.update_display(clock.get_bpm(), settings.get_pattern_name(), clock.is_running(), clock_src_label)
 
-    if button_c:
-        # Next pattern
-        current_pattern_index = (current_pattern_index + 1) % len(PATTERNS)
-        arp_sequence = generate_arp_sequence(note_buffer)
-        print(f"Pattern: {get_current_pattern()}")
-        display.update_display(bpm, get_current_pattern(), True, "INT")
+        # Update display with menu
+        if menu.menu_active:
+            line1, line2, line3 = menu.get_display_text()
+            display.enter_settings_menu(line1, line2, line3)
+
+        # Apply settings changes to clock handler
+        if clock.get_clock_source() != settings.clock_source:
+            # Clock source changed
+            clock.set_clock_source(settings.clock_source)
+            if settings.clock_source == Settings.CLOCK_INTERNAL:
+                clock.start()
+            print(f"Clock source: {settings.get_clock_source_name()}")
+
+        if clock.internal_bpm != settings.internal_bpm:
+            # BPM changed
+            clock.set_internal_bpm(settings.internal_bpm)
+            print(f"BPM: {settings.internal_bpm}")
+
+    else:
+        # Normal mode (not in menu)
+        if a_long:
+            # Long press A: Enter settings menu
+            menu.enter_menu()
+            print("Entered settings menu")
+        elif button_a:
+            # Short press A: Previous pattern
+            settings.pattern = (settings.pattern - 1) % 16
+            arp_sequence = generate_arp_sequence(note_buffer)
+            print(f"Pattern: {settings.get_pattern_name()}")
+            clock_src_label = settings.get_clock_source_short()
+            display.update_display(clock.get_bpm(), settings.get_pattern_name(), clock.is_running(), clock_src_label)
+
+        if button_c:
+            # Next pattern
+            settings.next_pattern()
+            arp_sequence = generate_arp_sequence(note_buffer)
+            print(f"Pattern: {settings.get_pattern_name()}")
+            clock_src_label = settings.get_clock_source_short()
+            display.update_display(clock.get_bpm(), settings.get_pattern_name(), clock.is_running(), clock_src_label)
 
     if button_b:
         # Demo: Play C major chord arpeggio
@@ -312,6 +388,19 @@ while True:
         note_buffer = []
         arp_sequence = []
         current_step = 0
+
+    # -------------------------------------------------------------------------
+    # Periodic Display Updates
+    # -------------------------------------------------------------------------
+    if not menu.menu_active and (current_time - last_display_update >= display_update_interval):
+        clock_src_label = settings.get_clock_source_short()
+        bpm = clock.get_bpm()  # Get current BPM (internal or detected external)
+        is_running = clock.is_running()
+
+        # Update display
+        display.update_display(bpm, settings.get_pattern_name(), is_running, clock_src_label)
+
+        last_display_update = current_time
 
     # Small delay to prevent CPU spinning
     time.sleep(0.001)

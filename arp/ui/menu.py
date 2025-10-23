@@ -15,7 +15,7 @@ class SettingsMenu:
     # Categories
     CATEGORY_ARP = 0
     CATEGORY_SCALE = 1
-    CATEGORY_BPM = 2
+    CATEGORY_CLOCK = 2
     CATEGORY_TRIGGERS = 3
     CATEGORY_CV = 4
     CATEGORY_FIRMWARE = 5
@@ -28,8 +28,9 @@ class SettingsMenu:
     SCALE_TYPE = 0        # Scale type (Major, Minor, etc.)
     SCALE_ROOT = 1        # Root note (C, C#, D, etc.)
 
-    # BPM settings (only one: BPM adjustment)
-    BPM_ADJUST = 0
+    # Clock settings
+    CLOCK_SOURCE = 0      # Internal or External
+    CLOCK_BPM = 1         # BPM (only shown if Internal)
 
     # Trigger settings (only polarity now - always gate mode)
     TRIGGER_POLARITY = 0  # V-trig vs S-trig
@@ -60,7 +61,7 @@ class SettingsMenu:
         self.category_names = {
             self.CATEGORY_ARP: "Arp Mode",
             self.CATEGORY_SCALE: "Scale",
-            self.CATEGORY_BPM: "BPM",
+            self.CATEGORY_CLOCK: "Clock",
             self.CATEGORY_TRIGGERS: "Triggers",
             self.CATEGORY_CV: "CV",
             self.CATEGORY_FIRMWARE: "Firmware"
@@ -78,9 +79,10 @@ class SettingsMenu:
             self.SCALE_ROOT: "Root"
         }
 
-        # BPM setting names (direct to value adjustment)
-        self.bpm_setting_names = {
-            self.BPM_ADJUST: "BPM"
+        # Clock setting names
+        self.clock_setting_names = {
+            self.CLOCK_SOURCE: "Source",
+            self.CLOCK_BPM: "BPM"
         }
 
         # Trigger setting names
@@ -125,9 +127,8 @@ class SettingsMenu:
                 self.current_setting = (self.current_setting - 1) % 2
             elif self.current_category == self.CATEGORY_SCALE:
                 self.current_setting = (self.current_setting - 1) % 2
-            elif self.current_category == self.CATEGORY_BPM:
-                # BPM only has one setting, no cycle needed
-                pass
+            elif self.current_category == self.CATEGORY_CLOCK:
+                self.current_setting = (self.current_setting - 1) % 2
             elif self.current_category == self.CATEGORY_TRIGGERS:
                 # Triggers only has one setting, no cycle needed
                 pass
@@ -153,9 +154,8 @@ class SettingsMenu:
                 self.current_setting = (self.current_setting + 1) % 2
             elif self.current_category == self.CATEGORY_SCALE:
                 self.current_setting = (self.current_setting + 1) % 2
-            elif self.current_category == self.CATEGORY_BPM:
-                # BPM only has one setting, no cycle needed
-                pass
+            elif self.current_category == self.CATEGORY_CLOCK:
+                self.current_setting = (self.current_setting + 1) % 2
             elif self.current_category == self.CATEGORY_TRIGGERS:
                 # Triggers only has one setting, no cycle needed
                 pass
@@ -173,10 +173,10 @@ class SettingsMenu:
         """Select/enter current item (drill down or toggle)"""
         if self.current_level == self.LEVEL_CATEGORY:
             # Enter category
-            if self.current_category == self.CATEGORY_BPM:
-                # BPM goes directly to value adjustment
-                self.current_level = self.LEVEL_VALUE
-                self.current_setting = self.BPM_ADJUST
+            if self.current_category == self.CATEGORY_CLOCK:
+                # Clock has multiple settings, go to setting selection
+                self.current_level = self.LEVEL_SETTING
+                self.current_setting = 0
             elif self.current_category == self.CATEGORY_TRIGGERS:
                 # Triggers goes directly to polarity adjustment (only one setting)
                 self.current_level = self.LEVEL_VALUE
@@ -206,8 +206,7 @@ class SettingsMenu:
         """Go back to previous level"""
         if self.current_level == self.LEVEL_VALUE:
             # Go back to setting selection (or category for single-setting categories)
-            if (self.current_category == self.CATEGORY_BPM or
-                self.current_category == self.CATEGORY_TRIGGERS or
+            if (self.current_category == self.CATEGORY_TRIGGERS or
                 self.current_category == self.CATEGORY_CV or
                 self.current_category == self.CATEGORY_FIRMWARE):
                 self.current_level = self.LEVEL_CATEGORY
@@ -240,8 +239,11 @@ class SettingsMenu:
                 # Cycle to next root note
                 self.settings.next_root_note()
 
-        elif self.current_category == self.CATEGORY_BPM:
-            if self.current_setting == self.BPM_ADJUST:
+        elif self.current_category == self.CATEGORY_CLOCK:
+            if self.current_setting == self.CLOCK_SOURCE:
+                # Toggle clock source
+                self.settings.toggle_clock_source()
+            elif self.current_setting == self.CLOCK_BPM:
                 # Increase BPM by 1
                 self.settings.internal_bpm = min(300, self.settings.internal_bpm + 1)
 
@@ -271,8 +273,11 @@ class SettingsMenu:
                 # Cycle to previous root note
                 self.settings.previous_root_note()
 
-        elif self.current_category == self.CATEGORY_BPM:
-            if self.current_setting == self.BPM_ADJUST:
+        elif self.current_category == self.CATEGORY_CLOCK:
+            if self.current_setting == self.CLOCK_SOURCE:
+                # Toggle clock source
+                self.settings.toggle_clock_source()
+            elif self.current_setting == self.CLOCK_BPM:
                 # Decrease BPM by 1
                 self.settings.internal_bpm = max(30, self.settings.internal_bpm - 1)
 
@@ -308,8 +313,8 @@ class SettingsMenu:
             elif self.current_category == self.CATEGORY_SCALE:
                 preview = f"{self.settings.get_root_note_name()} {self.settings.get_scale_name()}"
                 display_text = f"{category_name} ({preview})"
-            elif self.current_category == self.CATEGORY_BPM:
-                preview = f"{self.settings.internal_bpm}"
+            elif self.current_category == self.CATEGORY_CLOCK:
+                preview = f"{self.settings.get_clock_source_name()}/{self.settings.internal_bpm}"
                 display_text = f"{category_name} ({preview})"
             elif self.current_category == self.CATEGORY_TRIGGERS:
                 preview = f"{self.settings.get_trigger_polarity_name()}"
@@ -339,6 +344,8 @@ class SettingsMenu:
                 setting_name = self.arp_setting_names[self.current_setting]
             elif self.current_category == self.CATEGORY_SCALE:
                 setting_name = self.scale_setting_names[self.current_setting]
+            elif self.current_category == self.CATEGORY_CLOCK:
+                setting_name = self.clock_setting_names[self.current_setting]
             elif self.current_category == self.CATEGORY_TRIGGERS:
                 setting_name = self.trigger_setting_names[self.current_setting]
             elif self.current_category == self.CATEGORY_CV:
@@ -388,12 +395,20 @@ class SettingsMenu:
                         "A/C:Change B:Done"
                     )
 
-            elif self.current_category == self.CATEGORY_BPM:
-                return (
-                    "BPM:",
-                    f"> {self.settings.internal_bpm} <",
-                    "A/C:Adj B:Done"
-                )
+            elif self.current_category == self.CATEGORY_CLOCK:
+                if self.current_setting == self.CLOCK_SOURCE:
+                    value = self.settings.get_clock_source_name()
+                    return (
+                        "Clock Source:",
+                        f"> {value} <",
+                        "A/C:Toggle B:Done"
+                    )
+                elif self.current_setting == self.CLOCK_BPM:
+                    return (
+                        "BPM (Internal):",
+                        f"> {self.settings.internal_bpm} <",
+                        "A/C:Adj B:Done"
+                    )
 
             elif self.current_category == self.CATEGORY_TRIGGERS:
                 if self.current_setting == self.TRIGGER_POLARITY:
