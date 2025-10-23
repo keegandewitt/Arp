@@ -16,6 +16,8 @@
 | **Core Functionality** | ✅ Working | MIDI arp, display, buttons, settings |
 | **OLED Display** | ✅ Working | CP 10.x API, fully integrated |
 | **CV/Gate Output** | 🚧 In Progress | DAC on A0/A1, see docs/features/CV_GATE_INTEGRATION.md |
+| **VintageCapture VST** | 🚧 In Progress | VST plugin for vintage synth workflow, see VintageCapture/ |
+| **Vintage Mode Firmware** | 📋 Planned | USB MIDI control for VintageCapture integration |
 | **Hardware Testing** | ✅ Complete | Comprehensive pin test suite created |
 | **Enclosure** | 📋 Planned | See docs/features/ENCLOSURE_ROADMAP.md |
 | **Battery Integration** | 📋 Planned | LiPo charging, monitoring needed |
@@ -75,6 +77,14 @@
 ├── midi_io.py                  # MIDI input/output handling
 ├── settings.py                 # Settings persistence (JSON on flash)
 ├── settings_menu.py            # Settings menu UI
+│
+├── VintageCapture/             # VST plugin for vintage synth workflow
+│   ├── Source/                 # C++ source (JUCE framework)
+│   ├── Resources/              # UI assets
+│   ├── Builds/                 # Build output (VST3, AU, AAX)
+│   ├── README.md               # VST overview
+│   ├── WORKFLOW.md             # User workflow guide
+│   └── ARP_FIRMWARE_SPEC.md    # Arp firmware integration spec
 │
 ├── scripts/                    # Utilities and installation
 │   ├── backup.py               # Backup script
@@ -172,6 +182,16 @@
   - Verify debug output is accessible
 
 ### 📋 Planned Features
+
+#### Vintage Synth Integration
+- [ ] **Vintage Mode Firmware**
+  - USB MIDI control protocol (CC commands for pattern, division, etc.)
+  - SysEx buffer transfer for note sequences
+  - Timeline-locked playback engine
+  - Integration with VintageCapture VST
+  - See `VintageCapture/ARP_FIRMWARE_SPEC.md` for complete specification
+
+#### Hardware & Enclosure
 - [ ] **Battery Integration** (todo item #2)
   - LiPo monitoring (voltage readout)
   - Battery level indicator on display
@@ -188,6 +208,7 @@
   - Laser-cut or 3D-printed case
   - Panel-mount jacks and controls
 
+#### Performance Features
 - [ ] **Swing/Humanize**
   - Timing variations for groove
   - Adjustable swing percentage
@@ -208,7 +229,20 @@
 
 ## Recent Milestones
 
-### 2025-10-22 (Latest)
+### 2025-10-23 (Latest)
+- **VintageCapture VST Project Initiated** 🚧
+  - **Problem Solved:** Vintage synths without "Local Control Off" are incompatible with external arpeggiators (doubled notes)
+  - **Solution:** Two-stage VST plugin workflow that separates performance from sound design
+  - **Architecture:**
+    - Stage 1: Calibration ("Press C3") - learns synth timing characteristics
+    - Stage 2: Keystroke Capture - records MIDI performance with zero-latency monitoring
+    - Stage 3: Playback - Arp hardware plays back captured notes while user tweaks synth parameters
+  - **Innovation:** Uses Arp as USB-controlled MIDI playback engine
+  - **Status:** VST Phase 1 in progress (core analysis), Arp firmware spec complete
+  - **Files:** `VintageCapture/` directory with README, WORKFLOW, and ARP_FIRMWARE_SPEC
+  - **Next Steps:** Implement Vintage Mode firmware on Arp hardware
+
+### 2025-10-22
 - **OLED FeatherWing Integration Complete** ✅
   - **Problem:** OLED not working with CircuitPython 10.0.3 due to API changes
   - **Root Cause:** CP 10.x deprecated `displayio.I2CDisplay`, requires new `i2cdisplaybus` module
