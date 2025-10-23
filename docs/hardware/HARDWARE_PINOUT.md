@@ -141,8 +141,9 @@ uart_clock = busio.UART(
 )
 ```
 
-### I2C Address
+### I2C Addresses
 - **OLED Display:** 0x3C (default, auto-detected)
+- **MCP4728 DAC:** 0x60 or 0x64 (default, check with I2C scan)
 
 ### Button Pins (Pre-configured on OLED FeatherWing)
 - **Button A:** D9 (hardwired on FeatherWing)
@@ -184,8 +185,110 @@ uart_clock = busio.UART(
    - Provides DIN-5 MIDI In/Out jacks
    - Optocoupler isolation on MIDI In
 
+## Connector & Bus Occupancy Reference
+
+**Last Updated:** 2025-10-23
+
+### JST SH (STEMMA QT) Connectors
+
+| Connector Location | Status | Connected To | Notes |
+|-------------------|--------|--------------|-------|
+| **M4 Feather JST SH** | 🔴 RESERVED | Battery (future) | Save for LiPo battery integration |
+| **OLED FeatherWing JST SH #1** | ✅ OCCUPIED | MCP4728 DAC | STEMMA QT cable to DAC |
+| **OLED FeatherWing JST SH #2** | 🟢 AVAILABLE | - | Can daisy-chain additional I2C devices |
+| **MCP4728 DAC JST SH #1** | ✅ OCCUPIED | OLED FeatherWing | Receives I2C from OLED |
+| **MCP4728 DAC JST SH #2** | 🟢 AVAILABLE | - | Can daisy-chain additional I2C devices |
+
+**Key:**
+- 🔴 RESERVED = Intentionally left open for specific future use
+- ✅ OCCUPIED = Currently connected
+- 🟢 AVAILABLE = Free for expansion
+
+### I2C Bus (Shared by Multiple Devices)
+
+| Device | I2C Address | SDA Pin | SCL Pin | Connection Method |
+|--------|-------------|---------|---------|-------------------|
+| **OLED FeatherWing** | 0x3C | D21 (SDA) | D22 (SCL) | Stacked headers |
+| **MCP4728 DAC** | 0x60* | D21 (SDA) | D22 (SCL) | STEMMA QT cable from OLED |
+
+**Notes:**
+- I2C is a shared bus - all devices use the same SDA/SCL lines
+- *MCP4728 may be 0x64 if using MCP4728A4 variant (check with I2C scan)
+- Additional I2C devices can be daisy-chained via STEMMA QT connectors
+
+### UART Pins
+
+| UART | TX Pin | RX Pin | Status | Connected To |
+|------|--------|--------|--------|--------------|
+| **UART0** | D1 (TX) | D0 (RX) | ✅ OCCUPIED | MIDI FeatherWing #1 (note I/O) |
+| **UART1** | D10 | D11 | ✅ OCCUPIED | MIDI FeatherWing #2 (clock in) |
+
+### GPIO Pins
+
+| Pin | Status | Function | Connected To |
+|-----|--------|----------|--------------|
+| **D5** | ✅ OCCUPIED | Button C | OLED FeatherWing |
+| **D6** | ✅ OCCUPIED | Button B | OLED FeatherWing |
+| **D9** | ✅ OCCUPIED | Button A | OLED FeatherWing |
+| **D13** | 🟢 AVAILABLE | Onboard LED | (optional, can disable) |
+
+### Analog/DAC Pins
+
+| Pin | Status | Function | Notes |
+|-----|--------|----------|-------|
+| **A0** | 🟢 AVAILABLE | DAC0 | Future: 2nd CV output or S-Trigger |
+| **A1** | 🟢 AVAILABLE | DAC1 | Future: 2nd CV output or Velocity CV |
+
+### Power Rails
+
+| Rail | Voltage | Current Available | Consumers |
+|------|---------|-------------------|-----------|
+| **USB 5V** | 5.0V | ~500mA | M4 (via regulator), MCP4728 DAC (VCC) |
+| **3.3V** | 3.3V | ~500mA | M4 logic, OLED, MIDI FeatherWings |
+| **BAT** | 3.7V | Varies | M4 (via JST SH connector - future) |
+| **GND** | 0V | - | Common ground for all devices |
+
+### MCP4728 DAC Channels
+
+| Channel | Pin Name | Status | Function | Notes |
+|---------|----------|--------|----------|-------|
+| **Channel A** | VA | 🔴 RESERVED | CV Pitch | 1V/octave or 1.035V/octave, 0-5V range |
+| **Channel B** | VB | 🔴 RESERVED | Gate/Trigger | V-trig (0V=off, 5V=on) or S-trig (inverted) |
+| **Channel C** | VC | 🟢 AVAILABLE | - | Future: Velocity CV, Modulation CV, etc. |
+| **Channel D** | VD | 🟢 AVAILABLE | - | Future: Clock out, 2nd trigger, etc. |
+
+### Physical Outputs (3.5mm TRS Jacks)
+
+| Jack | Status | Signal Source | Notes |
+|------|--------|---------------|-------|
+| **CV Pitch** | 🔴 RESERVED | MCP4728 Channel A (VA) | 1V/octave, 0-5V |
+| **Gate** | 🔴 RESERVED | MCP4728 Channel B (VB) | 0V or 5V (V-trig) |
+| **MIDI IN** | ✅ OCCUPIED | MIDI FeatherWing #1 | DIN-5 or TRS Type A |
+| **MIDI OUT** | ✅ OCCUPIED | MIDI FeatherWing #1 | DIN-5 or TRS Type A |
+
+### Expansion Capacity
+
+**Available for future expansion:**
+- 🟢 **2x MCP4728 DAC channels** (C, D) - can add 2 more CV outputs
+- 🟢 **2x I2C STEMMA QT connectors** - can daisy-chain more I2C devices
+- 🟢 **2x DAC pins on M4** (A0, A1) - alternative CV outputs (0-3.3V native)
+- 🟢 **Multiple GPIO pins** - encoders, additional buttons, LEDs
+- 🟢 **Analog inputs** - potentiometers for tempo, swing, etc.
+
+### Important Notes
+
+1. **JST SH on M4 is RESERVED for battery** - do NOT use for I2C, use OLED's STEMMA QT instead
+2. **I2C is shared** - OLED and MCP4728 both use D21/D22, daisy-chained via STEMMA QT
+3. **UART pins are fully occupied** - both UART0 (MIDI I/O) and UART1 (MIDI clock) in use
+4. **MCP4728 channels C/D are free** - can add velocity CV, modulation, 2nd gate, etc.
+5. **Update this document** whenever adding new hardware connections
+
+---
+
 ## Additional Resources
 
 - CircuitPython UART Guide: https://learn.adafruit.com/circuitpython-essentials/circuitpython-uart-serial
 - FeatherWing Stacking: https://learn.adafruit.com/featherwings
 - M4 Express Pinout: https://learn.adafruit.com/adafruit-feather-m4-express-atsamd51/pinouts
+- MCP4728 DAC Guide: https://learn.adafruit.com/adafruit-mcp4728-i2c-quad-dac
+- STEMMA QT Guide: https://learn.adafruit.com/introducing-adafruit-stemma-qt
