@@ -228,6 +228,50 @@ The user can ask the next Claude instance to check:
 
 ## Development Guidelines
 
+### Core Development Philosophy: Verify-Then-Act Protocol
+
+**Principle:** Be extremely detailed and rigorous. Validate assumptions before acting on them.
+
+**The Protocol:**
+1. **Verify** - Check specifications, read documentation, examine existing code
+2. **Assess** - Do you have sufficient information to proceed confidently?
+3. **Gather** - If information is missing or unclear, gather more context
+4. **Reassess** - With new information, do you now understand fully?
+5. **Act** - Only proceed when verification is complete
+
+**Key Behavior:** If you need more information or context, GET IT, then reassess before acting.
+
+**In Practice:**
+- **Verify before implementing** - Check specifications, read documentation, examine existing code
+- **Test assumptions** - Don't assume compatibility, behavior, or state - verify it
+- **Read first, code second** - Understand the full context before making changes
+- **Gather when uncertain** - Missing information? Read more files, check docs, search the codebase
+- **Reassess continuously** - New information may change your approach
+- **Document findings** - Record what you verified so others don't repeat the work
+- **Ask when blocked** - If context isn't available in the codebase, ask the user
+
+**Examples:**
+- Before using a library: Check its compatibility with your platform version
+- Before modifying code: Read the surrounding context and understand the current behavior
+- Before assuming a feature exists: Search the codebase or documentation
+- Before deploying: Test in isolation first
+
+**Anti-patterns to Avoid:**
+- ❌ Assuming library X works with platform Y without checking
+- ❌ Making changes based on partial information
+- ❌ Skipping validation steps to "save time"
+- ❌ Implementing solutions before fully understanding the problem
+- ❌ Guessing at specifications instead of looking them up
+
+**Time Investment:**
+- 5 minutes verifying specifications vs. 2 hours debugging wrong assumptions
+- 10 minutes reading existing code vs. breaking working functionality
+- 2 minutes checking documentation vs. implementing the wrong solution
+
+This principle applies to ALL development activities: hardware selection, software design, testing, integration, and debugging.
+
+---
+
 ### Code Style
 - **Language:** CircuitPython 9.x
 - **Style Guide:** PEP 8 (where applicable to CircuitPython)
@@ -892,6 +936,13 @@ git reset --hard origin/main
 ---
 
 ## Version History
+
+- **v1.4** (2025-10-23) - Added Verify-Then-Act Protocol
+  - **Core Philosophy:** Established explicit 5-step verification protocol
+  - Replaced metaphorical language with clear, actionable instructions
+  - Added iterative "Gather → Reassess" loop for incomplete information
+  - Emphasized getting context before acting, not making assumptions
+  - Key addition: "If you need more information or context, GET IT, then reassess"
 
 - **v1.3** (2025-10-22) - Added Comprehensive Dependency Management
   - **Core Principle:** ALWAYS check dependencies before deployment

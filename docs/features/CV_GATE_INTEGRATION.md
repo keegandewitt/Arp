@@ -11,27 +11,30 @@ This guide covers the hardware integration of CV Pitch and Gate outputs for the 
 
 ## Jack Specifications
 
-### Recommended Part: **Thonkiconn PJ301M-12**
+### Selected Part: **Lsgoodcare 3.5mm Panel Mount Jacks (20-pack)**
 
-**Why Thonkiconn PJ301M-12?**
-- Industry standard for Eurorack and modular synth DIY
-- Reliable mechanical construction
-- Proper dimensions for 3.5mm (1/8") cables
-- Isolated sleeve (prevents ground loops)
-- Affordable (~$1.25 each)
+**Part Info:**
+- **Product:** Lsgoodcare 20PCS 3.5mm 1/8" Female Stereo Jack Panel Mount Connector
+- **Source:** Amazon B01DBOBRHQ (~$10 for 20-pack = $0.50 each)
+- **Purchased:** 2025-10-23
+
+**Why These Jacks?**
+- Economical bulk purchase (20-pack provides spares)
+- Standard 3.5mm TRS panel-mount configuration
+- Proper dimensions for 1/8" cables
+- Panel mount with threaded bushing
 
 **Specifications:**
 - **Type:** 3.5mm TRS (stereo) panel-mount jack
-- **Contacts:** Tip, Ring, Sleeve (switched)
-- **Panel Hole:** 6mm (0.236") diameter
+- **Contacts:** Tip, Ring, Sleeve
+- **Panel Hole:** ~6mm (0.236") diameter (verify with first jack)
 - **Mounting:** Threaded bushing with nut
-- **Material:** Plastic body with metal contacts
-- **Insulation:** Isolated sleeve terminal
+- **Material:** Generic panel-mount construction
 
-**Alternative Options (if Thonkiconn unavailable):**
-- Switchcraft 35RAPC4BH (~$3.50) - Premium quality
-- Lumberg/Rean NYS226 (~$1.50) - Good quality
-- Qingpu WQP-PJ301M-12 (~$0.80) - Budget clone
+**Note:** These are generic TRS jacks suitable for CV/Gate applications. If higher-grade jacks are needed later (e.g., for better mechanical reliability), consider:
+- **Thonkiconn PJ301M-12** (~$1.25) - Eurorack standard
+- **Switchcraft 35RAPC4BH** (~$3.50) - Premium quality
+- **Lumberg/Rean NYS226** (~$1.50) - Good quality
 
 ---
 
@@ -421,12 +424,14 @@ The MCP4728 has 2 additional channels (C, D) available for expansion:
 
 | Item | Qty | Unit Price | Total | Source |
 |------|-----|------------|-------|--------|
-| Thonkiconn PJ301M-12 (3.5mm TRS jack) | 2 | $1.25 | $2.50 | Thonkiconn, Tayda, Mouser |
+| Lsgoodcare 3.5mm TRS jacks (20-pack) | 2 | $0.50 | $1.00 | Amazon B01DBOBRHQ (~$10 for 20-pack) |
 | 22-24 AWG stranded wire (6 inches per jack) | 1 foot | $0.50 | $0.50 | Generic |
 | Heat shrink tubing (assorted sizes) | 4 pieces | $0.10 | $0.40 | Generic |
 | Solder | ~1 gram | - | - | (Included in tools) |
 
-**Total CV/Gate Hardware Cost:** ~$3.40
+**Total CV/Gate Hardware Cost:** ~$1.90
+
+**Note:** 20-pack provides 18 spare jacks for future expansion or repairs.
 
 ---
 
@@ -477,6 +482,7 @@ TRIGGER_STRIG = 1  # S-trig: 5V=off, 0V=on (Moog)
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.1 | 2025-10-23 | Updated jack specification to Lsgoodcare 20-pack (actual purchased part) |
 | 1.0 | 2025-10-15 | Initial CV/Gate integration guide |
 
 ---
