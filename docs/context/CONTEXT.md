@@ -38,7 +38,7 @@
 
 **Git Status:**
 - **Branch:** main
-- **Last Commit:** 2acec8c - docs: Add Verify-Then-Act Protocol and update hardware specs
+- **Last Commit:** b396dfa - feat: Add /start command for comprehensive session onboarding
 - **Working Tree:** Clean
 
 **What's Next (Priority Order):**
