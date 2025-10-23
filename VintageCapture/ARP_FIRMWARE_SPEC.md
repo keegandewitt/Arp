@@ -24,6 +24,7 @@ The Arp hardware needs a "Vintage Mode" that receives commands from the VintageC
 | **CC 101** | Stop Playback | 127 | Stop playback |
 | **CC 102** | Enter Vintage Mode | 127 | Disable local UI, accept USB control |
 | **CC 103** | Exit Vintage Mode | 127 | Re-enable local UI |
+| **CC 104** | Calibrate Latency | 127 | Send test note for latency measurement |
 
 ### MIDI Note Buffer Transfer (SysEx)
 
@@ -50,6 +51,33 @@ F0 7D [Manufacturer ID]
 50           // Velocity: 80
 01           // Note On
 ```
+
+### Latency Calibration Response (SysEx)
+
+**Arp → VST acknowledgment after CC 104:**
+
+```
+F0 7D 02 [Timestamp MSB] [Timestamp] [Timestamp] [Timestamp LSB] F7
+
+Command 02 = Latency Calibration ACK
+Timestamp  = 4 bytes (microseconds when Arp received CC 104)
+```
+
+**Example Response:**
+```
+F0 7D 02 00 00 27 10 F7  // Received at 10,000µs (10ms)
+```
+
+**Behavior:**
+1. Arp receives CC 104
+2. Records timestamp (microseconds since boot)
+3. Immediately sends NoteOn(60, 127) to MIDI OUT (C4, forte)
+4. Waits 100ms
+5. Sends NoteOff(60, 0)
+6. Sends SysEx ACK with timestamp back to VST via USB
+
+**Purpose:** Allows VST to measure round-trip latency and compensate playback timing.
+See `LATENCY_COMPENSATION.md` for complete details.
 
 ---
 
