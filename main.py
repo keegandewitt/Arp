@@ -47,6 +47,13 @@ Setup for Vintage Synths (Moog Source, etc.):
 - This is a hardware limitation - use external MIDI filtering if needed
 """
 
+# =============================================================================
+# Version Information
+# =============================================================================
+__version__ = "0.95.0"
+__build_date__ = "2025-10-23"
+__hardware_version__ = "1.0"
+
 import board
 import busio
 import time
@@ -79,7 +86,8 @@ from arp.ui.menu import SettingsMenu
 from arp.utils.config import Settings
 
 print("\n" + "="*60)
-print("ARP - Hardware Arpeggiator v1.0")
+print(f"ARP - Hardware Arpeggiator v{__version__}")
+print(f"Build: {__build_date__} | Hardware: v{__hardware_version__}")
 print("="*60)
 
 # =============================================================================
@@ -106,7 +114,7 @@ print("[2/3] Initializing Display...")
 # OLED FeatherWing on I2C
 i2c = board.I2C()
 display = Display(i2c)
-display.show_startup()
+display.show_startup(version=__version__)
 print("      ✓ Display ready (SH1107 128x64)")
 
 print("[3/3] Initializing Buttons...")

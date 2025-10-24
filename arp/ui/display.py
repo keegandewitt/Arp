@@ -210,12 +210,17 @@ class Display:
             return
         self.status_label.text = ""
 
-    def show_startup(self):
-        """Show startup screen"""
+    def show_startup(self, version="0.95.0"):
+        """
+        Show startup screen with version info
+
+        Args:
+            version: Firmware version string
+        """
         if self.is_sleeping:
             return
-        self.bpm_label.text = "MIDI"
-        self.pattern_label.text = "Arpeggiator"
+        self.bpm_label.text = "MIDI Arpeggiator"
+        self.pattern_label.text = f"v{version}"
         self.status_label.text = "Ready!"
 
     def enter_clock_source_selection(self, clock_source_name):
