@@ -35,22 +35,27 @@
 
 **Key Architecture Decisions:**
 1. **Battery Power Management:** M4's BAT pin provides ~5V when USB connected, 3.7-4.2V on battery only
-2. **Powerboost Isolation:** MCP4728 will have separate 5V rail from powerboost (no 3.3V conflict)
+2. **MCP4728 Voltage Levels (CRITICAL DISCOVERY):**
+   - **For full 0-5V CV output:** MCP4728 needs VDD = 5V
+   - **Problem:** MCP4728 @ 5V has VIH = 3.5V minimum (I2C high threshold)
+   - **M4 I2C outputs:** 3.3V maximum (below 3.5V threshold = unreliable)
+   - **Solution:** BSS138 level shifter required to translate 3.3V ↔ 5V for I2C communication
+   - **Temporary workaround:** Power MCP4728 at 3.3V for testing (limits CV to 0-3.3V range)
 3. **Development Setup:** Battery + USB both connected for programming/debugging with automatic charging
 
 **Git Status:**
 - **Branch:** main
-- **Last Commit:** ca25e5d - fix: Resolve button unpacking error and add battery integration docs
+- **Last Commit:** d0002d5 - docs: Document powerboost configuration and voltage level shifter requirements
 - **Working Tree:** Clean
 
 **What's Next (Priority Order):**
-1. **[HARDWARE]** Desolder powerboost 5V row pads (A and B) to get 5V output
-2. **[TESTING]** Verify powerboost outputs 5V with battery input
-3. **[INTEGRATION]** Wire MCP4728 VCC to powerboost 5V output
-4. **[INTEGRATION]** Connect MCP4728 I2C via STEMMA QT to OLED FeatherWing
-5. **[TESTING]** Run full MCP4728 test suite (tests/test_mcp4728_dac.py)
-6. **[TESTING]** Verify OLED + MCP4728 work together without brownout
-7. **[SOFTWARE]** Integrate battery voltage monitoring into main.py
+1. **[HARDWARE]** Wire MCP4728 to 3.3V power (M4's 3V pin) for initial testing
+2. **[HARDWARE]** Connect MCP4728 I2C via STEMMA QT to OLED FeatherWing
+3. **[TESTING]** Run I2C scanner to verify both devices detected (0x3C, 0x60)
+4. **[TESTING]** Test MCP4728 DAC outputs at 3.3V (limited CV range, but functional)
+5. **[ORDERING]** Order BSS138 level shifter for 5V operation (HiLetgo or Adafruit)
+6. **[FUTURE]** Upgrade to 5V power with level shifter for full 0-5V CV range
+7. **[SOFTWARE]** Integrate CV/Gate output into main arpeggiator code
 
 ---
 
