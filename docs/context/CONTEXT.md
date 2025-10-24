@@ -45,7 +45,7 @@
 
 **Git Status:**
 - **Branch:** main
-- **Last Commit:** d0002d5 - docs: Document powerboost configuration and voltage level shifter requirements
+- **Last Commit:** 03ce32e - feat: Add firmware version reporting and update infrastructure
 - **Working Tree:** Clean
 
 **What's Next (Priority Order):**
