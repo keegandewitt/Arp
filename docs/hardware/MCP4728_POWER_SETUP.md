@@ -78,9 +78,16 @@ Pad A | Pad B | Output Voltage
 
 ### Step 1: Configure Powerboost for 5V Output
 
+**⚠️ CRITICAL: Locate the ACTUAL solder pads, not the schematic!**
+
+**Common mistake:** The Teyleten module has a schematic/reference table printed on ONE side showing the voltage configurations. These are NOT the actual solder pads - they're just a reference diagram.
+
+**The ACTUAL solder pads A and B are on the OTHER side of the board.**
+
 **Check Solder Pads A and B:**
-1. Locate pads marked "A" and "B" on front of powerboost PCB
-2. Verify configuration:
+1. **Flip the board over** from the side with the voltage table schematic
+2. Locate the actual pads marked "A" and "B" (usually near components or edges)
+3. Verify configuration:
    - **Pad A:** Should be OPEN (disconnected) = 0
    - **Pad B:** Should be OPEN (disconnected) = 0
    - **Result:** A=0, B=0 → 5V output
