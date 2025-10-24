@@ -8,56 +8,77 @@
 ## Session Handoff
 
 **Last Updated:** 2025-10-24
-**Session Status:** 📋 PLANNING - Production Roadmap Complete
-**Token Usage:** ~55K / 200K
+**Session Status:** ⏸️ PAUSED - Waiting for LM7805 voltage regulator
+**Token Usage:** ~60K / 200K
 
-### Current Session Summary (Session 9)
+### Current Session Summary (Session 10)
 **What was accomplished:**
-- ✅ **PRODUCTION ROADMAP COMPLETE**
-  - Created comprehensive PRODUCTION_ROADMAP.md (800+ lines)
-  - Analyzed cost optimization for 200-unit manufacturing run
-  - Documented single custom PCB strategy with RP2040
-  - Cost breakdown: $42-51/unit (vs $89-105 with Feathers)
-  - Total savings: $7,800-12,600 for 200 units
-- ✅ **Technical Analysis**
-  - RP2040 vs SAMD51 comparison (6-8× cheaper, dual-core, better specs)
-  - MIDI circuit integration ($6 vs $15 FeatherWing)
-  - Display optimization ($5 vs $20 FeatherWing)
-  - Power management options (USB-only vs battery)
-- ✅ **Timeline & Risk Assessment**
-  - 18-24 week production timeline documented
-  - Technical, financial, and operational risks identified
-  - Decision point checklists created
-  - Phase breakdown: Prototype → Beta → Production
+- ✅ **CV OUTPUT CIRCUIT DESIGNED**
+  - Created TL072 op-amp 2× gain stage (0-5V → 0-10V)
+  - Industry-standard solution for Eurorack 1V/octave CV
+  - Complete circuit documentation in CV_OPAMP_CIRCUIT.md
+- ✅ **POWER ARCHITECTURE CORRECTED**
+  - Discovered M4 CAN has NO 5V pin on headers (only 3.3V and BAT)
+  - Designed LM7805 regulator circuit (12V → 5V for MCP4728)
+  - Powerboost reconfiguration plan (A=1, B=1 → 12V output)
+  - Calculated power budget: ~2.5mA total, no heatsink needed
+- ✅ **COMPREHENSIVE BREADBOARD GUIDE**
+  - Created BREADBOARD_WALKTHROUGH.md (beginner-friendly, 600+ lines)
+  - Step-by-step assembly with component education
+  - Explains what resistors, capacitors, op-amps, regulators do
+  - Complete testing procedures and troubleshooting
+- ✅ **SESSION DOCUMENTATION**
+  - Created SESSION_10_SUMMARY.md for resuming work
+  - Documented all key decisions and learnings
+  - Clear next steps when LM7805 arrives
 
-**Key Decisions Made:**
-1. **Custom PCB Required:** Single board integration saves $38-54 per unit
-2. **RP2040 Microcontroller:** $1 vs $6-8 (SAMD51), dual-core 133MHz, excellent CircuitPython support
-3. **Integrated MIDI Circuit:** Replicate FeatherWing schematic on custom PCB
-4. **Off-the-Shelf OLED:** Use $3-5 module instead of $20 FeatherWing
-5. **PCBA Service:** Use JLCPCB/PCBWay for SMD assembly, hand-solder through-hole
-6. **Two Product Tiers:** USB-only standard ($42-47) and battery pro model ($46-51)
+**Key Technical Decisions:**
+1. **TL072 Op-Amp:** Industry standard for Eurorack CV, dual channel (using 1)
+2. **2× Gain Circuit:** Non-inverting amplifier, 2× 100kΩ resistors
+3. **LM7805 Required:** M4 CAN lacks 5V pin, regulator is mandatory (not optional)
+4. **12V Power:** Powerboost → 12V for TL072, LM7805 → 5V for MCP4728
+5. **No Level Shifters:** MCP4728 works with 3.3V I2C at 5V power (already validated)
+
+**Hardware Status:**
+- ✅ TL072 op-amp available
+- ✅ 2× 100kΩ resistors available
+- ✅ 3× 100nF ceramic caps available
+- ❌ **LM7805 regulator needed (ordered, awaiting delivery)**
 
 **Git Status:**
 - **Branch:** main
-- **Last Commit:** c10b22d - docs: Add comprehensive production planning roadmap for 200-unit manufacturing
+- **Last Commit:** 018263e - docs: Add CV output op-amp circuit design and breadboard guide
 - **Working Tree:** Clean
 
-**What's Next (Priority Order):**
-1. **[HARDWARE]** Complete MCP4728 DAC testing (in progress from Session 8)
-   - Wire MCP4728 to 3.3V power (M4's 3V pin)
-   - Connect I2C via STEMMA QT to OLED FeatherWing
-   - Run I2C scanner to verify devices (0x3C, 0x60)
-   - Test DAC outputs at 3.3V
-2. **[HARDWARE]** Validate CV/Gate output with multimeter/scope
-3. **[HARDWARE]** Test BSS138 level shifter for 5V operation
-4. **[DOCUMENTATION]** Update PRODUCTION_ROADMAP.md after testing complete
-5. **[DESIGN]** Begin PCB schematic design in KiCad (when ready)
-6. **[SOFTWARE]** Integrate CV/Gate output into main arpeggiator code
+**What's Next (When LM7805 Arrives):**
+1. **[HARDWARE]** Reconfigure Powerboost to 12V (solder jumpers A=1, B=1)
+2. **[HARDWARE]** Build LM7805 regulator circuit on breadboard (12V → 5V)
+3. **[HARDWARE]** Assemble TL072 op-amp circuit (2× gain stage)
+4. **[HARDWARE]** Test with multimeter (verify 0-10V output range)
+5. **[SOFTWARE]** Create CV driver module with 1V/octave conversion
+6. **[SOFTWARE]** Integrate CV/Gate into arpeggiator code
+7. **[HARDWARE]** Test complete system with modular synthesizer
+
+**Estimated Time:** 1-2 hours hardware assembly + 2-3 hours software development
 
 ---
 
 ## Session History
+
+### Session 10 (2025-10-24)
+- **Focus:** CV output voltage requirements and op-amp circuit design
+- **Outcome:** Complete 2× gain circuit designed, power architecture corrected
+- **Major Achievement:** Discovered M4 CAN has no 5V pin (LM7805 regulator required)
+- **Key Learning:** Always verify pinout availability before circuit design
+- **Blocker:** LM7805 voltage regulator needed (ordered)
+- **Status:** ⏸️ Paused - Resume when LM7805 arrives
+
+### Session 9 (2025-10-24)
+- **Focus:** Production planning and cost optimization for 200-unit run
+- **Outcome:** Comprehensive PRODUCTION_ROADMAP.md created (800+ lines)
+- **Major Achievement:** Custom PCB strategy saves $7,800-12,600 for 200 units
+- **Key Decision:** RP2040-based custom PCB ($42-51/unit vs $89-105 with Feathers)
+- **Status:** ✅ Complete - Ready for prototyping phase
 
 ### Session 8 (2025-10-23)
 - **Focus:** Battery integration and MCP4728 DAC library setup
