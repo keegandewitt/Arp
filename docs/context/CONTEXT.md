@@ -7,59 +7,69 @@
 
 ## Session Handoff
 
-**Last Updated:** 2025-10-23
-**Session Status:** 🔋 IN PROGRESS - Battery + MCP4728 Integration
-**Token Usage:** ~115K / 200K
+**Last Updated:** 2025-10-24
+**Session Status:** 📋 PLANNING - Production Roadmap Complete
+**Token Usage:** ~55K / 200K
 
-### Current Session Summary (Session 8)
+### Current Session Summary (Session 9)
 **What was accomplished:**
-- ✅ **BATTERY INTEGRATION COMPLETE**
-  - Connected 3.7V 1200mAh LiPo battery to Feather M4
-  - System runs on battery power (tested 9-12 hour runtime expected)
-  - USB charging working (100mA charge current)
-- ✅ **Fixed Critical Code Crash**
-  - Resolved ValueError in main.py:324 (button unpacking missing ac_long parameter)
-  - System now stable on battery power
-- ✅ **MCP4728 DAC Library Installed**
-  - adafruit_mcp4728 v1.3.14 installed via circup
-  - Library verified compatible with CircuitPython 10.0.3
-- ✅ **Comprehensive Documentation Created**
-  - BATTERY_MCP4728_INTEGRATION.md (1000+ lines, complete integration guide)
-  - MCP4728_POWER_SETUP.md (400+ lines, power setup with safety procedures)
-  - Documented LiPo safety, powerboost configuration, wiring diagrams, testing procedures
-- ✅ **Powerboost Configuration COMPLETE**
-  - **CRITICAL LESSON LEARNED:** Teyleten powerboost has schematic on one side (reference only) and ACTUAL solder pads on the OTHER side
-  - Successfully desoldered pads A and B (opened both jumpers)
-  - Now outputting correct 5.2V (within 5.0V ± 0.2V spec)
-  - Configuration: A=0, B=0 → 5V output verified
+- ✅ **PRODUCTION ROADMAP COMPLETE**
+  - Created comprehensive PRODUCTION_ROADMAP.md (800+ lines)
+  - Analyzed cost optimization for 200-unit manufacturing run
+  - Documented single custom PCB strategy with RP2040
+  - Cost breakdown: $42-51/unit (vs $89-105 with Feathers)
+  - Total savings: $7,800-12,600 for 200 units
+- ✅ **Technical Analysis**
+  - RP2040 vs SAMD51 comparison (6-8× cheaper, dual-core, better specs)
+  - MIDI circuit integration ($6 vs $15 FeatherWing)
+  - Display optimization ($5 vs $20 FeatherWing)
+  - Power management options (USB-only vs battery)
+- ✅ **Timeline & Risk Assessment**
+  - 18-24 week production timeline documented
+  - Technical, financial, and operational risks identified
+  - Decision point checklists created
+  - Phase breakdown: Prototype → Beta → Production
 
-**Key Architecture Decisions:**
-1. **Battery Power Management:** M4's BAT pin provides ~5V when USB connected, 3.7-4.2V on battery only
-2. **MCP4728 Voltage Levels (CRITICAL DISCOVERY):**
-   - **For full 0-5V CV output:** MCP4728 needs VDD = 5V
-   - **Problem:** MCP4728 @ 5V has VIH = 3.5V minimum (I2C high threshold)
-   - **M4 I2C outputs:** 3.3V maximum (below 3.5V threshold = unreliable)
-   - **Solution:** BSS138 level shifter required to translate 3.3V ↔ 5V for I2C communication
-   - **Temporary workaround:** Power MCP4728 at 3.3V for testing (limits CV to 0-3.3V range)
-3. **Development Setup:** Battery + USB both connected for programming/debugging with automatic charging
+**Key Decisions Made:**
+1. **Custom PCB Required:** Single board integration saves $38-54 per unit
+2. **RP2040 Microcontroller:** $1 vs $6-8 (SAMD51), dual-core 133MHz, excellent CircuitPython support
+3. **Integrated MIDI Circuit:** Replicate FeatherWing schematic on custom PCB
+4. **Off-the-Shelf OLED:** Use $3-5 module instead of $20 FeatherWing
+5. **PCBA Service:** Use JLCPCB/PCBWay for SMD assembly, hand-solder through-hole
+6. **Two Product Tiers:** USB-only standard ($42-47) and battery pro model ($46-51)
 
 **Git Status:**
 - **Branch:** main
-- **Last Commit:** 03ce32e - feat: Add firmware version reporting and update infrastructure
+- **Last Commit:** c10b22d - docs: Add comprehensive production planning roadmap for 200-unit manufacturing
 - **Working Tree:** Clean
 
 **What's Next (Priority Order):**
-1. **[HARDWARE]** Wire MCP4728 to 3.3V power (M4's 3V pin) for initial testing
-2. **[HARDWARE]** Connect MCP4728 I2C via STEMMA QT to OLED FeatherWing
-3. **[TESTING]** Run I2C scanner to verify both devices detected (0x3C, 0x60)
-4. **[TESTING]** Test MCP4728 DAC outputs at 3.3V (limited CV range, but functional)
-5. **[ORDERING]** Order BSS138 level shifter for 5V operation (HiLetgo or Adafruit)
-6. **[FUTURE]** Upgrade to 5V power with level shifter for full 0-5V CV range
-7. **[SOFTWARE]** Integrate CV/Gate output into main arpeggiator code
+1. **[HARDWARE]** Complete MCP4728 DAC testing (in progress from Session 8)
+   - Wire MCP4728 to 3.3V power (M4's 3V pin)
+   - Connect I2C via STEMMA QT to OLED FeatherWing
+   - Run I2C scanner to verify devices (0x3C, 0x60)
+   - Test DAC outputs at 3.3V
+2. **[HARDWARE]** Validate CV/Gate output with multimeter/scope
+3. **[HARDWARE]** Test BSS138 level shifter for 5V operation
+4. **[DOCUMENTATION]** Update PRODUCTION_ROADMAP.md after testing complete
+5. **[DESIGN]** Begin PCB schematic design in KiCad (when ready)
+6. **[SOFTWARE]** Integrate CV/Gate output into main arpeggiator code
 
 ---
 
 ## Session History
+
+### Session 8 (2025-10-23)
+- **Focus:** Battery integration and MCP4728 DAC library setup
+- **Outcome:** Battery power working, powerboost configured, comprehensive documentation created
+- **Major Achievement:** Discovered voltage level requirements for MCP4728 (BSS138 level shifter needed)
+- **Lesson Learned:** Powerboost schematic on one side, actual solder pads on the other
+- **Status:** ✅ Complete - Ready for MCP4728 hardware testing
+
+### Session 7 (2025-10-23)
+- **Focus:** Session handoff and documentation review
+- **Outcome:** Context review, planning for next steps
+- **Status:** ✅ Complete
 
 ### Session 6 (2025-10-23)
 - **Focus:** CV/Gate hardware planning and MIDI clock sync investigation
@@ -169,9 +179,15 @@
 
 ## Recently Modified Files
 
-### This Session (Session 4)
-- **START_HERE.md** (NEW) - Quick onboarding guide
-- **docs/context/CONTEXT.md** (NEW) - This file, living session context
+### This Session (Session 9)
+- **docs/PRODUCTION_ROADMAP.md** (NEW) - Comprehensive 200-unit production planning
+- **docs/context/CONTEXT.md** (UPDATED) - Session 9 handoff info
+
+### Session 8 (2025-10-23)
+- **docs/BATTERY_MCP4728_INTEGRATION.md** - Battery + DAC integration guide
+- **docs/MCP4728_POWER_SETUP.md** - Power setup and safety procedures
+- **main.py:324** - Fixed button unpacking error
+- **docs/context/CONTEXT.md** - Updated with battery integration status
 
 ### Previous Session (Session 3)
 - **display.py:35** - Updated to use `i2cdisplaybus.I2CDisplayBus`
