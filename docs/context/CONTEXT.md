@@ -71,7 +71,11 @@ dac.channel_a.raw_value = 4095  # Direct 12-bit control → Full 4.83V
 - ✅ **MCP4728 DAC - FULLY WORKING! Full 0-5V output verified**
 - ✅ LM7805 regulator - correctly installed (5V output verified)
 - ✅ **LM358N op-amp circuit - VERIFIED WORKING! Full 0-10V output**
+- ✅ **S-Trig transistor circuit - DESIGNED (D10 + NPN transistor)**
 - ❌ TL072 op-amp - **DO NOT USE** (cannot handle 0V inputs in single-supply)
+- 🔶 MIDI FeatherWing - **NOT YET INSTALLED** (D0/D1 reserved)
+
+**📌 PIN ALLOCATION:** See `docs/hardware/PIN_ALLOCATION_MATRIX.md` (AUTHORITATIVE SOURCE)
 
 **Git Status:**
 - **Branch:** main
