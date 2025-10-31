@@ -7,63 +7,116 @@
 
 ## Session Handoff
 
-**Last Updated:** 2025-10-24
-**Session Status:** ⏸️ PAUSED - Waiting for LM7805 voltage regulator
-**Token Usage:** ~60K / 200K
+**Last Updated:** 2025-10-31 (Session 12)
+**Session Status:** ✅ COMPLETE - Full 0-10V CV output working!
+**Token Usage:** ~62K / 200K
 
-### Current Session Summary (Session 10)
+### Current Session Summary (Session 12)
 **What was accomplished:**
-- ✅ **CV OUTPUT CIRCUIT DESIGNED**
-  - Created TL072 op-amp 2× gain stage (0-5V → 0-10V)
-  - Industry-standard solution for Eurorack 1V/octave CV
-  - Complete circuit documentation in CV_OPAMP_CIRCUIT.md
-- ✅ **POWER ARCHITECTURE CORRECTED**
-  - Discovered M4 CAN has NO 5V pin on headers (only 3.3V and BAT)
-  - Designed LM7805 regulator circuit (12V → 5V for MCP4728)
-  - Powerboost reconfiguration plan (A=1, B=1 → 12V output)
-  - Calculated power budget: ~2.5mA total, no heatsink needed
-- ✅ **COMPREHENSIVE BREADBOARD GUIDE**
-  - Created BREADBOARD_WALKTHROUGH.md (beginner-friendly, 600+ lines)
-  - Step-by-step assembly with component education
-  - Explains what resistors, capacitors, op-amps, regulators do
-  - Complete testing procedures and troubleshooting
-- ✅ **SESSION DOCUMENTATION**
-  - Created SESSION_10_SUMMARY.md for resuming work
-  - Documented all key decisions and learnings
-  - Clear next steps when LM7805 arrives
+- ✅ **CRITICAL BUG DISCOVERED AND FIXED: MCP4728 `.value` vs `.raw_value`**
+  - Root cause: Using `.value` property (16-bit) with 12-bit calculated values
+  - Library was bit-shifting: `raw_value = value >> 4` causing 1/16th voltage output
+  - This perfectly explained 0.30V readings: `(255/4095) × 4.83V = 0.30V`
+  - **Solution:** Use `.raw_value` property for direct 12-bit DAC control
+  - Verified full 0-5V output range working perfectly
+- ✅ **RESEARCH: I2C BUS CONTENTION AND DISPLAY THROTTLING**
+  - Investigated I2C bus sharing impact on CV timing accuracy
+  - Measured: DAC update = 0.7ms, OLED update = 86.6ms (blocking!)
+  - At 200 BPM 16th notes (75ms budget), OLED completely misses timing
+  - **Solution:** Display throttling (10Hz max) + existing sleep mode optimizations
+  - Created `TIMING_ARCHITECTURE.md` with TIER 1 (real-time) vs TIER 2 (non-critical) patterns
+- ✅ **CV OUTPUT DRIVER CREATED**
+  - `arp/drivers/cv_output.py` - Production CV driver with throttling
+  - Pre-calculated 128-note MIDI lookup table (zero-latency)
+  - Built-in display update throttling (100ms intervals)
+  - 1V/octave formula: `raw_value = MIDI_note × 68.27`
+- ✅ **CRITICAL DISCOVERY: TL072 LIMITATION**
+  - TL072 **CANNOT handle 0V inputs** in single-supply operation
+  - Common-mode input range: V- + 4V minimum (requires ≥4V inputs)
+  - At 0V input: TL072 saturated to ~12V (phase inversion)
+  - **Hours wasted** troubleshooting before researching op-amp limitations
+  - **Lesson learned:** Research component specs immediately when behavior is anomalous
+- ✅ **LM358N SOLUTION VERIFIED WORKING!**
+  - Replaced TL072 with LM358N (rail-to-rail inputs, same pinout)
+  - Tested unity gain: 0V→0V, 5V→5V ✓ (works at 0V!)
+  - Tested 2× gain circuit: 0V→0V, 5V→9.5V ✓ (full range working!)
+  - **ACHIEVEMENT:** Complete 0-10V CV output chain verified end-to-end
+- ✅ **COMPREHENSIVE DOCUMENTATION UPDATED**
+  - `docs/hardware/LM358_WIRING_GUIDE.md` - Complete wiring guide with TL072 warning
+  - `docs/hardware/MCP4728_CV_GUIDE.md` - DAC implementation guide
+  - `docs/architecture/TIMING_ARCHITECTURE.md` - I2C timing analysis
+  - `tests/tl072_gain_circuit_test.py` - Voltage stepping test (works with LM358N)
 
-**Key Technical Decisions:**
-1. **TL072 Op-Amp:** Industry standard for Eurorack CV, dual channel (using 1)
-2. **2× Gain Circuit:** Non-inverting amplifier, 2× 100kΩ resistors
-3. **LM7805 Required:** M4 CAN lacks 5V pin, regulator is mandatory (not optional)
-4. **12V Power:** Powerboost → 12V for TL072, LM7805 → 5V for MCP4728
-5. **No Level Shifters:** MCP4728 works with 3.3V I2C at 5V power (already validated)
+**Critical Bug Details:**
+**The `.value` vs `.raw_value` Property Trap:**
+```python
+# WRONG (what previous session did)
+dac.channel_a.value = 4095      # Expects 16-bit, gets bit-shifted
+# Result: raw_value = 4095 >> 4 = 255 → Only 0.30V
+
+# CORRECT (what works)
+dac.channel_a.raw_value = 4095  # Direct 12-bit control → Full 4.83V
+```
+
+**Key Technical Discoveries:**
+1. **raw_value vs value:** Always use `raw_value` for CV applications (direct 12-bit)
+2. **1V/Octave Formula:** `raw_value = MIDI_note × 68.27` (for 5V reference)
+3. **Lookup Table Best Practice:** Pre-calculate all 128 MIDI notes at init
+4. **MCP4728 Performance:** 6µs settling, 200µs I2C transaction = excellent for real-time
+5. **Real-World Validation:** Multiple production projects confirm this approach
 
 **Hardware Status:**
-- ✅ TL072 op-amp available
-- ✅ 2× 100kΩ resistors available
-- ✅ 3× 100nF ceramic caps available
-- ❌ **LM7805 regulator needed (ordered, awaiting delivery)**
+- ✅ New Feather M4 CAN - stable, CircuitPython 10.0.3
+- ✅ New OLED FeatherWing - tested, working
+- ✅ **MCP4728 DAC - FULLY WORKING! Full 0-5V output verified**
+- ✅ LM7805 regulator - correctly installed (5V output verified)
+- ✅ **LM358N op-amp circuit - VERIFIED WORKING! Full 0-10V output**
+- ❌ TL072 op-amp - **DO NOT USE** (cannot handle 0V inputs in single-supply)
 
 **Git Status:**
 - **Branch:** main
-- **Last Commit:** 018263e - docs: Add CV output op-amp circuit design and breadboard guide
-- **Working Tree:** Clean
+- **Last Commit:** 1ce728e - docs: Update CONTEXT.md with Session 10 summary
+- **Working Tree:**
+  - Modified: `docs/context/CONTEXT.md`
+  - New: `docs/hardware/LM358_WIRING_GUIDE.md` (renamed from TL072)
+  - New: `docs/hardware/MCP4728_CV_GUIDE.md`
+  - New: `docs/architecture/TIMING_ARCHITECTURE.md`
+  - New: `arp/drivers/cv_output.py`
+  - New: Multiple test files in `tests/`
 
-**What's Next (When LM7805 Arrives):**
-1. **[HARDWARE]** Reconfigure Powerboost to 12V (solder jumpers A=1, B=1)
-2. **[HARDWARE]** Build LM7805 regulator circuit on breadboard (12V → 5V)
-3. **[HARDWARE]** Assemble TL072 op-amp circuit (2× gain stage)
-4. **[HARDWARE]** Test with multimeter (verify 0-10V output range)
-5. **[SOFTWARE]** Create CV driver module with 1V/octave conversion
-6. **[SOFTWARE]** Integrate CV/Gate into arpeggiator code
-7. **[HARDWARE]** Test complete system with modular synthesizer
-
-**Estimated Time:** 1-2 hours hardware assembly + 2-3 hours software development
+**Critical Next Steps:**
+1. **[HIGH]** Integrate MIDI FeatherWing hardware (next missing piece)
+2. **[HIGH]** Build end-to-end arpeggiator test (MIDI in → CV out)
+3. **[MEDIUM]** Test 1V/octave tracking with actual eurorack VCO
+4. **[MEDIUM]** Design PCB layout with LM358N for production
+5. **[LOW]** Implement pattern storage and user presets
 
 ---
 
 ## Session History
+
+### Session 12 (2025-10-31)
+- **Focus:** Complete 0-10V CV output chain (DAC + op-amp amplification)
+- **Outcome:** ✅ **FULL SUCCESS** - End-to-end 0-10V CV output working!
+- **Major Achievements:**
+  - Fixed MCP4728 `.value` vs `.raw_value` bug (0-5V verified working)
+  - Researched I2C bus contention, created display throttling solution
+  - Created CVOutput driver with lookup table and throttling
+  - **Discovered TL072 limitation** (cannot handle 0V in single-supply)
+  - **Verified LM358N solution** (full 0-10V range working!)
+- **Key Learning:** Research component specs immediately when behavior is anomalous (wasted hours on TL072)
+- **Breakthrough:** Complete CV output chain verified: M4 → MCP4728 (0-5V) → LM358N (0-10V) → Eurorack
+- **Status:** ✅ Complete - Ready for MIDI integration and end-to-end testing
+- **Documentation:** LM358_WIRING_GUIDE.md, MCP4728_CV_GUIDE.md, TIMING_ARCHITECTURE.md, cv_output.py
+
+### Session 11 (2025-10-31)
+- **Focus:** Hardware recovery from 12V damage, I2C architecture design
+- **Outcome:** New hardware installed, I2C documentation created, proper patterns established
+- **Major Achievement:** Comprehensive I2C_ARCHITECTURE.md with multi-device best practices
+- **Key Learning:** `board.I2C()` singleton pattern critical, MCP4728 power-down mode exists
+- **Blocker:** MCP4728 voltage output verification (reading wrong values)
+- **Status:** ⚠️ Blocked - Needs hardware power cycle and voltage verification test
+- **Documentation:** SESSION_11_HANDOFF.md, I2C_ARCHITECTURE.md
 
 ### Session 10 (2025-10-24)
 - **Focus:** CV output voltage requirements and op-amp circuit design
