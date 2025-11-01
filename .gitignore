@@ -25,6 +25,9 @@ __pycache__/
 # Internal files
 _Todos
 
+# MCP API Keys (actual keys - not for git)
+.mcp-keys.txt
+
 # Claude Code - ignore personal settings, but keep shared config
 .claude/*
 !.claude/commands/

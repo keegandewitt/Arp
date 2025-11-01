@@ -24,6 +24,39 @@ git log -5 --oneline
 git branch -a
 ```
 
+### Step 2.5: Verify MCP Tools Configuration
+Check that MCP servers are properly configured and connected:
+
+1. **⚠️ IMPORTANT - API Keys Required for MCP Servers:**
+   The project uses `.mcp.json` with environment variables. User must have these set in their shell profile (`~/.zshrc`):
+   ```bash
+   export CONTEXT7_API_KEY="your-key-here"
+   export PERPLEXITY_API_KEY="your-key-here"
+   export FIRECRAWL_API_KEY="your-key-here"
+   ```
+   See `docs/CLAUDE_CODE_SETUP.md` for complete setup instructions and how to get API keys.
+
+2. **Read MCP configuration file:**
+   - Project: `.mcp.json` (in project root - uses environment variables)
+   - IDE: `~/.cursor/mcp.json` (macOS/Linux) or `C:\Users\[username]\.cursor\mcp.json` (Windows)
+
+3. **Verify required MCP servers are configured:**
+   - ✅ **context7** - Library documentation lookups
+   - ✅ **perplexity** - Deep web search capabilities
+   - ✅ **firecrawl** - Advanced web scraping
+
+4. **Check if MCP tools are actually available:**
+   - List your available tools (look for `mcp__context7__*`, `mcp__perplexity__*`, `mcp__firecrawl__*`)
+   - If MCP servers are configured in the JSON but tools are NOT available, inform the user:
+     - "⚠️ MCP servers are configured but not connected"
+     - "Possible causes: Missing API keys in environment, need to restart Claude Code"
+     - "Check: Run `echo $CONTEXT7_API_KEY` to verify environment variables are set"
+
+5. **Report MCP status in briefing:**
+   - If all MCP tools available: "✅ All MCP servers connected"
+   - If configured but not connected: "⚠️ MCP servers need API keys or restart to connect"
+   - If not configured: "❌ MCP servers not configured (see docs/CLAUDE_CODE_SETUP.md)"
+
 ### Step 3: Present Briefing
 
 Present the following information to the user in a well-organized format:
@@ -52,6 +85,7 @@ Brief summary of key methodology points:
 - **Dependency Management**: Always check libraries before deploying
 - **Hardware Testing**: Test everything systematically
 - **Available Commands**: List any /tidyup or other custom commands
+- **MCP Tools Status**: Report connection status (see Step 2.5)
 
 #### 📋 Active Tasks
 From the `todo` file - what's on the current task list?
