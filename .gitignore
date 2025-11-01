@@ -24,8 +24,12 @@ __pycache__/
 
 # Internal files
 _Todos
+
+# Claude Code - ignore personal settings, but keep shared config
 .claude/*
 !.claude/commands/
+!.claude/settings.json
+.claude/settings.local.json
 
 # Backup files
 *.bak
