@@ -108,7 +108,10 @@ dac.channel_a.raw_value = 4095  # Direct 12-bit control → Full 4.83V
 - ✅ **LM358N op-amp circuit - VERIFIED WORKING! Full 0-10V output**
 - ✅ **S-Trig transistor circuit - DESIGNED (D10 + NPN transistor)**
 - ❌ TL072 op-amp - **DO NOT USE** (cannot handle 0V inputs in single-supply)
-- 🔶 MIDI FeatherWing - **NOT YET INSTALLED** (D0/D1 reserved)
+- 🔶 MIDI FeatherWing - **BREADBOARDED, NOT STACKED** (D0/D1 via jumper wires)
+  - ⚠️ **IMPORTANT:** MIDI FeatherWing will NEVER be stacked on M4
+  - MIDI I/O stays on breadboard, connected via jumper wires to D0/D1
+  - Only OLED FeatherWing is stacked on the M4
 
 **📌 PIN ALLOCATION:** See `docs/hardware/PIN_ALLOCATION_MATRIX.md` (AUTHORITATIVE SOURCE)
 
@@ -124,11 +127,11 @@ dac.channel_a.raw_value = 4095  # Direct 12-bit control → Full 4.83V
   - New: Multiple test files in `tests/`
 
 **Critical Next Steps:**
-1. **[HIGH]** Stack MIDI FeatherWing onto M4 (already tested in Session 1, needs re-stacking)
-2. **[HIGH]** Wire 1/8" output jacks (CV pitch + Gate)
-3. **[HIGH]** Create end-to-end test: MIDI In → CV/Gate Out
-4. **[MEDIUM]** Build arpeggiator core (note buffer, patterns)
-5. **[MEDIUM]** Test with actual eurorack VCO for 1V/octave tracking
+1. **[HIGH]** Wire 1/8" output jacks (CV pitch + Gate + S-Trig)
+2. **[HIGH]** Create end-to-end test: MIDI In → CV/Gate Out
+3. **[MEDIUM]** Build arpeggiator core (note buffer, patterns)
+4. **[MEDIUM]** Test with actual eurorack VCO for 1V/octave tracking
+5. **[LOW]** Consider enclosure design (MIDI stays breadboarded for prototyping)
 
 ---
 

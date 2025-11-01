@@ -807,6 +807,18 @@ Every significant feature or hardware change requires documentation:
 
 ## Hardware Development
 
+### ⚠️ CRITICAL HARDWARE CONFIGURATION NOTE
+
+**MIDI FeatherWing is NEVER stacked on the M4!**
+
+The physical configuration is:
+- **STACKED:** OLED FeatherWing (128x64) on top of Feather M4 CAN
+- **BREADBOARD:** MIDI I/O (DIN-5 jacks) connected via jumper wires to D0/D1
+
+**DO NOT suggest stacking the MIDI FeatherWing.** It stays on the breadboard for prototyping flexibility. Only the OLED is stacked.
+
+---
+
 ### CRITICAL LESSON: Always Verify Hardware Specifications FIRST
 
 **Date Learned:** 2025-10-22
