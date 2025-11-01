@@ -84,6 +84,8 @@ from arp.ui.buttons import ButtonHandler
 from arp.core.clock import ClockHandler
 from arp.ui.menu import SettingsMenu
 from arp.utils.config import Settings
+from arp.drivers.cv_gate import CVOutput
+from arp.drivers.midi_custom_cc import CustomCCHandler
 
 print("\n" + "="*60)
 print(f"ARP - Hardware Arpeggiator v{__version__}")
@@ -129,12 +131,22 @@ settings.load()  # Load saved settings from file (or use defaults if no file exi
 menu = SettingsMenu(settings)
 print("      ✓ Settings ready")
 
-print("[5/5] Initializing Clock...")
+print("[5/7] Initializing Clock...")
 # Clock handler with USB MIDI input for external clock
 # Note: MIDI FeatherWing (UART) is exclusive to Arpeggio Translation Loop
 clock = ClockHandler(midi_in_port=usb_midi.ports[0])  # USB MIDI IN
 clock.set_internal_bpm(settings.internal_bpm)  # Use settings BPM
 print(f"      ✓ Clock ready (Internal: {settings.internal_bpm} BPM, External: USB)")
+
+print("[6/7] Initializing CV Output...")
+# CV Output via MCP4728 DAC on I2C
+cv_output = CVOutput(i2c, settings)
+print("      ✓ CV Output ready (MCP4728 on I2C)")
+
+print("[7/7] Initializing Custom CC Handler...")
+# Custom CC MIDI-to-CV handler
+custom_cc = CustomCCHandler(cv_output, settings)
+print("      ✓ Custom CC Handler ready")
 
 print("\n" + "="*60)
 print("SYSTEM READY")
@@ -285,6 +297,9 @@ while True:
             print(f"Note OFF: {msg.note} - Buffer: {[n for n,v in note_buffer]}")
 
         else:
+            # Process for Custom CC output FIRST (before pass-through)
+            custom_cc.process_messages([msg])
+
             # Pass through all other MIDI messages with zero latency
             # This includes: Pitch Bend, Mod Wheel, CC, Aftertouch, Program Change, etc.
             # Only Note On/Off are filtered (used for arpeggiator, not echoed back)
@@ -383,6 +398,11 @@ while True:
                 # Refresh main display
                 clock_src_label = settings.get_clock_source_short()
                 display.update_display(clock.get_bpm(), settings.get_pattern_name(), clock.is_running(), clock_src_label)
+
+        # Check for Learn Mode activation (Button B long press in Custom CC menu)
+        if b_long and menu.current_category == menu.CATEGORY_CUSTOM_CC:
+            custom_cc.enter_learn_mode()
+            print("[Learn Mode] Activated - send a CC message to capture")
 
         # Update display with menu
         if menu.menu_active:

@@ -18,7 +18,8 @@ class SettingsMenu:
     CATEGORY_SCALE = 2
     CATEGORY_TRIGGERS = 3
     CATEGORY_CV = 4
-    CATEGORY_FIRMWARE = 5
+    CATEGORY_CUSTOM_CC = 5  # Custom CC output
+    CATEGORY_FIRMWARE = 6
 
     # Arp settings
     ARP_PATTERN = 0       # Up, Down, Up-Down, etc.
@@ -37,6 +38,11 @@ class SettingsMenu:
 
     # CV settings
     CV_SCALE = 0  # 1V/octave vs 1.035V/octave (Moog)
+
+    # Custom CC settings
+    CUSTOM_CC_SOURCE = 0    # Source type (CC, Aftertouch, PitchBend, Velocity, Disabled)
+    CUSTOM_CC_NUMBER = 1    # CC number (0-127, only shown if source is CC)
+    CUSTOM_CC_SMOOTHING = 2 # Smoothing level (Off, Low, Mid, High)
 
     # Firmware settings
     FIRMWARE_INFO = 0     # Show firmware info
@@ -65,6 +71,7 @@ class SettingsMenu:
             self.CATEGORY_SCALE: "Scale",
             self.CATEGORY_TRIGGERS: "Triggers",
             self.CATEGORY_CV: "CV",
+            self.CATEGORY_CUSTOM_CC: "Custom CC",
             self.CATEGORY_FIRMWARE: "Firmware"
         }
 
@@ -96,6 +103,13 @@ class SettingsMenu:
             self.CV_SCALE: "Scale"
         }
 
+        # Custom CC setting names
+        self.custom_cc_setting_names = {
+            self.CUSTOM_CC_SOURCE: "Source",
+            self.CUSTOM_CC_NUMBER: "CC Number",
+            self.CUSTOM_CC_SMOOTHING: "Smoothing"
+        }
+
         # Firmware setting names
         self.firmware_setting_names = {
             self.FIRMWARE_INFO: "Info",
@@ -120,7 +134,7 @@ class SettingsMenu:
         """Navigate to previous item at current level"""
         if self.current_level == self.LEVEL_CATEGORY:
             # Cycle through categories
-            self.current_category = (self.current_category - 1) % 6
+            self.current_category = (self.current_category - 1) % 7  # 7 categories now
 
         elif self.current_level == self.LEVEL_SETTING:
             # Cycle through settings within category
@@ -136,6 +150,8 @@ class SettingsMenu:
             elif self.current_category == self.CATEGORY_CV:
                 # CV only has one setting, no cycle needed
                 pass
+            elif self.current_category == self.CATEGORY_CUSTOM_CC:
+                self.current_setting = (self.current_setting - 1) % 3  # 3 settings
             elif self.current_category == self.CATEGORY_FIRMWARE:
                 self.current_setting = (self.current_setting - 1) % 2
 
@@ -147,7 +163,7 @@ class SettingsMenu:
         """Navigate to next item at current level"""
         if self.current_level == self.LEVEL_CATEGORY:
             # Cycle through categories
-            self.current_category = (self.current_category + 1) % 6
+            self.current_category = (self.current_category + 1) % 7  # 7 categories now
 
         elif self.current_level == self.LEVEL_SETTING:
             # Cycle through settings within category
@@ -163,6 +179,8 @@ class SettingsMenu:
             elif self.current_category == self.CATEGORY_CV:
                 # CV only has one setting, no cycle needed
                 pass
+            elif self.current_category == self.CATEGORY_CUSTOM_CC:
+                self.current_setting = (self.current_setting + 1) % 3  # 3 settings
             elif self.current_category == self.CATEGORY_FIRMWARE:
                 self.current_setting = (self.current_setting + 1) % 2
 
@@ -186,6 +204,10 @@ class SettingsMenu:
                 # CV goes directly to scale adjustment (only one setting)
                 self.current_level = self.LEVEL_VALUE
                 self.current_setting = self.CV_SCALE
+            elif self.current_category == self.CATEGORY_CUSTOM_CC:
+                # Custom CC has multiple settings, go to setting selection
+                self.current_level = self.LEVEL_SETTING
+                self.current_setting = 0
             elif self.current_category == self.CATEGORY_FIRMWARE:
                 # Firmware goes directly to info display
                 self.current_level = self.LEVEL_VALUE
@@ -260,6 +282,17 @@ class SettingsMenu:
                 # Cycle to next CV scale
                 self.settings.next_cv_scale()
 
+        elif self.current_category == self.CATEGORY_CUSTOM_CC:
+            if self.current_setting == self.CUSTOM_CC_SOURCE:
+                # Cycle to next Custom CC source
+                self.settings.next_custom_cc_source()
+            elif self.current_setting == self.CUSTOM_CC_NUMBER:
+                # Increase CC number (0-127)
+                self.settings.custom_cc_number = (self.settings.custom_cc_number + 1) % 128
+            elif self.current_setting == self.CUSTOM_CC_SMOOTHING:
+                # Cycle to next smoothing level
+                self.settings.next_custom_cc_smoothing()
+
         # Auto-save settings after change
         self.settings.save()
 
@@ -299,6 +332,17 @@ class SettingsMenu:
                 # Cycle to previous CV scale
                 self.settings.previous_cv_scale()
 
+        elif self.current_category == self.CATEGORY_CUSTOM_CC:
+            if self.current_setting == self.CUSTOM_CC_SOURCE:
+                # Cycle to previous Custom CC source
+                self.settings.previous_custom_cc_source()
+            elif self.current_setting == self.CUSTOM_CC_NUMBER:
+                # Decrease CC number (0-127)
+                self.settings.custom_cc_number = (self.settings.custom_cc_number - 1) % 128
+            elif self.current_setting == self.CUSTOM_CC_SMOOTHING:
+                # Cycle to previous smoothing level
+                self.settings.previous_custom_cc_smoothing()
+
         # Auto-save settings after change
         self.settings.save()
 
@@ -335,6 +379,9 @@ class SettingsMenu:
                 elif cat_index == self.CATEGORY_CV:
                     preview = f"{self.settings.get_cv_scale_name()}"
                     return f"{cat_name} ({preview})"
+                elif cat_index == self.CATEGORY_CUSTOM_CC:
+                    preview = f"{self.settings.get_custom_cc_source_name()}"
+                    return f"{cat_name} ({preview})"
                 elif cat_index == self.CATEGORY_FIRMWARE:
                     from arp.utils.config import FIRMWARE_VERSION
                     preview = f"v{FIRMWARE_VERSION}"
@@ -346,7 +393,7 @@ class SettingsMenu:
             current_text = get_category_text(self.current_category)
 
             # Next category (preview)
-            next_category = (self.current_category + 1) % 6
+            next_category = (self.current_category + 1) % 7  # 7 categories now
             next_text = get_category_text(next_category)
 
             return (
@@ -377,6 +424,8 @@ class SettingsMenu:
                     return self.trigger_setting_names.get(idx, "")
                 elif self.current_category == self.CATEGORY_CV:
                     return self.cv_setting_names.get(idx, "")
+                elif self.current_category == self.CATEGORY_CUSTOM_CC:
+                    return self.custom_cc_setting_names.get(idx, "")
                 elif self.current_category == self.CATEGORY_FIRMWARE:
                     return self.firmware_setting_names.get(idx, "")
                 else:
@@ -389,6 +438,8 @@ class SettingsMenu:
                 num_settings = 2
             elif self.current_category == self.CATEGORY_CLOCK:
                 num_settings = 2
+            elif self.current_category == self.CATEGORY_CUSTOM_CC:
+                num_settings = 3  # Source, CC Number, Smoothing
             elif self.current_category == self.CATEGORY_FIRMWARE:
                 num_settings = 2
             else:
@@ -497,6 +548,47 @@ class SettingsMenu:
                             "  1V/octave",
                             "> Moog (1.035V)"
                         )
+
+            elif self.current_category == self.CATEGORY_CUSTOM_CC:
+                if self.current_setting == self.CUSTOM_CC_SOURCE:
+                    value = self.settings.get_custom_cc_source_name()
+                    return (
+                        "Custom CC Source:",
+                        f"> {value} <",
+                        ""
+                    )
+                elif self.current_setting == self.CUSTOM_CC_NUMBER:
+                    # Show CC number with name (if source is CC)
+                    if self.settings.custom_cc_source == self.settings.CC_SOURCE_CC:
+                        try:
+                            from arp.data.midi_cc_names import get_cc_short_name
+                            cc_name = get_cc_short_name(self.settings.custom_cc_number)
+                            return (
+                                "CC Number:",
+                                f"> {cc_name} <",
+                                ""
+                            )
+                        except:
+                            # Fallback if midi_cc_names not found
+                            return (
+                                "CC Number:",
+                                f"> CC {self.settings.custom_cc_number} <",
+                                ""
+                            )
+                    else:
+                        # Not in CC mode - show disabled message
+                        return (
+                            "CC Number:",
+                            "(N/A - not in CC mode)",
+                            ""
+                        )
+                elif self.current_setting == self.CUSTOM_CC_SMOOTHING:
+                    value = self.settings.get_custom_cc_smoothing_name()
+                    return (
+                        "Smoothing:",
+                        f"> {value} <",
+                        ""
+                    )
 
             elif self.current_category == self.CATEGORY_FIRMWARE:
                 if self.current_setting == self.FIRMWARE_INFO:
