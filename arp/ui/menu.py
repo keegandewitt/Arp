@@ -14,12 +14,13 @@ class SettingsMenu:
 
     # Categories (ordered as they appear in menu)
     CATEGORY_CLOCK = 0      # Clock first - most commonly adjusted
-    CATEGORY_ARP = 1
-    CATEGORY_SCALE = 2
-    CATEGORY_TRIGGERS = 3
-    CATEGORY_CV = 4
-    CATEGORY_CUSTOM_CC = 5  # Custom CC output
-    CATEGORY_FIRMWARE = 6
+    CATEGORY_TRANSLATION = 1  # Translation Hub settings
+    CATEGORY_ARP = 2
+    CATEGORY_SCALE = 3
+    CATEGORY_TRIGGERS = 4
+    CATEGORY_CV = 5
+    CATEGORY_CUSTOM_CC = 6  # Custom CC output
+    CATEGORY_FIRMWARE = 7
 
     # Arp settings
     ARP_PATTERN = 0       # Up, Down, Up-Down, etc.
@@ -29,9 +30,17 @@ class SettingsMenu:
     SCALE_TYPE = 0        # Scale type (Major, Minor, etc.)
     SCALE_ROOT = 1        # Root note (C, C#, D, etc.)
 
+    # Translation settings
+    TRANSLATION_ROUTING_MODE = 0  # THRU or TRANSLATION
+    TRANSLATION_INPUT_SOURCE = 1  # MIDI IN or USB
+    TRANSLATION_LAYER_ORDER = 2   # Scale→Arp or Arp→Scale
+
     # Clock settings
     CLOCK_SOURCE = 0      # Internal or External
     CLOCK_BPM = 1         # BPM (only shown if Internal)
+    CLOCK_SWING = 2       # Swing percent (50-75%)
+    CLOCK_MULTIPLY = 3    # Clock multiplier (1x, 2x, 4x)
+    CLOCK_DIVIDE = 4      # Clock divider (1, 2, 4, 8)
 
     # Trigger settings (only polarity now - always gate mode)
     TRIGGER_POLARITY = 0  # V-trig vs S-trig
@@ -67,6 +76,7 @@ class SettingsMenu:
         # Category names (ordered by category constant)
         self.category_names = {
             self.CATEGORY_CLOCK: "Clock",
+            self.CATEGORY_TRANSLATION: "Translation",
             self.CATEGORY_ARP: "Arp Mode",
             self.CATEGORY_SCALE: "Scale",
             self.CATEGORY_TRIGGERS: "Triggers",
@@ -87,10 +97,20 @@ class SettingsMenu:
             self.SCALE_ROOT: "Root"
         }
 
+        # Translation setting names
+        self.translation_setting_names = {
+            self.TRANSLATION_ROUTING_MODE: "Mode",
+            self.TRANSLATION_INPUT_SOURCE: "Input",
+            self.TRANSLATION_LAYER_ORDER: "Layers"
+        }
+
         # Clock setting names
         self.clock_setting_names = {
             self.CLOCK_SOURCE: "Source",
-            self.CLOCK_BPM: "BPM"
+            self.CLOCK_BPM: "BPM",
+            self.CLOCK_SWING: "Swing",
+            self.CLOCK_MULTIPLY: "Multiply",
+            self.CLOCK_DIVIDE: "Divide"
         }
 
         # Trigger setting names
@@ -134,7 +154,7 @@ class SettingsMenu:
         """Navigate to previous item at current level"""
         if self.current_level == self.LEVEL_CATEGORY:
             # Cycle through categories
-            self.current_category = (self.current_category - 1) % 7  # 7 categories now
+            self.current_category = (self.current_category - 1) % 8  # 8 categories now
 
         elif self.current_level == self.LEVEL_SETTING:
             # Cycle through settings within category
@@ -142,8 +162,10 @@ class SettingsMenu:
                 self.current_setting = (self.current_setting - 1) % 2
             elif self.current_category == self.CATEGORY_SCALE:
                 self.current_setting = (self.current_setting - 1) % 2
+            elif self.current_category == self.CATEGORY_TRANSLATION:
+                self.current_setting = (self.current_setting - 1) % 3  # 3 settings
             elif self.current_category == self.CATEGORY_CLOCK:
-                self.current_setting = (self.current_setting - 1) % 2
+                self.current_setting = (self.current_setting - 1) % 5  # 5 settings now
             elif self.current_category == self.CATEGORY_TRIGGERS:
                 # Triggers only has one setting, no cycle needed
                 pass
@@ -163,7 +185,7 @@ class SettingsMenu:
         """Navigate to next item at current level"""
         if self.current_level == self.LEVEL_CATEGORY:
             # Cycle through categories
-            self.current_category = (self.current_category + 1) % 7  # 7 categories now
+            self.current_category = (self.current_category + 1) % 8  # 8 categories now
 
         elif self.current_level == self.LEVEL_SETTING:
             # Cycle through settings within category
@@ -171,8 +193,10 @@ class SettingsMenu:
                 self.current_setting = (self.current_setting + 1) % 2
             elif self.current_category == self.CATEGORY_SCALE:
                 self.current_setting = (self.current_setting + 1) % 2
+            elif self.current_category == self.CATEGORY_TRANSLATION:
+                self.current_setting = (self.current_setting + 1) % 3  # 3 settings
             elif self.current_category == self.CATEGORY_CLOCK:
-                self.current_setting = (self.current_setting + 1) % 2
+                self.current_setting = (self.current_setting + 1) % 5  # 5 settings now
             elif self.current_category == self.CATEGORY_TRIGGERS:
                 # Triggers only has one setting, no cycle needed
                 pass
@@ -192,11 +216,7 @@ class SettingsMenu:
         """Select/enter current item (drill down or toggle)"""
         if self.current_level == self.LEVEL_CATEGORY:
             # Enter category
-            if self.current_category == self.CATEGORY_CLOCK:
-                # Clock goes directly to source selection (only one setting - BPM on main screen)
-                self.current_level = self.LEVEL_VALUE
-                self.current_setting = self.CLOCK_SOURCE
-            elif self.current_category == self.CATEGORY_TRIGGERS:
+            if self.current_category == self.CATEGORY_TRIGGERS:
                 # Triggers goes directly to polarity adjustment (only one setting)
                 self.current_level = self.LEVEL_VALUE
                 self.current_setting = self.TRIGGER_POLARITY
@@ -204,16 +224,12 @@ class SettingsMenu:
                 # CV goes directly to scale adjustment (only one setting)
                 self.current_level = self.LEVEL_VALUE
                 self.current_setting = self.CV_SCALE
-            elif self.current_category == self.CATEGORY_CUSTOM_CC:
-                # Custom CC has multiple settings, go to setting selection
-                self.current_level = self.LEVEL_SETTING
-                self.current_setting = 0
             elif self.current_category == self.CATEGORY_FIRMWARE:
                 # Firmware goes directly to info display
                 self.current_level = self.LEVEL_VALUE
                 self.current_setting = self.FIRMWARE_INFO
             else:
-                # Arp and Scale have multiple settings, go to setting selection
+                # Clock, Translation, Arp, Scale, and Custom CC have multiple settings
                 self.current_level = self.LEVEL_SETTING
                 self.current_setting = 0
 
@@ -264,6 +280,17 @@ class SettingsMenu:
                 # Cycle to next root note
                 self.settings.next_root_note()
 
+        elif self.current_category == self.CATEGORY_TRANSLATION:
+            if self.current_setting == self.TRANSLATION_ROUTING_MODE:
+                # Toggle routing mode (THRU/TRANSLATION)
+                self.settings.next_routing_mode()
+            elif self.current_setting == self.TRANSLATION_INPUT_SOURCE:
+                # Cycle input source (MIDI IN/USB/CV IN/GATE IN)
+                self.settings.next_input_source()
+            elif self.current_setting == self.TRANSLATION_LAYER_ORDER:
+                # Toggle layer order (Scale First/Arp First)
+                self.settings.next_layer_order()
+
         elif self.current_category == self.CATEGORY_CLOCK:
             if self.current_setting == self.CLOCK_SOURCE:
                 # Cycle to next clock source
@@ -271,6 +298,27 @@ class SettingsMenu:
             elif self.current_setting == self.CLOCK_BPM:
                 # Increase BPM by 1
                 self.settings.internal_bpm = min(300, self.settings.internal_bpm + 1)
+            elif self.current_setting == self.CLOCK_SWING:
+                # Increase swing (50-75%)
+                self.settings.swing_percent = min(75, self.settings.swing_percent + 1)
+            elif self.current_setting == self.CLOCK_MULTIPLY:
+                # Cycle clock multiply (1x -> 2x -> 4x -> 1x)
+                if self.settings.clock_multiply == self.settings.CLOCK_MULTIPLY_1X:
+                    self.settings.clock_multiply = self.settings.CLOCK_MULTIPLY_2X
+                elif self.settings.clock_multiply == self.settings.CLOCK_MULTIPLY_2X:
+                    self.settings.clock_multiply = self.settings.CLOCK_MULTIPLY_4X
+                else:
+                    self.settings.clock_multiply = self.settings.CLOCK_MULTIPLY_1X
+            elif self.current_setting == self.CLOCK_DIVIDE:
+                # Cycle clock divide (1 -> 2 -> 4 -> 8 -> 1)
+                if self.settings.clock_divide == self.settings.CLOCK_DIVIDE_1:
+                    self.settings.clock_divide = self.settings.CLOCK_DIVIDE_2
+                elif self.settings.clock_divide == self.settings.CLOCK_DIVIDE_2:
+                    self.settings.clock_divide = self.settings.CLOCK_DIVIDE_4
+                elif self.settings.clock_divide == self.settings.CLOCK_DIVIDE_4:
+                    self.settings.clock_divide = self.settings.CLOCK_DIVIDE_8
+                else:
+                    self.settings.clock_divide = self.settings.CLOCK_DIVIDE_1
 
         elif self.current_category == self.CATEGORY_TRIGGERS:
             if self.current_setting == self.TRIGGER_POLARITY:
@@ -314,6 +362,17 @@ class SettingsMenu:
                 # Cycle to previous root note
                 self.settings.previous_root_note()
 
+        elif self.current_category == self.CATEGORY_TRANSLATION:
+            if self.current_setting == self.TRANSLATION_ROUTING_MODE:
+                # Toggle routing mode (THRU/TRANSLATION)
+                self.settings.previous_routing_mode()
+            elif self.current_setting == self.TRANSLATION_INPUT_SOURCE:
+                # Cycle input source (MIDI IN/USB/CV IN/GATE IN)
+                self.settings.previous_input_source()
+            elif self.current_setting == self.TRANSLATION_LAYER_ORDER:
+                # Toggle layer order (Scale First/Arp First)
+                self.settings.previous_layer_order()
+
         elif self.current_category == self.CATEGORY_CLOCK:
             if self.current_setting == self.CLOCK_SOURCE:
                 # Cycle to previous clock source
@@ -321,6 +380,27 @@ class SettingsMenu:
             elif self.current_setting == self.CLOCK_BPM:
                 # Decrease BPM by 1
                 self.settings.internal_bpm = max(30, self.settings.internal_bpm - 1)
+            elif self.current_setting == self.CLOCK_SWING:
+                # Decrease swing (50-75%)
+                self.settings.swing_percent = max(50, self.settings.swing_percent - 1)
+            elif self.current_setting == self.CLOCK_MULTIPLY:
+                # Cycle clock multiply backwards (1x -> 4x -> 2x -> 1x)
+                if self.settings.clock_multiply == self.settings.CLOCK_MULTIPLY_1X:
+                    self.settings.clock_multiply = self.settings.CLOCK_MULTIPLY_4X
+                elif self.settings.clock_multiply == self.settings.CLOCK_MULTIPLY_4X:
+                    self.settings.clock_multiply = self.settings.CLOCK_MULTIPLY_2X
+                else:
+                    self.settings.clock_multiply = self.settings.CLOCK_MULTIPLY_1X
+            elif self.current_setting == self.CLOCK_DIVIDE:
+                # Cycle clock divide backwards (1 -> 8 -> 4 -> 2 -> 1)
+                if self.settings.clock_divide == self.settings.CLOCK_DIVIDE_1:
+                    self.settings.clock_divide = self.settings.CLOCK_DIVIDE_8
+                elif self.settings.clock_divide == self.settings.CLOCK_DIVIDE_8:
+                    self.settings.clock_divide = self.settings.CLOCK_DIVIDE_4
+                elif self.settings.clock_divide == self.settings.CLOCK_DIVIDE_4:
+                    self.settings.clock_divide = self.settings.CLOCK_DIVIDE_2
+                else:
+                    self.settings.clock_divide = self.settings.CLOCK_DIVIDE_1
 
         elif self.current_category == self.CATEGORY_TRIGGERS:
             if self.current_setting == self.TRIGGER_POLARITY:
@@ -370,6 +450,9 @@ class SettingsMenu:
                 elif cat_index == self.CATEGORY_SCALE:
                     preview = f"{self.settings.get_root_note_name()} {self.settings.get_scale_name()}"
                     return f"{cat_name} ({preview})"
+                elif cat_index == self.CATEGORY_TRANSLATION:
+                    preview = f"{self.settings.get_routing_mode_name()}"
+                    return f"{cat_name} ({preview})"
                 elif cat_index == self.CATEGORY_CLOCK:
                     preview = f"{self.settings.get_clock_source_name()}/{self.settings.internal_bpm}"
                     return f"{cat_name} ({preview})"
@@ -393,7 +476,7 @@ class SettingsMenu:
             current_text = get_category_text(self.current_category)
 
             # Next category (preview)
-            next_category = (self.current_category + 1) % 7  # 7 categories now
+            next_category = (self.current_category + 1) % 8  # 8 categories now
             next_text = get_category_text(next_category)
 
             return (
@@ -412,6 +495,8 @@ class SettingsMenu:
                     return self.arp_setting_names.get(idx, "")
                 elif self.current_category == self.CATEGORY_SCALE:
                     return self.scale_setting_names.get(idx, "")
+                elif self.current_category == self.CATEGORY_TRANSLATION:
+                    return self.translation_setting_names.get(idx, "")
                 elif self.current_category == self.CATEGORY_CLOCK:
                     # Add current value preview for Clock settings
                     setting_name = self.clock_setting_names.get(idx, "")
@@ -419,6 +504,12 @@ class SettingsMenu:
                         return f"{setting_name} ({self.settings.get_clock_source_name()})"
                     elif idx == self.CLOCK_BPM:
                         return f"{setting_name} ({self.settings.internal_bpm})"
+                    elif idx == self.CLOCK_SWING:
+                        return f"{setting_name} ({self.settings.swing_percent}%)"
+                    elif idx == self.CLOCK_MULTIPLY:
+                        return f"{setting_name} ({self.settings.clock_multiply}x)"
+                    elif idx == self.CLOCK_DIVIDE:
+                        return f"{setting_name} (/{self.settings.clock_divide})"
                     return setting_name
                 elif self.current_category == self.CATEGORY_TRIGGERS:
                     return self.trigger_setting_names.get(idx, "")
@@ -436,8 +527,10 @@ class SettingsMenu:
                 num_settings = 2
             elif self.current_category == self.CATEGORY_SCALE:
                 num_settings = 2
+            elif self.current_category == self.CATEGORY_TRANSLATION:
+                num_settings = 3  # Mode, Input, Layers
             elif self.current_category == self.CATEGORY_CLOCK:
-                num_settings = 2
+                num_settings = 5  # Source, BPM, Swing, Multiply, Divide
             elif self.current_category == self.CATEGORY_CUSTOM_CC:
                 num_settings = 3  # Source, CC Number, Smoothing
             elif self.current_category == self.CATEGORY_FIRMWARE:
@@ -495,6 +588,43 @@ class SettingsMenu:
                         ""
                     )
 
+            elif self.current_category == self.CATEGORY_TRANSLATION:
+                if self.current_setting == self.TRANSLATION_ROUTING_MODE:
+                    # Show both options with current selected
+                    if self.settings.routing_mode == self.settings.ROUTING_THRU:
+                        return (
+                            "Routing Mode:",
+                            "> THRU",
+                            "  TRANSLATION"
+                        )
+                    else:
+                        return (
+                            "Routing Mode:",
+                            "  THRU",
+                            "> TRANSLATION"
+                        )
+                elif self.current_setting == self.TRANSLATION_INPUT_SOURCE:
+                    value = self.settings.get_input_source_name()
+                    return (
+                        "Input Source:",
+                        f"> {value} <",
+                        ""
+                    )
+                elif self.current_setting == self.TRANSLATION_LAYER_ORDER:
+                    # Show both options with current selected
+                    if self.settings.layer_order == self.settings.LAYER_ORDER_SCALE_FIRST:
+                        return (
+                            "Layer Order:",
+                            "> Scale First",
+                            "  Arp First"
+                        )
+                    else:
+                        return (
+                            "Layer Order:",
+                            "  Scale First",
+                            "> Arp First"
+                        )
+
             elif self.current_category == self.CATEGORY_CLOCK:
                 if self.current_setting == self.CLOCK_SOURCE:
                     # Show both options with current selected
@@ -514,6 +644,24 @@ class SettingsMenu:
                     return (
                         "BPM (Internal):",
                         f"> {self.settings.internal_bpm} <",
+                        ""
+                    )
+                elif self.current_setting == self.CLOCK_SWING:
+                    return (
+                        "Swing:",
+                        f"> {self.settings.swing_percent}% <",
+                        ""
+                    )
+                elif self.current_setting == self.CLOCK_MULTIPLY:
+                    return (
+                        "Clock Multiply:",
+                        f"> {self.settings.clock_multiply}x <",
+                        ""
+                    )
+                elif self.current_setting == self.CLOCK_DIVIDE:
+                    return (
+                        "Clock Divide:",
+                        f"> /{self.settings.clock_divide} <",
                         ""
                     )
 

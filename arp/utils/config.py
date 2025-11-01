@@ -355,6 +355,47 @@ class Settings:
         """Cycle to previous Custom CC smoothing level"""
         self.custom_cc_smoothing = (self.custom_cc_smoothing - 1) % 4
 
+    def next_routing_mode(self):
+        """Cycle to next routing mode (wraps around)"""
+        self.routing_mode = (self.routing_mode + 1) % 2  # 2 options: THRU, TRANSLATION
+
+    def previous_routing_mode(self):
+        """Cycle to previous routing mode (wraps around)"""
+        self.routing_mode = (self.routing_mode - 1) % 2
+
+    def next_input_source(self):
+        """Cycle to next input source"""
+        self.input_source = (self.input_source + 1) % 4  # 4 options: MIDI IN, USB, CV IN, Gate IN
+
+    def previous_input_source(self):
+        """Cycle to previous input source"""
+        self.input_source = (self.input_source - 1) % 4
+
+    def get_input_source_name(self):
+        """Return human-readable input source name"""
+        source_names = {
+            self.INPUT_SOURCE_MIDI_IN: "MIDI IN",
+            self.INPUT_SOURCE_USB: "USB",
+            self.INPUT_SOURCE_CV_IN: "CV IN",
+            self.INPUT_SOURCE_GATE_IN: "Gate IN"
+        }
+        return source_names.get(self.input_source, "Unknown")
+
+    def next_layer_order(self):
+        """Cycle to next layer order (wraps around)"""
+        self.layer_order = (self.layer_order + 1) % 2  # 2 options: Scale First, Arp First
+
+    def previous_layer_order(self):
+        """Cycle to previous layer order (wraps around)"""
+        self.layer_order = (self.layer_order - 1) % 2
+
+    def get_layer_order_name(self):
+        """Return human-readable layer order name"""
+        if self.layer_order == self.LAYER_ORDER_SCALE_FIRST:
+            return "Scale First"
+        else:
+            return "Arp First"
+
     def quantize_to_scale(self, midi_note):
         """
         Quantize a MIDI note to the current scale
