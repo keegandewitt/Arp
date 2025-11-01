@@ -10,32 +10,41 @@ import sys
 from unittest.mock import MagicMock
 
 
+# Mock CircuitPython modules BEFORE any imports happen
+# This runs at module load time, before pytest collection
+sys.modules['board'] = MagicMock()
+sys.modules['busio'] = MagicMock()
+sys.modules['digitalio'] = MagicMock()
+sys.modules['usb_midi'] = MagicMock()
+sys.modules['adafruit_midi'] = MagicMock()
+sys.modules['adafruit_midi.timing_clock'] = MagicMock()
+sys.modules['adafruit_midi.start'] = MagicMock()
+sys.modules['adafruit_midi.stop'] = MagicMock()
+sys.modules['adafruit_midi.midi_continue'] = MagicMock()
+sys.modules['adafruit_midi.note_on'] = MagicMock()
+sys.modules['adafruit_midi.note_off'] = MagicMock()
+sys.modules['adafruit_midi.control_change'] = MagicMock()
+sys.modules['adafruit_midi.pitch_bend'] = MagicMock()
+sys.modules['microcontroller'] = MagicMock()
+sys.modules['displayio'] = MagicMock()
+sys.modules['i2cdisplaybus'] = MagicMock()
+sys.modules['adafruit_displayio_sh1107'] = MagicMock()
+sys.modules['adafruit_display_text'] = MagicMock()
+sys.modules['adafruit_display_text.label'] = MagicMock()
+sys.modules['terminalio'] = MagicMock()
+sys.modules['adafruit_mcp4728'] = MagicMock()
+sys.modules['analogio'] = MagicMock()
+sys.modules['pwmio'] = MagicMock()
+
+
 def pytest_runtest_setup(item):
-    """Called before each test - mock CircuitPython modules
+    """Called before each test (kept for compatibility)
 
     Args:
         item: Test item being run
     """
-    # Mock all CircuitPython-specific modules
-    sys.modules['board'] = MagicMock()
-    sys.modules['busio'] = MagicMock()
-    sys.modules['digitalio'] = MagicMock()
-    sys.modules['usb_midi'] = MagicMock()
-    sys.modules['adafruit_midi'] = MagicMock()
-    sys.modules['adafruit_midi.note_on'] = MagicMock()
-    sys.modules['adafruit_midi.note_off'] = MagicMock()
-    sys.modules['adafruit_midi.control_change'] = MagicMock()
-    sys.modules['adafruit_midi.pitch_bend'] = MagicMock()
-    sys.modules['microcontroller'] = MagicMock()
-    sys.modules['displayio'] = MagicMock()
-    sys.modules['i2cdisplaybus'] = MagicMock()
-    sys.modules['adafruit_displayio_sh1107'] = MagicMock()
-    sys.modules['adafruit_display_text'] = MagicMock()
-    sys.modules['adafruit_display_text.label'] = MagicMock()
-    sys.modules['terminalio'] = MagicMock()
-    sys.modules['adafruit_mcp4728'] = MagicMock()
-    sys.modules['analogio'] = MagicMock()
-    sys.modules['pwmio'] = MagicMock()
+    # Mocks are already set up at module load time
+    pass
 
 
 # Pytest fixtures can be added here
