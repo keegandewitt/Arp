@@ -9,53 +9,56 @@
 
 ## Session Handoff
 
-**Last Updated:** 2025-11-01 (Session 15)
-**Session Status:** ✅ COMPLETE - Architecture reframe: "prisme" MIDI/CV Translation Hub defined!
-**Token Usage:** ~82K / 200K
+**Last Updated:** 2025-11-01 (Session 15 - Translation Hub Research COMPLETE)
+**Session Status:** ✅ COMPLETE - Translation Hub research complete, implementation plan ready!
+**Token Usage:** ~79K / 200K
 
 ### Current Session Summary (Session 15)
 **What was accomplished:**
-- ✅ **ARCHITECTURE REFRAME - FROM "ARPEGGIATOR" TO "PRISME"**
-  - Defined prisme as a MIDI/CV Translation Hub, not just an arpeggiator
-  - Loopback mode: Hardware synths can add features without DAW
-  - Translation Layers: User-definable order (Scale → Arp or Arp → Scale)
-  - Routing Modes: Thru (passthrough) vs Translation (transform)
-  - Universal output: MIDI OUT, USB, CV, Gate, Custom CC (simultaneous, always)
-  - Exclusive input selection: MIDI IN, USB-C, CV IN, or Gate IN (one at a time)
-- ✅ **COMPREHENSIVE ARCHITECTURE DOCUMENT CREATED**
-  - `docs/ARCHITECTURE.md` (477 lines) - Complete system architecture
-  - Signal flow diagrams (Input → Routing → Translation → Output)
-  - Translation layer system with user-definable priority
-  - Clock system with swing + tempo multiply/divide (future)
-  - Loopback mode use case documentation
-- ✅ **CC REFERENCE TABLE CREATED**
-  - `docs/reference/CC_REFERENCE_TABLE.md` (420+ lines) - All 128 MIDI CCs mapped
-  - Polarity for each CC: Unipolar (0-5V), Bipolar (±5V), Binary (0V/5V)
-  - Voltage conversion formulas for each type
-  - Identifies bipolar CCs (Pan CC#10, Detune CC#94) vs unipolar (most others)
-  - Provides implementation path for auto-polarity detection
+- ✅ **TRANSLATION HUB RESEARCH COMPLETE (97% CONFIDENCE)**
+  - Created comprehensive prep document via deep codebase analysis
+  - Identified 10 critical implementation questions (including 1 blocker)
+  - Used FireCrawl MCP to research authoritative documentation sources
+  - Answered all 10 questions with evidence and code examples
+  - Created detailed 8-phase implementation plan (12-19 hours estimated)
+- ✅ **RESEARCH DELIVERABLES CREATED (4 documents, 1,883 lines)**
+  - `TRANSLATION_HUB_PREP_DOC.md` (500 lines) - Deep codebase analysis
+  - `TRANSLATION_HUB_QUESTIONS.md` (341 lines) - 10 critical questions
+  - `TRANSLATION_HUB_ANSWERS.md` (605 lines) - Complete research findings
+  - `TRANSLATION_HUB_IMPLEMENTATION_PLAN.md` (437 lines) - Phased implementation plan
+- ✅ **PROJECT REBRANDED TO "prisme"**
+  - Updated README.md to reflect Translation Hub architecture
+  - Updated PROJECT_STATUS.md with Session 15 milestone
+  - Committed and pushed all documentation updates to origin/main
 
-**Design Decisions Made:**
-1. **Send to all outputs always** - Negligible latency/battery cost (< 0.5ms total)
-2. **Exclusive input selection** - Prevents accidental signal merging, reduces CPU
-3. **User-definable translation order** - Scale → Arp vs Arp → Scale (creative control)
-4. **Clock as translation layer** - Swing + multiply/divide affects timing globally
-5. **CC polarity awareness** - Reference table guides future bipolar implementation
+**Key Research Findings:**
+1. **Class-based architecture recommended** - Official Adafruit CircuitPython design patterns
+2. **USB MIDI can handle both clock AND notes** - Same port supports multiple MIDI objects
+3. **Swing implementation from Roger Linn** - Inventor of swing! Delay even 16th notes by percentage
+4. **PyTest + mocking for testing** - CircuitPython modules can be mocked for unit tests
+5. **Clock transformations via tick interval** - Clean formula: `(base_interval * divide) / multiply`
 
-**Next Steps:**
-1. **[HIGH]** Update CONTEXT.md with prisme vision (IN PROGRESS)
-2. **[HIGH]** Implement Input Source selection (MIDI IN / USB / CV IN / Gate IN)
-3. **[HIGH]** Implement Routing Mode toggle (Thru vs Translation)
-4. **[MEDIUM]** Implement Translation Layer ordering system
-5. **[MEDIUM]** Add Clock Translation Layer (swing + multiply/divide)
-6. **[LOW]** Add CV IN hardware with voltage scaling circuit
-7. **[LOW]** Add Gate IN hardware with voltage protection
+**Critical Discovery:**
+- **Two architectures exist side-by-side!**
+  - Current: Inline arpeggiator in `main.py` (5 patterns, no scale quantization)
+  - Alternate: Class-based `Arpeggiator` in `arp/core/arpeggiator.py` (16 patterns, scale quantization at line 45)
+  - **Migration path:** Use class-based architecture as foundation for Translation Hub
+
+**Next Steps (Session 16+):**
+1. **[IMMEDIATE]** Begin Phase 1: Foundation Setup (feature branch, file structure)
+2. **[HIGH]** Phase 2: Translation Layer System (pipeline + layer classes)
+3. **[HIGH]** Phase 3: Clock Transformations (swing, multiply, divide)
+4. **[HIGH]** Phase 4: USB MIDI Integration (note input, not just clock)
+5. **[MEDIUM]** Phase 5: Main Loop Integration (class-based arpeggiator)
+6. **[MEDIUM]** Phase 6: Menu System Updates (routing mode, layer ordering)
+7. **[MEDIUM]** Phase 7: Testing & Validation (PyTest + hardware tests)
+8. **[LOW]** Phase 8: Documentation & Merge (finalize and merge to main)
 
 **Git Status:**
 - **Branch:** main
-- **Last Commit:** 8e93b5a - docs: Update session handoff (Session 14 complete)
-- **Working Tree:** Pending commit (new architecture docs)
-- **Ahead of origin:** 3 commits (needs push after commit)
+- **Last Commit:** 2bb5b25 - docs: Add Translation Hub research and implementation documentation
+- **Working Tree:** Clean
+- **Remote:** Up to date with origin/main (all commits pushed)
 
 ---
 
@@ -348,38 +351,28 @@ dac.channel_a.raw_value = 4095  # Direct 12-bit control → Full 4.83V
 
 ## Active Work
 
-### Current Task: Arpeggiator Core Implementation
-**Status:** ⏳ Ready to start
+### Current Task: Translation Hub Implementation (Phase 1)
+**Status:** ⏳ Ready to start (Research complete - 97% confidence)
 **Priority:** HIGH
 
-**What needs to be done:**
-1. Create `arp/core/note_buffer.py`
-   - Polyphonic note storage (hold multiple pressed notes)
-   - Add/remove notes on MIDI Note On/Off
-   - Query sorted note list for arpeggiator
+**What needs to be done (Phase 1 - Foundation Setup):**
+1. Create feature branch: `feature/translation-hub`
+2. Create file structure:
+   - `arp/core/translation.py` - TranslationPipeline class
+   - `arp/core/layers.py` - Layer implementations (Scale, Arp)
+   - `tests/test_translation.py` - PyTest unit tests
+   - `tests/conftest.py` - PyTest configuration with CircuitPython mocks
+   - `main_v2.py` - New architecture main file (keep main.py intact)
+3. Expand Settings in `config.py`:
+   - Routing mode (THRU / TRANSLATION)
+   - Input source (MIDI IN / USB / CV IN / Gate IN)
+   - Layer ordering (Scale→Arp or Arp→Scale)
+   - Layer enables (scale_enabled, arp_enabled)
+   - Clock transformations (multiply, divide, swing_percent)
+4. Update NVM storage to accommodate 8 new settings bytes
 
-2. Create `arp/core/patterns.py`
-   - Pattern classes: Up, Down, UpDown, Random
-   - Pattern interface: `get_next_note(note_buffer, current_index)`
-   - Pattern cycling logic
-
-3. Create `arp/core/arpeggiator.py`
-   - Main arpeggiator engine
-   - Clock/tempo management
-   - Note triggering at correct intervals
-   - Integration with patterns and note buffer
-
-4. Create `arp/drivers/midi_output.py`
-   - MIDI output abstraction
-   - Note On/Off sending
-   - USB and UART MIDI support
-
-5. Update `main.py`
-   - Integrate arpeggiator core
-   - Wire up MIDI input → note buffer → arpeggiator → MIDI output
-   - Add UI controls (pattern selection, tempo)
-
-**Estimated Effort:** 2-3 sessions
+**Implementation Plan:** See `docs/implementation/TRANSLATION_HUB_IMPLEMENTATION_PLAN.md`
+**Estimated Effort:** 3-4 sessions @ 4-5 hours each (12-19 hours total)
 
 ---
 
@@ -418,24 +411,37 @@ dac.channel_a.raw_value = 4095  # Direct 12-bit control → Full 4.83V
 
 ## Recently Modified Files
 
-### This Session (Session 9)
-- **docs/PRODUCTION_ROADMAP.md** (NEW) - Comprehensive 200-unit production planning
-- **docs/context/CONTEXT.md** (UPDATED) - Session 9 handoff info
+### This Session (Session 15 - Translation Hub Research)
+- **docs/implementation/TRANSLATION_HUB_PREP_DOC.md** (NEW) - Deep codebase analysis (500 lines)
+- **docs/implementation/TRANSLATION_HUB_QUESTIONS.md** (NEW) - 10 critical questions (341 lines)
+- **docs/implementation/TRANSLATION_HUB_ANSWERS.md** (NEW) - Research findings (605 lines)
+- **docs/implementation/TRANSLATION_HUB_IMPLEMENTATION_PLAN.md** (NEW) - 8-phase plan (437 lines)
+- **README.md** (UPDATED) - Rebranded to "prisme", updated features/roadmap
+- **PROJECT_STATUS.md** (UPDATED) - Added Session 15 milestone
+- **docs/context/CONTEXT.md** (UPDATED) - Session 15 handoff
 
-### Session 8 (2025-10-23)
-- **docs/BATTERY_MCP4728_INTEGRATION.md** - Battery + DAC integration guide
-- **docs/MCP4728_POWER_SETUP.md** - Power setup and safety procedures
-- **main.py:324** - Fixed button unpacking error
-- **docs/context/CONTEXT.md** - Updated with battery integration status
+### Session 14 (2025-10-31)
+- **arp/drivers/midi_custom_cc.py** (NEW) - CustomCCHandler with Learn Mode (169 lines)
+- **arp/data/midi_cc_names.py** (NEW) - Database of 128 MIDI CC names
+- **arp/utils/config.py** (UPDATED) - Custom CC settings + NVM storage
+- **arp/drivers/cv_gate.py** (UPDATED) - Voltage conversion for all sources + smoothing
+- **main.py** (UPDATED) - CV Output initialization + Custom CC integration
+- **arp/ui/menu.py** (UPDATED) - 7th category added (Custom CC)
+- **docs/hardware/MIDI_TO_CV_VOLTAGE_STANDARDS.md** (NEW) - Voltage reference (721 lines)
+- **docs/implementation/CUSTOM_CC_*.md** (NEW) - 5 comprehensive planning documents
 
-### Previous Session (Session 3)
-- **display.py:35** - Updated to use `i2cdisplaybus.I2CDisplayBus`
-- **tests/display_integration_test.py** (NEW) - Display validation tests
-- **METHODOLOGY.md** - Added dependency management section
+### Session 13 (2025-10-31)
+- **docs/hardware/TRUE_STRIG_CIRCUIT.md** (NEW) - S-Trig transistor circuit
+- **docs/hardware/PIN_ALLOCATION_MATRIX.md** (NEW) - Authoritative pin reference
+- **docs/SESSION_13_HANDOFF.md** (NEW) - Session handoff documentation
+- **tests/gate_dual_output_test.py** (NEW) - V-Trig + S-Trig validation
 
-### Session 2
-- **tests/comprehensive_pin_test.py** (NEW) - Full hardware validation
-- **docs/hardware/M4_TEST_BASELINE.md** (NEW) - Test results
+### Session 12 (2025-10-31)
+- **arp/drivers/cv_output.py** (NEW) - CVOutput driver with lookup table
+- **docs/hardware/LM358_WIRING_GUIDE.md** (NEW) - 0-10V amplification circuit
+- **docs/hardware/MCP4728_CV_GUIDE.md** (NEW) - DAC usage guide
+- **docs/architecture/TIMING_ARCHITECTURE.md** (NEW) - I2C throttling design
+- **docs/SESSION_12_HANDOFF.md** (NEW) - Session handoff documentation
 
 ---
 
