@@ -1,379 +1,476 @@
-# Arp - Hardware Arpeggiator Architecture
-
-**Vision:** A powerful hardware arpeggiator that bridges the MIDI and modular CV/Gate worlds, with flexible output routing and clock synchronization.
-
----
-
-## Core Concept
-
-**Input:** MIDI notes from keyboards, sequencers, or DAW
-**Processing:** Real-time arpeggiation with multiple patterns and modes
-**Output:** MIDI, CV/Gate, and S-Trigger (selectable per session)
-
----
-
-## Hardware Architecture
-
-### Main Board: Adafruit Feather M4 CAN Express
-- **MCU:** SAMD51 (120MHz ARM Cortex-M4)
-- **RAM:** 192KB
-- **Flash:** 512KB
-- **DACs:** 2x 12-bit (A0, A1)
-- **USB:** Native USB MIDI support
-- **UART:** Hardware UART on D0/D1
-
-### FeatherWing Stack (Bottom to Top)
-```
-┌─────────────────────────────┐
-│  OLED FeatherWing (128x64)  │  ← UI + 3 Buttons
-├─────────────────────────────┤
-│  MIDI FeatherWing           │  ← MIDI IN/OUT (DIN-5)
-├─────────────────────────────┤
-│  Feather M4 CAN Express     │  ← Main processor
-└─────────────────────────────┘
-         ↓ USB-C
-    [Computer/DAW]
-```
-
-### Pin Allocation
-
-#### Currently Used (Phase 1)
-```
-D0  (RX)     → MIDI FeatherWing RX
-D1  (TX)     → MIDI FeatherWing TX
-D5           → OLED Button C
-D6           → OLED Button B
-D9           → OLED Button A
-D21 (SDA)    → OLED I2C Data
-D22 (SCL)    → OLED I2C Clock
-3V           → Shared power rail
-GND          → Shared ground
-```
-
-#### Reserved for Future (Phase 2 & 3)
-```
-A0  (DAC0)   → CV Pitch Out (1V/octave)
-A1  (DAC1)   → CV Velocity/Mod Out
-A2           → Gate/Trigger Out (standard)
-A3           → S-Trigger Out (alternative mode)
-A4           → Future: Gate 2 / Accent Out
-A5           → Future: Clock Out
-D10-D13      → Future: Additional triggers/gates
-```
-
-#### Available for Expansion
-```
-CAN_TX, CAN_RX → Future: Multi-unit networking
-D11, D12, D13  → Future: External controls
-```
-
----
-
-## Software Architecture
-
-### Modular Design Principle
-**Core Engine** is independent of output method
-→ Output drivers are pluggable modules
-
-```
-┌──────────────────────────────────────────┐
-│           MIDI Input Layer               │
-│  - USB MIDI (DAW/Computer)              │
-│  - DIN MIDI IN (Hardware Keyboards)     │
-└──────────────────┬───────────────────────┘
-                   ↓
-┌──────────────────────────────────────────┐
-│         Arpeggiator Engine               │
-│  - Note Buffer (polyphonic input)       │
-│  - Pattern Generator (Up/Down/Random)   │
-│  - Clock Sync (Internal/External)       │
-│  - Rhythm Patterns (1/4, 1/8, 1/16)     │
-└──────────────────┬───────────────────────┘
-                   ↓
-┌──────────────────────────────────────────┐
-│         Output Router                    │
-│  - Mode Selection (MIDI/CV/S-Trig)      │
-│  - Routing Logic                        │
-└─────┬────────────┬────────────┬──────────┘
-      ↓            ↓            ↓
-┌─────────┐  ┌─────────┐  ┌─────────┐
-│  MIDI   │  │ CV/Gate │  │ S-Trig  │
-│ Driver  │  │ Driver  │  │ Driver  │
-└─────────┘  └─────────┘  └─────────┘
-```
-
-### Directory Structure
-```
-arp/
-├── core/
-│   ├── arpeggiator.py      # Main arp engine
-│   ├── note_buffer.py      # Polyphonic note storage
-│   ├── clock.py            # Clock sync engine
-│   └── patterns.py         # Arp pattern library
-├── drivers/
-│   ├── midi_output.py      # MIDI OUT driver
-│   ├── cv_gate.py          # CV/Gate driver (Phase 2)
-│   └── s_trigger.py        # S-Trigger driver (Phase 3)
-├── ui/
-│   ├── display.py          # OLED display manager
-│   ├── buttons.py          # Button input handler
-│   └── menu.py             # UI menu system
-├── utils/
-│   ├── config.py           # User settings
-│   └── midi_helpers.py     # MIDI utilities
-└── main.py                 # Application entry point
-```
-
----
-
-## Data Flow
-
-### 1. Input Processing
-```
-[MIDI Keyboard] → [MIDI IN] → Note Buffer
-         OR
-[USB MIDI]      → [USB IN]  → Note Buffer
-```
-
-### 2. Arpeggiation
-```
-Note Buffer → Arpeggiator Engine
-              ├─ Select pattern (Up/Down/Random)
-              ├─ Apply clock division (1/4, 1/8, 1/16)
-              ├─ Generate note sequence
-              └─ Sync to clock (USB/MIDI/Internal)
-```
-
-### 3. Output Routing
-```
-Arpeggiator → Output Router → [Selected Driver]
-                               ├─ MIDI Driver → DIN OUT
-                               ├─ CV Driver → A0 (pitch) + A2 (gate)
-                               └─ S-Trig Driver → A3 (inverted gate)
-```
-
----
-
-## Feature Implementation Phases
-
-### Phase 1: MIDI Core (NOW)
-**Status:** In Development
-**Goal:** Fully functional MIDI arpeggiator
-
-Features:
-- ✅ MIDI IN: Receive notes from keyboard/controller
-- ✅ MIDI OUT: Send arpeggiated notes to synths
-- ✅ USB MIDI: Receive clock from DAW
-- ⏳ Arp Patterns: Up, Down, Up/Down, Random
-- ⏳ Clock Division: 1/4, 1/8, 1/16 notes
-- ⏳ Note Range: 1-4 octaves
-- ⏳ OLED UI: Pattern selection, tempo display
-- ⏳ Button Control: Pattern, octave, tempo
-
-**Output:** MIDI notes via DIN-5 jack
-
----
-
-### Phase 2: CV/Gate Output (FUTURE)
-**Status:** Hardware Reserved, Not Implemented
-**Goal:** Control modular synthesizers
-
-Features:
-- ⬜ CV Pitch: 1V/octave on A0 (with optional op-amp)
-- ⬜ Gate Out: Standard 5V gate on A2
-- ⬜ CV Velocity: Velocity → CV on A1
-- ⬜ Output Mode Selection: MIDI vs. CV/Gate
-- ⬜ Pitch calibration routine
-- ⬜ Gate length control
-
-**Output:** CV pitch + Gate trigger via 3.5mm jacks
-
-**Hardware Needs:**
-- 3.5mm mono jacks (3x minimum)
-- Op-amp for 1V/octave scaling (optional)
-- Protection circuitry
-
----
-
-### Phase 3: S-Trigger Output (FUTURE)
-**Status:** Hardware Reserved, Not Implemented
-**Goal:** Support vintage gear (Yamaha CS-series, ARP, Korg MS-series)
-
-Features:
-- ⬜ S-Trigger: Inverted gate (normally HIGH, pulse LOW)
-- ⬜ Mode toggle: Standard Gate vs. S-Trigger
-- ⬜ Shared jack with standard trigger (user selectable)
-
-**Output:** S-Trigger via same gate jack (mode switched)
-
-**Hardware Needs:**
-- Same 3.5mm jack as Phase 2 gate
-- Software mode switching only
-
----
-
-## Clock Synchronization
-
-### Input Sources (Priority Order)
-1. **USB MIDI Clock** (from DAW) - Highest priority
-2. **DIN MIDI Clock** (from hardware sequencer)
-3. **Internal Clock** (free-running, user adjustable)
-
-### Clock Processing
-```python
-# Pseudocode
-if usb_midi_clock_detected:
-    sync_to_usb_clock()
-elif din_midi_clock_detected:
-    sync_to_din_clock()
-else:
-    use_internal_clock(bpm=120)
-```
-
-### Clock Division
-- **Quarter Notes:** 6 clocks (24 PPQN ÷ 4)
-- **Eighth Notes:** 3 clocks (24 PPQN ÷ 8)
-- **Sixteenth Notes:** 1.5 clocks (24 PPQN ÷ 16)
-
----
-
-## User Interface Design
-
-### OLED Display Layout (128x64)
-```
-┌────────────────────────┐
-│ ARP  UP   ♩=120  Oct:2 │  ← Status line
-├────────────────────────┤
-│ [C] [E] [G]            │  ← Active notes
-├────────────────────────┤
-│ MIDI OUT: Ch 1         │  ← Output mode
-│ ▶ C4  E4  G4  C5       │  ← Arp preview
-└────────────────────────┘
-```
-
-### Button Functions
-
-#### Single Press
-- **Button A:** Cycle arp pattern (Up → Down → Up/Down → Random)
-- **Button B:** Cycle clock division (1/4 → 1/8 → 1/16)
-- **Button C:** Cycle octave range (1 → 2 → 3 → 4)
-
-#### Long Press (0.5s)
-- **Button A:** Enter settings menu
-- **Button B:** Tap tempo
-- **Button C:** Output mode (MIDI → CV/Gate → S-Trig)
-
-#### Combinations
-- **A + B:** Latch mode on/off
-- **B + C:** Reset to defaults
-
----
-
-## Configuration System
-
-### Settings Storage
-Use CircuitPython's `microcontroller.nvm` for persistent settings:
-
-```python
-# settings.py
-class Settings:
-    def __init__(self):
-        self.pattern = "up"          # up, down, updown, random
-        self.clock_div = 8           # 4, 8, 16
-        self.octave_range = 2        # 1-4
-        self.output_mode = "midi"    # midi, cv_gate, s_trigger
-        self.midi_channel = 1        # 1-16
-        self.tempo = 120             # BPM (internal clock)
-
-    def save(self):
-        # Serialize to NVM
-        pass
-
-    def load(self):
-        # Deserialize from NVM
-        pass
-```
-
----
-
-## Performance Requirements
-
-### Timing Constraints
-- **MIDI Clock Response:** < 1ms jitter
-- **Note Latency:** < 5ms (input to output)
-- **Gate Pulse Width:** 15ms minimum (adjustable)
-- **CV Settling Time:** < 2ms (for pitch changes)
-
-### CPU Budget
-- **Main Loop:** 100Hz (10ms cycle)
-- **MIDI Processing:** Event-driven (non-blocking)
-- **Display Update:** 30Hz (33ms)
-- **Button Polling:** 100Hz (10ms)
-
----
-
-## Future Expansion Ideas
-
-### Networking (CAN Bus)
-- Multiple Arp units synchronized via CAN
-- One master clock, multiple arp voices
-- Distributed polyphony
-
-### External Control
-- CV input for tempo modulation
-- Gate input for step advance
-- Expression pedal for arp speed
-
-### Advanced Features
-- **Swing:** Shuffle timing
-- **Velocity Curves:** Dynamic expression
-- **MIDI Learn:** Map parameters to CC
-- **Pattern Memory:** Save/recall 8 presets
-
----
-
-## Hardware BOM (Current + Reserved)
-
-### Phase 1 (Current)
-- [x] Feather M4 CAN Express
-- [x] MIDI FeatherWing
-- [x] OLED FeatherWing 128x64
-- [x] USB-C cable
-- [x] MIDI cables (DIN-5)
-
-### Phase 2 (Future - CV/Gate)
-- [ ] 3x 3.5mm mono jacks (Pitch, Velocity, Gate)
-- [ ] Op-amp circuit (MCP6002 or similar) for 1V/octave
-- [ ] Protection diodes
-- [ ] Enclosure with panel cutouts
-
-### Phase 3 (Future - S-Trigger)
-- [ ] No additional hardware (software toggle only)
-
----
-
-## Testing Strategy
-
-### Phase 1 Tests
-- [x] MIDI loopback (100% message success)
-- [x] Button debouncing and long press
-- [x] OLED rendering (SH1107 driver)
-- [x] Integration test (M4 + OLED + MIDI)
-- [ ] Arpeggiator engine (pattern generation)
-- [ ] Clock sync (USB MIDI clock)
-- [ ] Full UI flow
-
-### Phase 2 Tests (Future)
-- [ ] CV calibration (1V/octave accuracy)
-- [ ] Gate timing (pulse width verification)
-- [ ] CV slew rate (pitch stability)
-
-### Phase 3 Tests (Future)
-- [ ] S-Trigger polarity (inverted gate)
-- [ ] Mode switching (gate ↔ s-trigger)
-
----
+# prisme - MIDI/CV Translation Hub Architecture
 
 **Version:** 2.0
-**Date:** 2025-10-22
-**Status:** Architecture defined, Phase 1 in progress
+**Last Updated:** 2025-11-01
+**Status:** Architecture Definition
+
+---
+
+## Mission Statement
+
+**prisme** is a full-service USB-C powered MIDI/CV translation hub with imperceptible latency. It bridges the gap between MIDI controllers, DAWs, hardware synthesizers, and Eurorack modular systems by applying real-time transformations to musical data.
+
+### What Makes prisme Special
+
+1. **Translation Layers**: Apply musical transformations (Scale Quantization, Arpeggiation, Clock Manipulation) to incoming MIDI/CV data in real-time
+2. **Loopback Mode**: Hardware synths can connect their MIDI OUT → prisme IN → prisme OUT → Synth IN, adding features like arpeggiation and scale quantization without a DAW
+3. **Universal Output**: Simultaneously outputs to MIDI OUT, USB MIDI, CV (pitch), Gate/Trigger, and Custom CC - no configuration needed
+4. **Zero-Latency Design**: Sub-millisecond processing ensures imperceptible lag
+5. **Flexible Routing**: Switch between Thru (passthrough) and Translation (transform) modes
+
+---
+
+## Signal Flow Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                         INPUT SELECTION                              │
+│                         (User selects ONE)                           │
+│                                                                       │
+│  ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐        │
+│  │ MIDI IN  │   │  USB-C   │   │  CV IN   │   │ GATE IN  │        │
+│  │  (DIN)   │   │  (MIDI)  │   │ (1/8" TRS)│  │(1/8" TRS)│        │
+│  └────┬─────┘   └────┬─────┘   └────┬─────┘   └────┬─────┘        │
+│       │              │              │              │                │
+│       └──────────────┴──────────────┴──────────────┘                │
+│                          │                                           │
+│                          ▼                                           │
+└─────────────────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                      ROUTING MODE SWITCH                             │
+│                                                                       │
+│         ┌────────────┐                    ┌──────────────┐          │
+│         │   THRU     │                    │ TRANSLATION  │          │
+│         │ (Bypass)   │◄──── User ────────►│  (Transform) │          │
+│         └─────┬──────┘    Setting         └──────┬───────┘          │
+│               │                                   │                  │
+│               │                                   ▼                  │
+│               │                    ┌──────────────────────────┐     │
+│               │                    │   TRANSLATION LAYERS     │     │
+│               │                    │   (User-Defined Order)   │     │
+│               │                    │                          │     │
+│               │                    │  ┌────────────────────┐ │     │
+│               │                    │  │  Layer Priority:   │ │     │
+│               │                    │  │  1. [Scale/Arp]    │ │     │
+│               │                    │  │  2. [Arp/Scale]    │ │     │
+│               │                    │  │  3. Clock          │ │     │
+│               │                    │  └────────────────────┘ │     │
+│               │                    │                          │     │
+│               │                    │  Each layer can be       │     │
+│               │                    │  enabled/disabled        │     │
+│               │                    └────────────┬─────────────┘     │
+│               │                                 │                   │
+│               └─────────────┬───────────────────┘                   │
+│                             ▼                                        │
+└─────────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                    OUTPUT TO ALL DESTINATIONS                        │
+│                      (Simultaneous, Always)                          │
+│                                                                       │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐           │
+│  │ MIDI OUT │  │  USB-C   │  │  CV OUT  │  │ GATE OUT │           │
+│  │  (DIN)   │  │  (MIDI)  │  │(1/8" TRS)│  │(1/8" TRS)│           │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘           │
+│                                                                       │
+│                    ┌──────────────┐                                  │
+│                    │ CUSTOM CC OUT│                                  │
+│                    │  (1/8" TRS)  │                                  │
+│                    └──────────────┘                                  │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Input Sources (Exclusive Selection)
+
+User selects **ONE** active input source at a time:
+
+| Input | Hardware | Format | Notes |
+|-------|----------|--------|-------|
+| **MIDI IN** | DIN-5 jack (via MIDI FeatherWing) | Standard MIDI | Most common, hardware synths/controllers |
+| **USB-C** | USB MIDI device class | USB MIDI | DAW, MIDI controllers, iPad |
+| **CV IN** | 1/8" TRS jack → ADC (A2) | 0-10V → 0-3.3V (scaled) | Modular CV sources (future) |
+| **GATE IN** | 1/8" TRS jack → GPIO (D4) | 5V/12V gate (protected) | Modular trigger/clock (future) |
+
+**Why Exclusive?**
+- Prevents accidental signal merging (user confusion)
+- Reduces CPU overhead
+- Clear signal path (easier to debug)
+
+---
+
+## Routing Modes
+
+### 1. THRU Mode (Passthrough)
+- Input data is sent **directly** to all outputs
+- No translation layers applied
+- Zero-latency bypass
+- Use case: prisme acts as a simple MIDI/CV hub
+
+### 2. TRANSLATION Mode (Transform)
+- Input data passes through **enabled translation layers**
+- Layers applied in **user-defined order**
+- Output is transformed musical data
+- Use case: Add arpeggiation, scale quantization, swing, etc.
+
+**User Controls:**
+- Toggle between modes via menu (or dedicated button)
+- Visual feedback on OLED (e.g., "THRU" vs "XLATE")
+
+---
+
+## Translation Layers
+
+### Layer System Architecture
+
+Each translation layer is:
+- **Independently enabled/disabled** (bypass if disabled)
+- **User-orderable** (priority 1, 2, 3...)
+- **Stateless** (doesn't affect other layers)
+
+### Available Layers
+
+#### 1. Scale Quantization Layer
+**Function:** Quantizes incoming notes to a selected musical scale
+
+**Parameters:**
+- Root note (C, C#, D, ..., B)
+- Scale type (Major, Minor, Dorian, Phrygian, etc.)
+- Enabled/Disabled
+
+**Data Flow:**
+```
+Input: MIDI note 61 (C#)
+Scale: C Major (C, D, E, F, G, A, B)
+Output: MIDI note 60 (C) - quantized down to nearest scale note
+```
+
+**Current Status:** ✅ Implemented (`arp/processors/scale_quantizer.py`)
+
+---
+
+#### 2. Arpeggiation Layer
+**Function:** Converts held chords into arpeggiated note sequences
+
+**Parameters:**
+- Pattern (Up, Down, Up/Down, Random, etc.)
+- Rate (1/4, 1/8, 1/16, 1/32 notes)
+- Octave range (1-4 octaves)
+- Gate length (10%-100%)
+- Enabled/Disabled
+
+**Data Flow:**
+```
+Input: Notes [C3, E3, G3] held simultaneously
+Pattern: Up
+Rate: 1/16
+Output: C3 → E3 → G3 → C3 → E3 → G3... (repeating)
+```
+
+**Current Status:** ✅ Implemented (`arp/processors/arpeggiator.py`)
+
+---
+
+#### 3. Clock Layer
+**Function:** Manipulates timing and groove of MIDI clock and arpeggiator
+
+**Parameters:**
+- Clock source (Internal, External MIDI, External Gate, USB)
+- Tempo multiply/divide (2x, 1x, 1/2, 1/4, 1/8...)
+- Swing percentage (0%-75%)
+- Enabled/Disabled
+
+**Data Flow:**
+```
+Input: External MIDI clock at 120 BPM
+Settings: Divide by 2, Swing 50%
+Output: Arpeggiator runs at 60 BPM with swing applied
+```
+
+**Current Status:** 🟡 Partially implemented (clock source selection exists, swing/multiply not yet implemented)
+
+**Implementation Notes:**
+- Swing: Delay every 2nd clock tick by X% (16th note swing)
+- Multiply: Send N clock ticks for every 1 received
+- Divide: Send 1 clock tick for every N received
+
+---
+
+### Translation Layer Ordering
+
+**User-Definable Priority:**
+
+The user can choose which layer is applied first:
+
+**Option A: Scale → Arp**
+1. Quantize incoming notes to scale
+2. Arpeggiate the quantized notes
+3. Apply clock timing/swing
+
+**Example:**
+```
+Input: [C#3, E3, G#3] (not in C Major scale)
+After Scale: [C3, E3, G3] (quantized to C Major)
+After Arp: C3 → E3 → G3 → C3... (arpeggiated)
+```
+
+**Option B: Arp → Scale**
+1. Arpeggiate incoming notes (as-is)
+2. Quantize each arpeggiated note to scale
+3. Apply clock timing/swing
+
+**Example:**
+```
+Input: [C#3, E3, G#3]
+After Arp: C#3 → E3 → G#3 → C#3... (arpeggiated first)
+After Scale: C3 → E3 → G3 → C3... (then quantized)
+```
+
+**Why This Matters:**
+- Different creative results
+- Arp → Scale can create unexpected melodic patterns
+- Scale → Arp ensures strict scale adherence
+
+**Implementation:**
+- User setting: "Translation Order" (Scale First / Arp First)
+- Code applies layers in specified order
+- Clock layer always applied last (affects timing, not notes)
+
+---
+
+## Output Destinations (Simultaneous)
+
+All outputs are **active simultaneously** with no user configuration required.
+
+| Output | Hardware | Format | Latency |
+|--------|----------|--------|---------|
+| **MIDI OUT** | DIN-5 jack | Standard MIDI | ~320 μs |
+| **USB-C** | USB MIDI device class | USB MIDI | ~50 μs |
+| **CV OUT** | 1/8" TRS (MCP4728 Ch A) | 1V/octave or 1.035V/octave | ~20 μs |
+| **GATE OUT** | 1/8" TRS (MCP4728 Ch B or GPIO D10) | V-trig (5V) or S-trig (GND) | ~20 μs |
+| **CUSTOM CC OUT** | 1/8" TRS (MCP4728 Ch D) | 0-5V (unipolar) or ±5V (bipolar) | ~20 μs |
+
+**Total Output Latency:** < 0.5 milliseconds (imperceptible)
+
+**Why Send Everywhere?**
+- Zero configuration for user
+- Negligible CPU/battery cost
+- Simplified code architecture
+- User can connect/disconnect outputs freely
+
+---
+
+## Clock System Architecture
+
+### Clock Sources (User Selectable)
+
+| Source | Input | Priority | Notes |
+|--------|-------|----------|-------|
+| **Internal** | Software timer | User set (20-300 BPM) | Default, always available |
+| **MIDI Clock** | MIDI IN or USB | External device | 24 PPQN standard |
+| **Gate/Trig** | GPIO D4 (future) | External modular | Rising edge detection |
+| **USB Clock** | USB MIDI clock | External DAW | 24 PPQN standard |
+
+### Clock Transformations
+
+#### 1. Tempo Multiply/Divide
+- **Multiply** (2x, 3x, 4x): Speed up clock
+  - Example: 120 BPM × 2 = 240 BPM
+- **Divide** (1/2, 1/4, 1/8): Slow down clock
+  - Example: 120 BPM ÷ 2 = 60 BPM
+
+**Use Cases:**
+- Sync arpeggiator to half-time or double-time of external clock
+- Create polyrhythms
+
+#### 2. Swing/Groove
+- **Swing Percentage** (0%-75%)
+- Delays every 2nd 16th note by specified percentage
+- Example: 50% swing = classic shuffle feel
+
+**Formula:**
+```python
+if tick % 2 == 1:  # Every 2nd 16th note
+    delay_ms = (tick_interval * swing_percent / 100)
+    time.sleep(delay_ms)
+```
+
+### Clock Display
+OLED shows:
+- Current tempo (BPM)
+- Clock source (Int/Ext/Gate/USB)
+- Multiply/divide factor (e.g., "×2" or "÷4")
+- Swing percentage (e.g., "Swing: 50%")
+
+---
+
+## Custom CC Reference System
+
+### Problem
+Different MIDI CCs expect different voltage behaviors:
+- **Unipolar** (0-5V): Mod wheel, filter cutoff, volume
+- **Bipolar** (±5V): Pan (center = 0V), pitch bend
+- **Binary** (0V or 5V): Sustain pedal (on/off)
+
+### Solution: CC Reference Table
+A lookup table maps each CC number (0-127) to:
+- **Name** (e.g., "Mod Wheel")
+- **Polarity** (Unipolar, Bipolar, Binary)
+- **Voltage range** (0-5V, ±5V, etc.)
+- **Common usage** (brief description)
+
+**Implementation:**
+```python
+CC_REFERENCE = {
+    1: {
+        "name": "Mod Wheel",
+        "polarity": "unipolar",
+        "range": "0-5V",
+        "behavior": "linear"
+    },
+    10: {
+        "name": "Pan",
+        "polarity": "bipolar",
+        "range": "±5V",
+        "behavior": "center_zero"  # 64 = 0V
+    },
+    64: {
+        "name": "Sustain Pedal",
+        "polarity": "binary",
+        "range": "0V or 5V",
+        "behavior": "threshold"  # <64 = 0V, ≥64 = 5V
+    }
+}
+```
+
+**Usage:**
+When user selects CC #10 (Pan):
+1. Lookup in reference table → "bipolar", "±5V"
+2. Apply voltage conversion: `voltage = ((value - 64) / 64) * 5.0`
+3. Output: CC value 0 = -5V, 64 = 0V, 127 = +5V
+
+**Document:** `docs/reference/CC_REFERENCE_TABLE.md`
+
+---
+
+## Hardware I/O Summary
+
+### Inputs (User selects ONE)
+- 🔌 **MIDI IN** (DIN-5 jack)
+- 🔌 **USB-C** (MIDI device class)
+- 🔌 **CV IN** (1/8" TRS) - *Future*
+- 🔌 **GATE IN** (1/8" TRS) - *Future*
+
+### Outputs (All active simultaneously)
+- 🔌 **MIDI OUT** (DIN-5 jack)
+- 🔌 **USB-C** (MIDI device class)
+- 🔌 **CV OUT** (1/8" TRS, 1V/octave)
+- 🔌 **GATE OUT** (1/8" TRS, V-trig or S-trig)
+- 🔌 **CUSTOM CC OUT** (1/8" TRS, 0-5V or ±5V)
+
+### Control Interface
+- 🖥️ **OLED Display** (128x64 SH1107)
+- 🔘 **Button A** (Pattern/Navigation)
+- 🔘 **Button B** (Confirm/Long-press features)
+- 🔘 **Button C** (Settings/Navigation)
+
+---
+
+## Technical Specifications
+
+### Performance
+- **Latency:** < 0.5ms (sub-millisecond)
+- **Clock Jitter:** < ±50μs (tight timing)
+- **MIDI Throughput:** ~3,000 messages/sec
+- **Power Consumption:** ~150mA @ 5V (USB-C powered)
+- **Battery Life:** 6-7 hours continuous (500mAh LiPo)
+
+### Hardware Platform
+- **MCU:** Adafruit Feather M4 CAN Express
+  - ATSAMD51J19A (120MHz Cortex-M4)
+  - 192KB RAM, 512KB Flash
+  - Hardware floating-point unit
+- **DAC:** MCP4728 (4-channel, 12-bit, I2C)
+- **Display:** SH1107 OLED (128x64, I2C)
+- **MIDI I/O:** MIDI FeatherWing (optocoupler isolated)
+
+### Software
+- **Language:** CircuitPython 9.x
+- **Architecture:** Event-driven, non-blocking
+- **Libraries:**
+  - `adafruit_midi` (MIDI parsing)
+  - `adafruit_mcp4728` (DAC control)
+  - `adafruit_displayio_sh1107` (OLED)
+
+---
+
+## Loopback Mode Use Case
+
+**Scenario:** User has a hardware synth without built-in arpeggiation or scale quantization.
+
+**Setup:**
+1. Connect synth **MIDI OUT** → prisme **MIDI IN**
+2. Connect prisme **MIDI OUT** → synth **MIDI IN**
+3. Connect synth **AUDIO OUT** → Speakers/Interface
+4. Enable Translation mode on prisme
+5. Enable Arp + Scale layers
+
+**Data Flow:**
+```
+Synth plays notes → MIDI OUT → prisme MIDI IN
+                                    ↓
+                    [Translation Layers Applied]
+                                    ↓
+                    prisme MIDI OUT → Synth MIDI IN
+                                    ↓
+                    Synth plays arpeggiated, quantized notes
+```
+
+**Result:** The synth now has arpeggiation and scale quantization without any DAW or external computer!
+
+**Additional Uses:**
+- Add swing to a rigid hardware sequencer
+- Quantize an "out of tune" MIDI keyboard
+- Transform MIDI from a DAW before it hits hardware
+
+---
+
+## Future Expansion Possibilities
+
+### Translation Layers (Future)
+- **Velocity Curve** (compress/expand velocity)
+- **Note Delay** (humanization)
+- **Chord Generator** (harmonize single notes)
+- **MIDI FX** (transpose, channel filter, etc.)
+
+### Hardware Expansion
+- **Analog CV IN** (modulate tempo, swing, etc.)
+- **Gate IN** (external clock/reset)
+- **Expression Pedal Input** (real-time control)
+- **Multiple CV Outputs** (use MCP4728 Channel C)
+
+### Software Features
+- **Preset System** (save/recall settings)
+- **MIDI Learn** (assign CCs to parameters)
+- **Pattern Sequencer** (step sequencer mode)
+- **LFO/Modulation** (CV modulation sources)
+
+---
+
+## Related Documentation
+
+- **Hardware Wiring:** `docs/hardware/MASTER_BREADBOARD_LAYOUT.md`
+- **Pin Allocation:** `docs/hardware/PIN_ALLOCATION_MATRIX.md`
+- **CV Standards:** `docs/hardware/MIDI_TO_CV_VOLTAGE_STANDARDS.md`
+- **Software Architecture:** `docs/software/` (coming soon)
+- **User Manual:** `docs/USER_GUIDE.md` (coming soon)
+
+---
+
+**Last Updated:** 2025-11-01
+**Version:** 2.0 - Architecture Reframe ("prisme" MIDI/CV Translation Hub)
+**Status:** Living Document - Update as system evolves
