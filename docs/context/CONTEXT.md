@@ -1,17 +1,65 @@
-# Arp Project - Living Context
+# prisme - MIDI/CV Translation Hub - Living Context
 
 **Purpose:** This file maintains session-to-session continuity for Claude instances.
 **Update Frequency:** After every significant milestone or before session end.
+
+**Project Vision:** prisme is a full-service USB-C powered MIDI/CV translation hub that applies real-time transformations (Scale, Arp, Clock) to musical data, bridging DAWs, hardware synths, and Eurorack modular systems with imperceptible latency.
 
 ---
 
 ## Session Handoff
 
-**Last Updated:** 2025-11-01 (Session 14)
-**Session Status:** ✅ COMPLETE - Custom CC output system fully implemented!
-**Token Usage:** ~130K / 200K
+**Last Updated:** 2025-11-01 (Session 15)
+**Session Status:** ✅ COMPLETE - Architecture reframe: "prisme" MIDI/CV Translation Hub defined!
+**Token Usage:** ~82K / 200K
 
-### Current Session Summary (Session 14)
+### Current Session Summary (Session 15)
+**What was accomplished:**
+- ✅ **ARCHITECTURE REFRAME - FROM "ARPEGGIATOR" TO "PRISME"**
+  - Defined prisme as a MIDI/CV Translation Hub, not just an arpeggiator
+  - Loopback mode: Hardware synths can add features without DAW
+  - Translation Layers: User-definable order (Scale → Arp or Arp → Scale)
+  - Routing Modes: Thru (passthrough) vs Translation (transform)
+  - Universal output: MIDI OUT, USB, CV, Gate, Custom CC (simultaneous, always)
+  - Exclusive input selection: MIDI IN, USB-C, CV IN, or Gate IN (one at a time)
+- ✅ **COMPREHENSIVE ARCHITECTURE DOCUMENT CREATED**
+  - `docs/ARCHITECTURE.md` (477 lines) - Complete system architecture
+  - Signal flow diagrams (Input → Routing → Translation → Output)
+  - Translation layer system with user-definable priority
+  - Clock system with swing + tempo multiply/divide (future)
+  - Loopback mode use case documentation
+- ✅ **CC REFERENCE TABLE CREATED**
+  - `docs/reference/CC_REFERENCE_TABLE.md` (420+ lines) - All 128 MIDI CCs mapped
+  - Polarity for each CC: Unipolar (0-5V), Bipolar (±5V), Binary (0V/5V)
+  - Voltage conversion formulas for each type
+  - Identifies bipolar CCs (Pan CC#10, Detune CC#94) vs unipolar (most others)
+  - Provides implementation path for auto-polarity detection
+
+**Design Decisions Made:**
+1. **Send to all outputs always** - Negligible latency/battery cost (< 0.5ms total)
+2. **Exclusive input selection** - Prevents accidental signal merging, reduces CPU
+3. **User-definable translation order** - Scale → Arp vs Arp → Scale (creative control)
+4. **Clock as translation layer** - Swing + multiply/divide affects timing globally
+5. **CC polarity awareness** - Reference table guides future bipolar implementation
+
+**Next Steps:**
+1. **[HIGH]** Update CONTEXT.md with prisme vision (IN PROGRESS)
+2. **[HIGH]** Implement Input Source selection (MIDI IN / USB / CV IN / Gate IN)
+3. **[HIGH]** Implement Routing Mode toggle (Thru vs Translation)
+4. **[MEDIUM]** Implement Translation Layer ordering system
+5. **[MEDIUM]** Add Clock Translation Layer (swing + multiply/divide)
+6. **[LOW]** Add CV IN hardware with voltage scaling circuit
+7. **[LOW]** Add Gate IN hardware with voltage protection
+
+**Git Status:**
+- **Branch:** main
+- **Last Commit:** 8e93b5a - docs: Update session handoff (Session 14 complete)
+- **Working Tree:** Pending commit (new architecture docs)
+- **Ahead of origin:** 3 commits (needs push after commit)
+
+---
+
+### Previous Session Summary (Session 14)
 **What was accomplished:**
 - ✅ **CUSTOM CC OUTPUT SYSTEM - COMPLETE SOFTWARE IMPLEMENTATION**
   - Complete MIDI-to-CV conversion system for MCP4728 Channel D
