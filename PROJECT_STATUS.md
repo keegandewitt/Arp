@@ -1,8 +1,8 @@
 # Project Status & Roadmap
 
-**Last Updated:** 2025-10-22 (OLED FeatherWing Integration Complete)
-**Project:** Arp - CircuitPython MIDI Arpeggiator
-**Current Version:** Hardware v1.0, Software v0.95 (OLED working, pre-release)
+**Last Updated:** 2025-11-01 (Session 15 - Translation Hub Research Complete)
+**Project:** prisme - MIDI/CV Translation Hub
+**Current Version:** Hardware v1.0, Software v3.0 (Translation Hub architecture planned)
 
 > **Purpose:** This is a living document that tracks project state, key decisions, and roadmap. Update this regularly to ensure continuity across Claude instances and recovery from crashes/compacts.
 
@@ -234,7 +234,24 @@
 
 ## Recent Milestones
 
-### 2025-10-23 (Latest)
+### 2025-11-01 (Latest - Session 15)
+- **Translation Hub Architecture Research Complete** ✅
+  - **Rebranding:** Project renamed to "prisme" - reflects Translation Hub concept
+  - **Research Methodology:** Used FireCrawl MCP to gather authoritative documentation
+  - **Confidence Achieved:** 97% confidence (exceeded 95% target)
+  - **Key Findings:**
+    - Class-based arpeggiator recommended (official Adafruit design patterns)
+    - USB MIDI can handle both clock AND notes on same port
+    - Swing implementation from Roger Linn himself (inventor of swing!)
+    - PyTest + mocking for CircuitPython testing
+    - Clock multiply/divide by modifying tick interval
+  - **Deliverables:**
+    - `TRANSLATION_HUB_QUESTIONS.md` - 10 critical questions identified
+    - `TRANSLATION_HUB_ANSWERS.md` - Complete answers with evidence
+    - `TRANSLATION_HUB_IMPLEMENTATION_PLAN.md` - Phased 8-phase plan (12-19 hours estimated)
+  - **Next Steps:** Begin Phase 1 implementation (Session 16+)
+
+### 2025-10-23
 - **VintageCapture VST Project Initiated** 🚧
   - **Problem Solved:** Vintage synths without "Local Control Off" are incompatible with external arpeggiators (doubled notes)
   - **Solution:** Two-stage VST plugin workflow that separates performance from sound design
