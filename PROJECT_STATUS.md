@@ -35,13 +35,18 @@
 - **CircuitPython Version:** 10.0.3 (October 2025 release)
 - **USB:** Native USB for MIDI and serial
 
+### Physical Configuration
+- **Stacked:** OLED FeatherWing on top of Feather M4 CAN
+- **Breadboard:** MIDI I/O (DIN-5 jacks) connected via jumper wires to D0/D1
+- ⚠️ **IMPORTANT:** MIDI FeatherWing is NOT stacked - stays on breadboard for prototyping
+
 ### Pin Assignments (Active)
 | Pin | Function | Notes |
 |-----|----------|-------|
-| D21 (SDA) | OLED Display | I2C SH1107 128x64 (Product #4650) |
-| D22 (SCL) | OLED Display | I2C bus |
-| D0 (RX) | MIDI In | UART RX |
-| D1 (TX) | MIDI Out | UART TX |
+| D21 (SDA) | OLED Display | I2C SH1107 128x64 (Product #4650) - STACKED |
+| D22 (SCL) | OLED Display | I2C bus - STACKED |
+| D0 (RX) | MIDI In | UART RX - BREADBOARD via jumper wires |
+| D1 (TX) | MIDI Out | UART TX - BREADBOARD via jumper wires |
 | D4-D6 | Button Inputs | Pattern, Tempo, Settings (pull-up) |
 | A0 | CV Output 1 | DAC, 0-3.3V (planned scaling to 0-5V or 0-10V) |
 | A1 | Gate Output | DAC or GPIO, triggers on note |

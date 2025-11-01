@@ -4,14 +4,19 @@ A powerful hardware arpeggiator built on CircuitPython that bridges the MIDI and
 
 ```
 ┌─────────────────────────────┐
-│  OLED FeatherWing           │  ← UI + Buttons
-├─────────────────────────────┤
-│  MIDI FeatherWing           │  ← DIN MIDI IN/OUT
+│  OLED FeatherWing           │  ← UI + Buttons (STACKED)
 ├─────────────────────────────┤
 │  Feather M4 CAN Express     │  ← Brain (120MHz ARM)
 └─────────────────────────────┘
          ↓ USB-C
     [Computer/DAW]
+
+[BREADBOARD]
+  MIDI I/O (DIN-5 jacks) ──jumpers──> D0/D1 on M4
+  CV/Gate circuits
+  Op-amp circuits
+
+⚠️ IMPORTANT: MIDI FeatherWing is NOT stacked - stays on breadboard
 ```
 
 ---
