@@ -18,11 +18,12 @@ NVM_SETTINGS_START = 0  # Start offset in NVM
 
 # Struct format for compact binary storage
 # B = unsigned byte (0-255), H = unsigned short (0-65535), f = float
-# Total: 4 (magic) + 20 bytes = 24 bytes (well under 256 byte limit!)
+# Total: 4 (magic) + 23 bytes = 27 bytes (well under 256 byte limit!)
 # Pattern, enabled, clock_source, internal_bpm, clock_division, octave_range,
 # midi_channel, velocity_passthrough, fixed_velocity, latch, cv_enabled,
-# cv_scale, trigger_polarity, scale_type, scale_root, gate_length (16 values)
-SETTINGS_STRUCT_FORMAT = 'BBBHBBBBBBBBBBBf'  # 16 values total
+# cv_scale, trigger_polarity, scale_type, scale_root, gate_length,
+# custom_cc_source, custom_cc_number, custom_cc_smoothing (19 values)
+SETTINGS_STRUCT_FORMAT = 'BBBHBBBBBBBBBBBfBBB'  # 19 values total
 
 class Settings:
     """Global settings container for the arpeggiator"""
@@ -56,6 +57,19 @@ class Settings:
     # Trigger polarity
     TRIGGER_VTRIG = 0      # V-trig: 0V=off, 5V=on (standard)
     TRIGGER_STRIG = 1      # S-trig: 5V=off, 0V=on (Moog Source inverted)
+
+    # Custom CC source types
+    CC_SOURCE_DISABLED = 0   # Custom CC output disabled
+    CC_SOURCE_CC = 1         # MIDI CC (Control Change)
+    CC_SOURCE_AFTERTOUCH = 2 # Channel Pressure (Aftertouch)
+    CC_SOURCE_PITCHBEND = 3  # Pitch Bend
+    CC_SOURCE_VELOCITY = 4   # Note Velocity
+
+    # Custom CC smoothing levels
+    CC_SMOOTH_OFF = 0   # No smoothing (alpha = 1.0)
+    CC_SMOOTH_LOW = 1   # Light smoothing (alpha = 0.9)
+    CC_SMOOTH_MID = 2   # Medium smoothing (alpha = 0.7)
+    CC_SMOOTH_HIGH = 3  # Heavy smoothing (alpha = 0.5)
 
     # Scale types (chromatic intervals from root note)
     SCALE_CHROMATIC = 0    # All notes (no quantization)
@@ -121,6 +135,11 @@ class Settings:
         # Scale quantization settings
         self.scale_type = self.SCALE_CHROMATIC  # Default to chromatic (no quantization)
         self.scale_root = 0  # Root note (0=C, 1=C#, 2=D, etc.)
+
+        # Custom CC settings
+        self.custom_cc_source = self.CC_SOURCE_DISABLED  # Default to disabled
+        self.custom_cc_number = 74  # Default to CC 74 (Filter Cutoff)
+        self.custom_cc_smoothing = self.CC_SMOOTH_LOW  # Default to light smoothing
 
     def get_pattern_name(self):
         """Return human-readable pattern name"""
@@ -256,6 +275,43 @@ class Settings:
         """Cycle to previous root note"""
         self.scale_root = (self.scale_root - 1) % 12
 
+    def get_custom_cc_source_name(self):
+        """Return human-readable Custom CC source name"""
+        source_names = {
+            self.CC_SOURCE_DISABLED: "Disabled",
+            self.CC_SOURCE_CC: "CC",
+            self.CC_SOURCE_AFTERTOUCH: "Aftertouch",
+            self.CC_SOURCE_PITCHBEND: "Pitch Bend",
+            self.CC_SOURCE_VELOCITY: "Velocity"
+        }
+        return source_names.get(self.custom_cc_source, "Unknown")
+
+    def next_custom_cc_source(self):
+        """Cycle to next Custom CC source"""
+        self.custom_cc_source = (self.custom_cc_source + 1) % 5  # 5 options
+
+    def previous_custom_cc_source(self):
+        """Cycle to previous Custom CC source"""
+        self.custom_cc_source = (self.custom_cc_source - 1) % 5
+
+    def get_custom_cc_smoothing_name(self):
+        """Return human-readable Custom CC smoothing name"""
+        smoothing_names = {
+            self.CC_SMOOTH_OFF: "Off",
+            self.CC_SMOOTH_LOW: "Low",
+            self.CC_SMOOTH_MID: "Mid",
+            self.CC_SMOOTH_HIGH: "High"
+        }
+        return smoothing_names.get(self.custom_cc_smoothing, "Unknown")
+
+    def next_custom_cc_smoothing(self):
+        """Cycle to next Custom CC smoothing level"""
+        self.custom_cc_smoothing = (self.custom_cc_smoothing + 1) % 4  # 4 options
+
+    def previous_custom_cc_smoothing(self):
+        """Cycle to previous Custom CC smoothing level"""
+        self.custom_cc_smoothing = (self.custom_cc_smoothing - 1) % 4
+
     def quantize_to_scale(self, midi_note):
         """
         Quantize a MIDI note to the current scale
@@ -330,7 +386,10 @@ class Settings:
                 self.trigger_polarity,     # B (byte)
                 self.scale_type,           # B (byte)
                 self.scale_root,           # B (byte)
-                self.gate_length           # f (float)
+                self.gate_length,          # f (float)
+                self.custom_cc_source,     # B (byte)
+                self.custom_cc_number,     # B (byte)
+                self.custom_cc_smoothing   # B (byte)
             )
 
             # Prepend magic bytes
@@ -390,6 +449,9 @@ class Settings:
             self.scale_type = unpacked[13]
             self.scale_root = unpacked[14]
             self.gate_length = unpacked[15]
+            self.custom_cc_source = unpacked[16]
+            self.custom_cc_number = unpacked[17]
+            self.custom_cc_smoothing = unpacked[18]
 
             print(f"Settings loaded from NVM ({struct_size} bytes)")
             return True

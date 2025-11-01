@@ -15,7 +15,7 @@ class CVOutput:
     CH_PITCH = 0      # Channel A: CV pitch (1V/octave or 1.035V/octave)
     CH_TRIGGER = 1    # Channel B: Trigger/gate output
     CH_UNUSED_C = 2   # Channel C: Reserved for future use
-    CH_UNUSED_D = 3   # Channel D: Reserved for future use
+    CH_CUSTOM_CC = 3  # Channel D: Custom CC output (0-5V)
 
     # Voltage constants for 5V reference
     DAC_MAX_VALUE = 4095  # 12-bit DAC
@@ -63,6 +63,9 @@ class CVOutput:
         self.trigger_active = False
         self.current_note = None
 
+        # Custom CC smoothing state
+        self.custom_cc_smoothed_value = 0.0  # Smoothed voltage (0.0-5.0V)
+
     def note_to_voltage(self, midi_note):
         """
         Convert MIDI note number to CV voltage
@@ -104,6 +107,94 @@ class CVOutput:
 
         # Clamp to valid range
         return max(0, min(self.DAC_MAX_VALUE, dac_value))
+
+    def cc_to_voltage(self, cc_value):
+        """
+        Convert MIDI CC value to voltage
+
+        Args:
+            cc_value: MIDI CC value (0-127)
+
+        Returns:
+            Voltage value (0.0-5.0V)
+        """
+        # Linear mapping: 0-127 → 0-5V
+        voltage = (cc_value / 127.0) * 5.0
+        return max(0.0, min(5.0, voltage))
+
+    def aftertouch_to_voltage(self, aftertouch_value):
+        """
+        Convert MIDI Aftertouch (Channel Pressure) to voltage
+
+        Args:
+            aftertouch_value: MIDI aftertouch value (0-127)
+
+        Returns:
+            Voltage value (0.0-5.0V)
+        """
+        # Same mapping as CC: 0-127 → 0-5V
+        voltage = (aftertouch_value / 127.0) * 5.0
+        return max(0.0, min(5.0, voltage))
+
+    def velocity_to_voltage(self, velocity_value):
+        """
+        Convert MIDI Velocity to voltage
+
+        Args:
+            velocity_value: MIDI velocity (0-127)
+
+        Returns:
+            Voltage value (0.0-5.0V)
+        """
+        # Same mapping as CC: 0-127 → 0-5V
+        voltage = (velocity_value / 127.0) * 5.0
+        return max(0.0, min(5.0, voltage))
+
+    def pitch_bend_to_voltage(self, pitch_bend_value):
+        """
+        Convert MIDI Pitch Bend to voltage (unipolar 0-5V)
+
+        Args:
+            pitch_bend_value: MIDI pitch bend (0-16383, center=8192)
+
+        Returns:
+            Voltage value (0.0-5.0V)
+        """
+        # Unipolar mapping: 0-16383 → 0-5V
+        # Note: For bipolar, would need -5V to +5V (Phase 2)
+        voltage = (pitch_bend_value / 16383.0) * 5.0
+        return max(0.0, min(5.0, voltage))
+
+    def set_custom_cc_voltage(self, raw_voltage):
+        """
+        Set Custom CC output voltage with smoothing
+
+        Args:
+            raw_voltage: Target voltage (0.0-5.0V)
+        """
+        if not self.dac_available:
+            return
+
+        try:
+            # Get smoothing coefficient based on settings
+            smoothing_alphas = {
+                self.settings.CC_SMOOTH_OFF: 1.0,   # No smoothing
+                self.settings.CC_SMOOTH_LOW: 0.9,   # Light smoothing
+                self.settings.CC_SMOOTH_MID: 0.7,   # Medium smoothing
+                self.settings.CC_SMOOTH_HIGH: 0.5   # Heavy smoothing
+            }
+            alpha = smoothing_alphas.get(self.settings.custom_cc_smoothing, 1.0)
+
+            # Apply exponential moving average smoothing
+            # smoothed = (alpha × target) + ((1-alpha) × current)
+            self.custom_cc_smoothed_value = (alpha * raw_voltage) + ((1.0 - alpha) * self.custom_cc_smoothed_value)
+
+            # Convert to DAC value and output to Channel D
+            dac_value = self.voltage_to_dac_value(self.custom_cc_smoothed_value)
+            self.dac.channel_d.value = dac_value
+
+        except Exception as e:
+            print(f"Error setting custom CC voltage: {e}")
 
     def set_pitch_cv(self, midi_note):
         """
