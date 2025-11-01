@@ -252,6 +252,13 @@ class Settings:
         else:
             return "Moog (1.035V)"
 
+    def get_routing_mode_name(self):
+        """Return human-readable routing mode name"""
+        if self.routing_mode == self.ROUTING_THRU:
+            return "THRU"
+        else:
+            return "TRANSLATION"
+
     def next_cv_scale(self):
         """Cycle to next CV scale"""
         self.cv_scale = (self.cv_scale + 1) % 2  # 2 options: Standard, Moog
