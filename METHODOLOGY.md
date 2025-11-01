@@ -819,6 +819,48 @@ The physical configuration is:
 
 ---
 
+### CRITICAL LESSON: Verify Requirements Match Implementation
+
+**Date Learned:** 2025-11-01
+**Context:** CV output implemented with 2V/octave instead of 1V/octave standard
+
+**What Happened:**
+- User specified "1V/octave" requirement (industry standard) for weeks
+- Implementation used LM358N with 2× gain: DAC (0-5V) → Op-amp → Jack (0-10V)
+- Result: 2V/octave at output jack (non-standard, incompatible with most VCOs)
+- Issue went undetected for multiple sessions
+
+**Root Cause:**
+- Assumption that "more voltage is better" (0-10V vs 0-5V)
+- Did not verify that 2× gain breaks 1V/octave standard
+- Focused on achieving 10V maximum rather than correct tracking
+
+**The Correct Implementation:**
+- **1V/octave Standard:** MIDI note number / 12 = voltage in volts
+- **DAC direct output:** 0-5V from MCP4728 Channel A → 1V/octave ✓
+- **No op-amp needed:** Direct connection to 1/8" jack
+- **5 octaves range:** C0-C4 (MIDI 12-60) = 0-5V = sufficient for arpeggiator
+
+**Key Learning:**
+- **Standards exist for a reason** - 1V/octave is universal in modular synthesis
+- **More voltage ≠ better** - 5V with correct scaling > 10V with wrong scaling
+- **Verify math against specs** - 2× gain means 2V/octave, not 1V/octave
+- **Question "improvements"** - Adding complexity should solve a real problem
+
+**Time Cost:**
+- 2 weeks of sessions with incorrect implementation
+- LM358N op-amp circuit unnecessary (wasted effort)
+- Could have been caught by verifying: "Does 2× gain preserve 1V/octave?" (No!)
+
+**New Protocol - CV Implementation:**
+1. ✅ **Verify voltage standard FIRST** (1V/octave for modular)
+2. ✅ **Calculate output range** (MIDI → voltage formula)
+3. ✅ **Verify gain doesn't break standard** (1× gain only for 1V/octave)
+4. ✅ **Question added complexity** (Do we need op-amp? Why?)
+5. ✅ **Test with VCO** (Real-world verification)
+
+---
+
 ### CRITICAL LESSON: Always Verify Hardware Specifications FIRST
 
 **Date Learned:** 2025-10-22
