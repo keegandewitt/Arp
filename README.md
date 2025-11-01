@@ -1,6 +1,6 @@
-# Arp - Hardware Arpeggiator
+# prisme - MIDI/CV Translation Hub
 
-A powerful hardware arpeggiator built on CircuitPython that bridges the MIDI and modular synthesis worlds.
+A powerful MIDI/CV translation hub built on CircuitPython that bridges the MIDI and modular synthesis worlds with user-configurable layer processing.
 
 ```
 ┌─────────────────────────────┐
@@ -23,33 +23,46 @@ A powerful hardware arpeggiator built on CircuitPython that bridges the MIDI and
 
 ## What It Does
 
-**Input:** MIDI notes from keyboards, sequencers, or DAW
-**Processing:** Real-time arpeggiation with multiple patterns
-**Output:** MIDI, CV/Gate, S-Trigger (phase-dependent)
+**Concept:** User-definable MIDI/CV processing pipeline with configurable layer ordering
 
-### Phase 1: MIDI Core (NOW)
-- ✅ MIDI IN/OUT via DIN-5 jacks
-- ✅ USB MIDI clock sync from DAW
-- ⏳ Arpeggiator patterns (Up/Down/Random/Up-Down)
-- ⏳ Clock divisions (1/4, 1/8, 1/16 notes)
-- ⏳ 1-4 octave range
-- ⏳ OLED UI with button control
+**Input:** MIDI IN (DIN-5), USB MIDI, CV IN (future), Gate IN (future)
+**Processing:** Translation layers (Scale Quantization → Arpeggiation, or vice versa)
+**Output:** MIDI OUT (DIN-5), USB MIDI, CV/Gate, Custom CC mapping
 
-### Phase 2: CV/Gate Output (FUTURE)
-- 📋 CV Pitch (1V/octave) for modular synths
-- 📋 Gate/Trigger out
-- 📋 Output mode switching (MIDI vs. CV)
+### Core Features (Working)
+- ✅ **Routing Modes:** THRU (zero-latency pass-through) or TRANSLATION (layer processing)
+- ✅ **Translation Layers:** Scale quantization, Arpeggiation (user-definable order)
+- ✅ **Arpeggiator:** 16 patterns (Up, Down, Up/Down, Random, As-Played, etc.)
+- ✅ **Clock System:** Internal/External sync, clock division (16th, 8th, quarter notes)
+- ✅ **Custom CC Mapping:** Learn mode for flexible CC output (Session 14)
+- ✅ **Settings Persistence:** NVM storage with auto-save
+- ✅ **OLED UI:** Real-time display with 3-button navigation
 
-### Phase 3: S-Trigger (FUTURE)
+### Translation Hub Features (Planned - Session 15+)
+- ⏳ **Layer Ordering:** Scale → Arp OR Arp → Scale (user choice)
+- ⏳ **Clock Transformations:** Swing (Roger Linn method), Multiply (2x, 4x), Divide (1/2, 1/4, 1/8)
+- ⏳ **Input Selection:** MIDI IN, USB MIDI, CV IN, Gate IN
+- ⏳ **CV/Gate Output:** 1V/octave pitch + gate triggers (MCP4728 DAC)
+- ⏳ **USB MIDI Notes:** Full USB MIDI input (currently clock only)
+
+### Future Expansions
 - 📋 S-Trigger support for vintage gear (ARP, Korg MS, Yamaha CS)
+- 📋 Advanced arpeggiator features (latch mode, velocity passthrough)
+- 📋 CV IN: Analog voltage input for pitch control
 
 ---
 
 ## Project Status
 
-**Current Phase:** Hardware Validated ✅ | Software In Development ⏳
+**Current Phase:** Translation Hub Architecture - Research Complete ✅ | Implementation Planned ⏳
 
-See [PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for detailed progress.
+**Latest:**
+- Session 15: Translation Hub architecture research complete (97% confidence)
+- Session 14: Custom CC output system implemented and working
+- Session 13: CV/Gate output hardware tested and validated
+- Core arpeggiator working with 16 patterns, clock sync, settings persistence
+
+See [docs/context/CONTEXT.md](docs/context/CONTEXT.md) for detailed session history and [docs/implementation/TRANSLATION_HUB_IMPLEMENTATION_PLAN.md](docs/implementation/TRANSLATION_HUB_IMPLEMENTATION_PLAN.md) for next steps.
 
 ---
 
@@ -141,12 +154,27 @@ See [ARCHITECTURE.md - Pin Allocation](docs/ARCHITECTURE.md#pin-allocation) for 
 
 ### Directory Structure
 ```
-arp/
-├── core/                # Arpeggiator engine (TODO)
-├── drivers/             # Output drivers (TODO)
-├── ui/                  # Display & buttons (WIP)
-├── utils/               # Helpers (TODO)
-└── main.py              # Entry point (TODO)
+/
+├── main.py                      # Main entry point (current inline arpeggiator)
+├── arp/
+│   ├── core/
+│   │   ├── arpeggiator.py       # Class-based arpeggiator (16 patterns, scale quantization)
+│   │   ├── clock.py             # Clock handler (internal/external sync)
+│   │   ├── config.py            # Settings with NVM persistence
+│   │   ├── custom_cc.py         # Custom CC mapping with Learn Mode (Session 14)
+│   │   └── cv_gate.py           # CV/Gate output driver (MCP4728)
+│   ├── ui/
+│   │   ├── display.py           # OLED display manager (SH1107)
+│   │   ├── menu.py              # Menu system
+│   │   └── buttons.py           # Button handler
+│   └── lib/                     # CircuitPython libraries
+├── docs/
+│   ├── context/                 # Session handoffs and project context
+│   ├── implementation/          # Implementation plans and research
+│   ├── hardware/                # Hardware documentation, tests, schematics
+│   └── ARCHITECTURE.md          # System architecture
+├── tests/                       # Hardware validation and unit tests
+└── VintageCapture/              # VST plugin for vintage synth workflow
 ```
 
 ### Dependencies
@@ -167,7 +195,8 @@ arp/
    ```
 3. Clone repository:
    ```bash
-   git clone https://github.com/keegandewitt/Arp.git
+   git clone https://github.com/keegandewitt/Arp.git prisme
+   cd prisme
    ```
 
 ### Testing
@@ -193,32 +222,45 @@ python3 scripts/monitor_serial.py --reload --duration 60
 
 ## Features
 
-### Arpeggiator Patterns (Phase 1)
+### Translation Hub Architecture
+- **Routing Modes:** THRU (zero-latency) or TRANSLATION (layer processing)
+- **Layer Ordering:** User-configurable (Scale → Arp OR Arp → Scale)
+- **Layer Enable/Disable:** Independent control of each translation layer
+
+### Arpeggiator Engine (16 Patterns)
 - **Up:** Ascending notes
 - **Down:** Descending notes
-- **Up/Down:** Ascending then descending
+- **Up/Down:** Ascending then descending (palindrome)
+- **Down/Up:** Descending then ascending
 - **Random:** Random note selection
+- **As-Played:** Remembers input order
+- **+ 10 more patterns** in class-based arpeggiator
 
-### Clock Division (Phase 1)
-- Quarter notes (1/4)
-- Eighth notes (1/8)
-- Sixteenth notes (1/16)
+### Scale Quantization
+- **Scales:** Major, Minor, Dorian, Phrygian, Lydian, Mixolydian, Aeolian, Locrian
+- **Root Note:** Chromatic selection (C through B)
+- **Real-time quantization:** Notes snap to scale during performance
 
-### Clock Sources (Phase 1)
-1. USB MIDI Clock (from DAW) - Priority 1
-2. DIN MIDI Clock (from hardware) - Priority 2
-3. Internal Clock (free-running) - Fallback
+### Clock System
+- **Sources:** USB MIDI Clock, DIN MIDI Clock, Internal (free-running)
+- **Divisions:** 16th notes, 8th notes, Quarter notes
+- **Transformations (Planned):** Swing (50-75%), Multiply (2x, 4x), Divide (1/2, 1/4, 1/8)
 
-### UI Controls (Phase 1)
+### Custom CC Mapping (Session 14)
+- **Learn Mode:** Button B long press to capture CC assignments
+- **Smoothing:** Configurable smoothing for jitter reduction
+- **Flexible Routing:** Map any input CC to any output CC
+
+### UI Controls
 **Single Press:**
-- Button A: Cycle pattern
-- Button B: Cycle clock division
-- Button C: Cycle octave range
+- Button A: Navigate menu / Cycle pattern
+- Button B: Navigate menu / Cycle clock division
+- Button C: Navigate menu / Select option
 
 **Long Press (0.5s):**
-- Button A: Settings menu
-- Button B: Tap tempo
-- Button C: Output mode
+- Button A: Enter/exit menu system
+- Button B: **Learn Mode** (Custom CC mapping)
+- Button C: Context-specific action
 
 ---
 
@@ -274,22 +316,34 @@ See [METHODOLOGY.md](docs/METHODOLOGY.md) for our development approach.
 
 ## Roadmap
 
-### Immediate (This Week)
-- ⏳ Build arpeggiator engine core
-- ⏳ Implement pattern library (Up/Down/Random)
-- ⏳ Create basic main.py with simple arpeggio
+### Completed (Sessions 1-14)
+- ✅ Arpeggiator engine core (16 patterns)
+- ✅ Clock synchronization (USB/DIN/Internal)
+- ✅ UI menu system (7 categories)
+- ✅ Settings persistence (NVM storage)
+- ✅ Custom CC mapping with Learn Mode
+- ✅ CV/Gate output driver (MCP4728 DAC)
+- ✅ OLED display integration (SH1107)
 
-### Short Term (Next 2 Weeks)
-- ⏳ Clock synchronization (USB/DIN/Internal)
-- ⏳ UI menu system
-- ⏳ Pattern/tempo controls
-- ⏳ Settings persistence
+### Current Focus (Session 15)
+- ⏳ Translation Hub architecture research (97% complete)
+- ⏳ Implementation plan finalized
+- ⏳ Documentation updates to reflect "prisme" rebranding
 
-### Long Term (Months)
-- 📋 CV/Gate output driver
-- 📋 S-Trigger support
-- 📋 Calibration routine
-- 📋 Advanced features (swing, velocity curves)
+### Next Session (Session 16+)
+- 📋 Migrate to class-based arpeggiator architecture
+- 📋 Implement translation layer pipeline
+- 📋 Add swing/multiply/divide to clock system
+- 📋 Enable USB MIDI for note input (currently clock only)
+- 📋 Implement configurable layer ordering (Scale→Arp or Arp→Scale)
+- 📋 Add routing mode selection (THRU / TRANSLATION)
+- 📋 Comprehensive testing (PyTest + hardware validation)
+
+### Long Term
+- 📋 Input source selection (CV IN, Gate IN)
+- 📋 S-Trigger support for vintage gear
+- 📋 Advanced arpeggiator features (latch, velocity curves)
+- 📋 VintageCapture firmware integration
 
 ---
 
@@ -310,6 +364,7 @@ This is currently a personal project, but contributions and suggestions are welc
 
 ---
 
-**Version:** 2.0
-**Status:** Hardware validated, software in development
-**Last Updated:** 2025-10-22
+**Project:** prisme - MIDI/CV Translation Hub
+**Version:** 3.0 (Translation Hub Architecture)
+**Status:** Core features working, Translation Hub implementation planned
+**Last Updated:** 2025-11-01 (Session 15)
