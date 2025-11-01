@@ -18,13 +18,16 @@ class ClockHandler:
     CLOCK_INTERNAL = 0
     CLOCK_EXTERNAL = 1
 
-    def __init__(self, midi_in_port=None):
+    def __init__(self, midi_in_port=None, swing_percent=50, multiply=1, divide=1):
         """
         Initialize clock handler
 
         Args:
             midi_in_port: MIDI input port for clock messages (UART or usb_midi.ports[])
                          If None, external clock will not be available (internal only)
+            swing_percent: Swing amount (50-75, 50=no swing, 66=triplet swing)
+            multiply: Clock multiplier (1, 2, 4 for faster)
+            divide: Clock divider (1, 2, 4, 8 for slower)
         """
         self.midi_clock = None
         if midi_in_port is not None:
@@ -53,11 +56,22 @@ class ClockHandler:
         self.clock_source = self.CLOCK_INTERNAL  # Default to internal
         self.internal_bpm = 120  # Default internal BPM
         self.last_internal_tick = None
-        self.internal_tick_interval = self._calculate_tick_interval(self.internal_bpm)
+
+        # Clock transformations (Translation Hub)
+        self.swing_percent = max(50, min(75, swing_percent))  # Clamp to 50-75%
+        self.multiply = multiply  # 1, 2, 4
+        self.divide = divide      # 1, 2, 4, 8
+
+        # Calculate base interval (with multiply/divide applied)
+        self.base_tick_interval = self._calculate_base_interval(self.internal_bpm)
+
+        # Current tick interval (dynamically calculated with swing)
+        self.current_tick_interval = self.base_tick_interval
 
     def _calculate_tick_interval(self, bpm):
         """
         Calculate the time interval between clock ticks for a given BPM
+        (Legacy method - kept for compatibility)
 
         Args:
             bpm: Beats per minute
@@ -67,6 +81,59 @@ class ClockHandler:
         """
         # 24 ticks per quarter note, 60 seconds per minute
         return 60.0 / (bpm * 24)
+
+    def _calculate_base_interval(self, bpm):
+        """
+        Calculate base tick interval with multiply/divide applied
+
+        Args:
+            bpm: Beats per minute
+
+        Returns:
+            Base interval in seconds (before swing)
+        """
+        # Start with standard interval
+        base = 60.0 / (bpm * 24)
+
+        # Apply clock transformations
+        # Multiply: Faster ticks (divide interval)
+        # Divide: Slower ticks (multiply interval)
+        transformed = (base * self.divide) / self.multiply
+
+        return transformed
+
+    def _calculate_next_tick_delay(self):
+        """
+        Calculate delay for next tick with swing applied (Roger Linn method)
+
+        Swing delays even-numbered 16th notes by a percentage.
+        - 50% = no swing (equal timing)
+        - 66% = perfect triplet swing (2:3 ratio)
+        - 54-62% = common range
+
+        Returns:
+            Delay in seconds until next tick
+        """
+        # No swing? Use base interval
+        if self.swing_percent == 50:
+            return self.base_tick_interval
+
+        # Determine if this is an even or odd 16th note
+        # 24 PPQN, 6 ticks per 16th note
+        # We look at pairs of 16th notes (12 ticks total)
+        sixteenth_number = (self.tick_count // 6) % 2  # 0 (odd) or 1 (even)
+
+        # Calculate time for a pair of 16th notes (12 ticks)
+        pair_time = self.base_tick_interval * 12
+
+        if sixteenth_number == 0:
+            # Odd 16th (on-beat): Gets swing_percent of the pair time
+            ratio = self.swing_percent / 100.0
+            return pair_time * ratio / 6
+        else:
+            # Even 16th (off-beat): Gets (100 - swing_percent) of the pair time
+            ratio = (100 - self.swing_percent) / 100.0
+            return pair_time * ratio / 6
 
     def set_clock_division(self, division):
         """
@@ -115,7 +182,42 @@ class ClockHandler:
             bpm: Beats per minute (typically 40-240)
         """
         self.internal_bpm = max(40, min(240, bpm))  # Clamp to reasonable range
-        self.internal_tick_interval = self._calculate_tick_interval(self.internal_bpm)
+        self.base_tick_interval = self._calculate_base_interval(self.internal_bpm)
+
+    def set_swing(self, swing_percent):
+        """
+        Set swing amount (Roger Linn method)
+
+        Args:
+            swing_percent: Swing amount (50-75)
+                          50 = no swing
+                          54-62 = common range
+                          66 = perfect triplet swing
+                          75 = extreme swing
+        """
+        self.swing_percent = max(50, min(75, swing_percent))
+
+    def set_multiply(self, multiply):
+        """
+        Set clock multiplier (faster)
+
+        Args:
+            multiply: Multiplier (1, 2, 4)
+        """
+        assert multiply in [1, 2, 4], "Multiply must be 1, 2, or 4"
+        self.multiply = multiply
+        self.base_tick_interval = self._calculate_base_interval(self.internal_bpm)
+
+    def set_divide(self, divide):
+        """
+        Set clock divider (slower)
+
+        Args:
+            divide: Divider (1, 2, 4, 8)
+        """
+        assert divide in [1, 2, 4, 8], "Divide must be 1, 2, 4, or 8"
+        self.divide = divide
+        self.base_tick_interval = self._calculate_base_interval(self.internal_bpm)
 
     def get_clock_source(self):
         """Get the current clock source"""
@@ -138,7 +240,7 @@ class ClockHandler:
             self._process_external_clock()
 
     def _process_internal_clock(self):
-        """Generate internal clock ticks based on BPM with drift compensation"""
+        """Generate internal clock ticks based on BPM with drift compensation and swing"""
         if not self.running:
             return
 
@@ -147,15 +249,20 @@ class ClockHandler:
         # Initialize timing on first run
         if self.last_internal_tick is None:
             self.last_internal_tick = current_time
+            # Calculate initial interval (might have swing)
+            self.current_tick_interval = self._calculate_next_tick_delay()
             return
 
         # Check if it's time for next tick
         elapsed = current_time - self.last_internal_tick
-        if elapsed >= self.internal_tick_interval:
+        if elapsed >= self.current_tick_interval:
             # Compensate for timing drift by adding the exact interval
             # rather than resetting to current_time
-            self.last_internal_tick += self.internal_tick_interval
+            self.last_internal_tick += self.current_tick_interval
             self.tick_count += 1
+
+            # Calculate next interval (dynamic for swing)
+            self.current_tick_interval = self._calculate_next_tick_delay()
 
             # Check if we should trigger a step
             if self.tick_count >= self.ticks_per_step:
