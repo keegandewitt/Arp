@@ -18,12 +18,14 @@ NVM_SETTINGS_START = 0  # Start offset in NVM
 
 # Struct format for compact binary storage
 # B = unsigned byte (0-255), H = unsigned short (0-65535), f = float
-# Total: 4 (magic) + 23 bytes = 27 bytes (well under 256 byte limit!)
+# Total: 4 (magic) + 31 bytes = 35 bytes (13.7% of 256 byte limit)
 # Pattern, enabled, clock_source, internal_bpm, clock_division, octave_range,
 # midi_channel, velocity_passthrough, fixed_velocity, latch, cv_enabled,
 # cv_scale, trigger_polarity, scale_type, scale_root, gate_length,
 # custom_cc_source, custom_cc_number, custom_cc_smoothing (19 values)
-SETTINGS_STRUCT_FORMAT = 'BBBHBBBBBBBBBBBfBBB'  # 19 values total
+# + Translation Hub: routing_mode, input_source, layer_order, scale_enabled,
+#   arp_enabled, clock_multiply, clock_divide, swing_percent (8 values)
+SETTINGS_STRUCT_FORMAT = 'BBBHBBBBBBBBBBBfBBBBBBBBBBB'  # 27 values total (19 + 8)
 
 class Settings:
     """Global settings container for the arpeggiator"""
@@ -70,6 +72,30 @@ class Settings:
     CC_SMOOTH_LOW = 1   # Light smoothing (alpha = 0.9)
     CC_SMOOTH_MID = 2   # Medium smoothing (alpha = 0.7)
     CC_SMOOTH_HIGH = 3  # Heavy smoothing (alpha = 0.5)
+
+    # Translation Hub - Routing modes
+    ROUTING_THRU = 0        # Pass-through mode (zero latency)
+    ROUTING_TRANSLATION = 1  # Translation layer processing
+
+    # Translation Hub - Input source selection
+    INPUT_SOURCE_MIDI_IN = 0  # MIDI IN (DIN-5 UART)
+    INPUT_SOURCE_USB = 1       # USB MIDI
+    INPUT_SOURCE_CV_IN = 2     # CV IN (future)
+    INPUT_SOURCE_GATE_IN = 3   # Gate IN (future)
+
+    # Translation Hub - Layer ordering
+    LAYER_ORDER_SCALE_FIRST = 0  # Scale → Arp
+    LAYER_ORDER_ARP_FIRST = 1    # Arp → Scale
+
+    # Translation Hub - Clock transformations
+    CLOCK_MULTIPLY_1X = 1
+    CLOCK_MULTIPLY_2X = 2
+    CLOCK_MULTIPLY_4X = 4
+
+    CLOCK_DIVIDE_1 = 1
+    CLOCK_DIVIDE_2 = 2
+    CLOCK_DIVIDE_4 = 4
+    CLOCK_DIVIDE_8 = 8
 
     # Scale types (chromatic intervals from root note)
     SCALE_CHROMATIC = 0    # All notes (no quantization)
@@ -140,6 +166,16 @@ class Settings:
         self.custom_cc_source = self.CC_SOURCE_DISABLED  # Default to disabled
         self.custom_cc_number = 74  # Default to CC 74 (Filter Cutoff)
         self.custom_cc_smoothing = self.CC_SMOOTH_LOW  # Default to light smoothing
+
+        # Translation Hub settings (8 new bytes)
+        self.routing_mode = self.ROUTING_TRANSLATION  # Default to translation mode
+        self.input_source = self.INPUT_SOURCE_MIDI_IN  # Default to MIDI IN
+        self.layer_order = self.LAYER_ORDER_SCALE_FIRST  # Default to Scale → Arp
+        self.scale_enabled = True  # Scale quantization layer enabled
+        self.arp_enabled = True    # Arpeggiator layer enabled
+        self.clock_multiply = self.CLOCK_MULTIPLY_1X  # Default to 1x (no multiply)
+        self.clock_divide = self.CLOCK_DIVIDE_1      # Default to 1 (no divide)
+        self.swing_percent = 50    # Default to 50% (no swing)
 
     def get_pattern_name(self):
         """Return human-readable pattern name"""
@@ -389,7 +425,16 @@ class Settings:
                 self.gate_length,          # f (float)
                 self.custom_cc_source,     # B (byte)
                 self.custom_cc_number,     # B (byte)
-                self.custom_cc_smoothing   # B (byte)
+                self.custom_cc_smoothing,  # B (byte)
+                # Translation Hub settings (8 new bytes)
+                self.routing_mode,         # B (byte)
+                self.input_source,         # B (byte)
+                self.layer_order,          # B (byte)
+                int(self.scale_enabled),   # B (byte as bool)
+                int(self.arp_enabled),     # B (byte as bool)
+                self.clock_multiply,       # B (byte)
+                self.clock_divide,         # B (byte)
+                self.swing_percent         # B (byte)
             )
 
             # Prepend magic bytes
@@ -452,6 +497,15 @@ class Settings:
             self.custom_cc_source = unpacked[16]
             self.custom_cc_number = unpacked[17]
             self.custom_cc_smoothing = unpacked[18]
+            # Translation Hub settings (8 new values)
+            self.routing_mode = unpacked[19]
+            self.input_source = unpacked[20]
+            self.layer_order = unpacked[21]
+            self.scale_enabled = bool(unpacked[22])
+            self.arp_enabled = bool(unpacked[23])
+            self.clock_multiply = unpacked[24]
+            self.clock_divide = unpacked[25]
+            self.swing_percent = unpacked[26]
 
             print(f"Settings loaded from NVM ({struct_size} bytes)")
             return True
