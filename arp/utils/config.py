@@ -50,6 +50,12 @@ class Settings:
     ARP_THUMB_UP = 13        # Thumb pattern: lowest-2-3-4, repeat
     ARP_OCTAVE_UP = 14       # Play root then jump octaves up
     ARP_CHORD_REPEAT = 15    # Repeat all notes as a chord, then arpeggio
+    ARP_STRUM = 16           # Guitar-like strum with configurable speed/direction
+
+    # Strum direction types
+    STRUM_UP = 0             # Strum from low to high
+    STRUM_DOWN = 1           # Strum from high to low
+    STRUM_UP_DOWN = 2        # Strum up then down
 
     # Clock source types
     CLOCK_INTERNAL = 0
@@ -246,13 +252,14 @@ class Settings:
             self.ARP_PINKY_UP: "Pinky Up",
             self.ARP_THUMB_UP: "Thumb Up",
             self.ARP_OCTAVE_UP: "Oct Up",
-            self.ARP_CHORD_REPEAT: "Chord Rpt"
+            self.ARP_CHORD_REPEAT: "Chord Rpt",
+            self.ARP_STRUM: "Strum"
         }
         return patterns.get(self.pattern, "Unknown")
 
     def next_pattern(self):
         """Cycle to next pattern"""
-        self.pattern = (self.pattern + 1) % 16
+        self.pattern = (self.pattern + 1) % 17  # 17 patterns (0-16)
 
     def set_clock_division_16th(self):
         """Set to 16th notes"""
@@ -519,6 +526,73 @@ class Settings:
     def previous_midi_filter(self):
         """Cycle to previous MIDI filter preset"""
         self.midi_filter = (self.midi_filter - 1) % 4
+
+    # Strum helper methods
+    def get_strum_speed_name(self):
+        """Return human-readable strum speed name"""
+        speed_names = {
+            0: "/64",
+            1: "/32",
+            2: "/16",
+            3: "/8",
+            4: "/4",
+            5: "/2"
+        }
+        return speed_names.get(self.strum_speed, "/32")
+
+    def next_strum_speed(self):
+        """Cycle to next strum speed"""
+        self.strum_speed = (self.strum_speed + 1) % 6  # 6 speeds (0-5)
+
+    def previous_strum_speed(self):
+        """Cycle to previous strum speed"""
+        self.strum_speed = (self.strum_speed - 1) % 6
+
+    def get_strum_speed_division(self):
+        """Convert strum_speed to clock division (PPQN)
+
+        Returns:
+            Clock division in PPQN (24 = quarter note)
+        """
+        # Map strum speed index to clock division
+        divisions = {
+            0: 1,   # /64 = 24/64 = 0.375 PPQN
+            1: 2,   # /32 = 24/32 = 0.75 PPQN
+            2: 6,   # /16 = 24/16 = 1.5 PPQN (16th note)
+            3: 12,  # /8 = 24/8 = 3 PPQN (8th note)
+            4: 24,  # /4 = quarter note
+            5: 48   # /2 = half note
+        }
+        return divisions.get(self.strum_speed, 2)
+
+    def next_strum_octaves(self):
+        """Increment strum octaves (1-4)"""
+        self.strum_octaves = min(4, self.strum_octaves + 1)
+
+    def previous_strum_octaves(self):
+        """Decrement strum octaves (1-4)"""
+        self.strum_octaves = max(1, self.strum_octaves - 1)
+
+    def toggle_strum_repeat(self):
+        """Toggle strum repeat mode"""
+        self.strum_repeat = not self.strum_repeat
+
+    def get_strum_direction_name(self):
+        """Return human-readable strum direction name"""
+        direction_names = {
+            self.STRUM_UP: "Up",
+            self.STRUM_DOWN: "Down",
+            self.STRUM_UP_DOWN: "Up-Down"
+        }
+        return direction_names.get(self.strum_direction, "Up")
+
+    def next_strum_direction(self):
+        """Cycle to next strum direction"""
+        self.strum_direction = (self.strum_direction + 1) % 3  # 3 directions (0-2)
+
+    def previous_strum_direction(self):
+        """Cycle to previous strum direction"""
+        self.strum_direction = (self.strum_direction - 1) % 3
 
     def should_filter_message(self, msg):
         """Check if MIDI message should be filtered based on current preset
