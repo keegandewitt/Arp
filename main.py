@@ -271,34 +271,51 @@ while True:
     current_time = time.monotonic()
 
     # -------------------------------------------------------------------------
-    # MIDI Input Processing
+    # MIDI Input Processing (Session 19 - Translation Hub)
     # -------------------------------------------------------------------------
     msg = midi.receive()
     if msg is not None:
+        # Session 19: Dual routing based on arpeggiator state
+        # - Arp ON: Monophonic buffering for arpeggiation (original behavior)
+        # - Arp OFF: Polyphonic MIDI pass-through + Monophonic CV with priority
+
         if isinstance(msg, NoteOn) and msg.velocity > 0:
-            # Add note to buffer
-            if not any(n == msg.note for n, v in note_buffer):
-                note_buffer.append((msg.note, msg.velocity))
-                arp_sequence = generate_arp_sequence(note_buffer)
-                current_step = 0  # Reset step on new note
-                print(f"Note ON: {msg.note} (velocity {msg.velocity}) - Buffer: {[n for n,v in note_buffer]}")
+            if settings.enabled:
+                # ARPEGGIATOR ON: Buffer note for arpeggiation (monophonic path)
+                if not any(n == msg.note for n, v in note_buffer):
+                    note_buffer.append((msg.note, msg.velocity))
+                    arp_sequence = generate_arp_sequence(note_buffer)
+                    current_step = 0  # Reset step on new note
+                    print(f"[ARP] Note ON: {msg.note} (velocity {msg.velocity}) - Buffer: {[n for n,v in note_buffer]}")
+            else:
+                # ARPEGGIATOR OFF: Polyphonic pass-through + CV priority routing
+                midi.send(msg)  # MIDI OUT: polyphonic (pass through all notes)
+                cv_output.add_note(msg.note, msg.velocity)  # CV: monophonic with priority
+                print(f"[POLY] Note ON: {msg.note} (velocity {msg.velocity}) - Priority: {settings.get_note_priority_name()}")
 
         elif isinstance(msg, NoteOff) or (isinstance(msg, NoteOn) and msg.velocity == 0):
-            # Remove note from buffer
-            note_buffer = [(n, v) for n, v in note_buffer if n != msg.note]
-            arp_sequence = generate_arp_sequence(note_buffer)
+            if settings.enabled:
+                # ARPEGGIATOR ON: Remove note from buffer
+                note_buffer = [(n, v) for n, v in note_buffer if n != msg.note]
+                arp_sequence = generate_arp_sequence(note_buffer)
 
-            # Reset step to prevent index errors when sequence shrinks
-            if note_buffer:
-                current_step = min(current_step, len(arp_sequence) - 1)
+                # Reset step to prevent index errors when sequence shrinks
+                if note_buffer:
+                    current_step = min(current_step, len(arp_sequence) - 1)
+                else:
+                    current_step = 0
+                    # Send note off if we were playing
+                    if current_playing_note is not None:
+                        midi.send(NoteOff(current_playing_note, 0))
+                        current_playing_note = None
+
+                print(f"[ARP] Note OFF: {msg.note} - Buffer: {[n for n,v in note_buffer]}")
             else:
-                current_step = 0
-                # Send note off if we were playing
-                if current_playing_note is not None:
-                    midi.send(NoteOff(current_playing_note, 0))
-                    current_playing_note = None
-
-            print(f"Note OFF: {msg.note} - Buffer: {[n for n,v in note_buffer]}")
+                # ARPEGGIATOR OFF: Polyphonic pass-through + CV priority routing
+                note_off_msg = NoteOff(msg.note, 0) if isinstance(msg, NoteOn) else msg
+                midi.send(note_off_msg)  # MIDI OUT: polyphonic
+                cv_output.remove_note(msg.note)  # CV: update priority note
+                print(f"[POLY] Note OFF: {msg.note}")
 
         else:
             # Process for Custom CC output FIRST (before pass-through)
