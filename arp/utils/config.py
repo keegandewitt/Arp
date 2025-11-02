@@ -13,20 +13,22 @@ FIRMWARE_DATE = "2025-01-15"
 # Settings storage using NVM (non-volatile memory)
 # NVM is always writable, even when USB is connected
 # CircuitPython provides 256 bytes of NVM on most boards
-NVM_SETTINGS_MAGIC = b'ARP2'  # Magic bytes to identify valid settings (v2 = struct format)
+NVM_SETTINGS_MAGIC = b'ARP2'  # Magic bytes for v2 format (for migration)
+NVM_SETTINGS_MAGIC_V3 = b'ARP3'  # Magic bytes for v3 format (unified controls)
 NVM_SETTINGS_START = 0  # Start offset in NVM
 
 # Struct format for compact binary storage
 # B = unsigned byte (0-255), H = unsigned short (0-65535), f = float
-# Total: 4 (magic) + 31 bytes = 35 bytes (13.7% of 256 byte limit)
-# Pattern, enabled, clock_source, internal_bpm, clock_division, octave_range,
-# midi_channel, velocity_passthrough, fixed_velocity, latch, cv_enabled,
-# cv_scale, trigger_polarity, scale_type, scale_root, gate_length,
-# custom_cc_source, custom_cc_number, custom_cc_smoothing (19 values)
-# + Translation Hub: routing_mode, input_source, scale_enabled, arp_enabled,
-#   clock_multiply, clock_divide, swing_percent, clock_enabled (8 values)
-# NOTE: Layer order is hardcoded as Scale → Arp - Clock (no user config needed)
-SETTINGS_STRUCT_FORMAT = 'BBBHBBBBBBBBBBBfBBBBBBBBBBB'  # 27 values total (19 + 8)
+
+# V2 format (for migration): 4 (magic) + 31 bytes = 35 bytes total
+# 27 values: 19 core + 8 Translation Hub
+SETTINGS_STRUCT_FORMAT = 'BBBHBBBBBBBBBBBfBBBBBBBBBBB'  # v2 (migration only)
+
+# V3 format (unified controls): 4 (magic) + 30 bytes = 34 bytes total (11.7% of 256 byte limit)
+# 28 values: 18 core + 2 Translation basics + 8 v3 unified controls
+# Removed (7): cv_enabled, scale_enabled, arp_enabled, clock_multiply, clock_divide, swing_percent, clock_enabled
+# Added (8): clock_rate, timing_feel, midi_filter, likelihood, strum_speed, strum_octaves, strum_repeat, strum_direction
+SETTINGS_STRUCT_FORMAT_V3 = 'BBBHBBBBBBBBBBfBBBBBBBBBBBB'  # v3 (current)
 
 class Settings:
     """Global settings container for the arpeggiator"""
@@ -207,22 +209,16 @@ class Settings:
         #   - Only affects output in TRANSLATION mode (not THRU)
         #
         # Display format: "Scale → Arp - Clock" (dash indicates Clock is always last)
-        # User can enable/disable individual layers via settings
+        # V3 Philosophy: Value determines behavior (no redundant enable/disable toggles)
         # ============================================================================
         self.routing_mode = self.ROUTING_TRANSLATION  # Default to translation mode
         self.input_source = self.INPUT_SOURCE_MIDI_IN  # Default to MIDI IN
-        self.scale_enabled = True  # Scale quantization layer enabled
-        self.arp_enabled = True    # Arpeggiator layer enabled
-        self.clock_multiply = self.CLOCK_MULTIPLY_1X  # Default to 1x (no multiply)
-        self.clock_divide = self.CLOCK_DIVIDE_1      # Default to 1 (no divide)
-        self.swing_percent = 50    # Default to 50% (no swing)
-        self.clock_enabled = True  # Clock transformation layer enabled
 
         # ============================================================================
-        # NEW UNIFIED CONTROLS (v3) - Backward compatible with old settings above
+        # UNIFIED CONTROLS (v3) - Intuitive, self-explanatory settings
         # ============================================================================
-        self.clock_rate = self.CLOCK_RATE_1X  # Unified multiply/divide: /8 to 8x
-        self.timing_feel = 50  # Unified swing/humanize: 50-100% (50=robot, 51-75=swing, 76-100=humanize)
+        self.clock_rate = self.CLOCK_RATE_1X  # Unified multiply/divide: /8 to 8x (1x = disabled)
+        self.timing_feel = 50  # Unified swing/humanize: 50-100% (50=robot/disabled, 51-75=swing, 76-100=humanize)
         self.midi_filter = self.MIDI_FILTER_OFF  # MIDI filter preset: Off/Vintage/Minimal
         self.likelihood = 100  # Note probability: 0-100% (100=all notes, disabled)
 
@@ -478,31 +474,6 @@ class Settings:
         """Cycle to previous clock rate"""
         self.clock_rate = (self.clock_rate - 1) % 7
 
-    def get_swing_percent(self):
-        """Extract swing percentage from timing_feel (for backward compat)
-
-        Returns:
-            int: Swing percentage (50-75), or 50 if in humanize mode
-        """
-        if self.timing_feel <= 50:
-            return 50  # No swing
-        elif self.timing_feel <= 75:
-            return self.timing_feel  # Swing range
-        else:
-            return 50  # Humanize mode (no swing)
-
-    def get_humanize_amount(self):
-        """Extract humanize amount from timing_feel
-
-        Returns:
-            int: Humanize percentage (0-100)
-        """
-        if self.timing_feel <= 75:
-            return 0  # No humanize
-        else:
-            # Map 76-100 to 0-100% humanize
-            return (self.timing_feel - 75) * 4
-
     def is_clock_active(self):
         """Check if clock transformations are active
 
@@ -629,16 +600,16 @@ class Settings:
 
     def save(self):
         """
-        Save current settings to NVM (non-volatile memory) using compact binary format
+        Save current settings to NVM (non-volatile memory) using v3 format
 
         Returns:
             True if successful, False otherwise
         """
         try:
-            # Pack settings into compact binary format
-            # Order must match SETTINGS_STRUCT_FORMAT
+            # Pack settings into compact binary format (v3)
+            # Order must match SETTINGS_STRUCT_FORMAT_V3
             packed_data = struct.pack(
-                SETTINGS_STRUCT_FORMAT,
+                SETTINGS_STRUCT_FORMAT_V3,
                 self.pattern,              # B (byte)
                 int(self.enabled),         # B (byte as bool)
                 self.clock_source,         # B (byte)
@@ -649,7 +620,7 @@ class Settings:
                 int(self.velocity_passthrough),  # B (byte as bool)
                 self.fixed_velocity,       # B (byte)
                 int(self.latch),           # B (byte as bool)
-                int(self.cv_enabled),      # B (byte as bool)
+                # cv_enabled removed (v3)
                 self.cv_scale,             # B (byte)
                 self.trigger_polarity,     # B (byte)
                 self.scale_type,           # B (byte)
@@ -658,24 +629,27 @@ class Settings:
                 self.custom_cc_source,     # B (byte)
                 self.custom_cc_number,     # B (byte)
                 self.custom_cc_smoothing,  # B (byte)
-                # Translation Hub settings (8 new bytes)
+                # Translation Hub v3 settings
                 self.routing_mode,         # B (byte)
                 self.input_source,         # B (byte)
-                int(self.scale_enabled),   # B (byte as bool)
-                int(self.arp_enabled),     # B (byte as bool)
-                self.clock_multiply,       # B (byte)
-                self.clock_divide,         # B (byte)
-                self.swing_percent,        # B (byte)
-                int(self.clock_enabled)    # B (byte as bool)
+                # Unified controls (v3) - replaced 7 old settings
+                self.clock_rate,           # B (byte)
+                self.timing_feel,          # B (byte)
+                self.midi_filter,          # B (byte)
+                self.likelihood,           # B (byte)
+                self.strum_speed,          # B (byte)
+                self.strum_octaves,        # B (byte)
+                int(self.strum_repeat),    # B (byte as bool)
+                self.strum_direction       # B (byte)
             )
 
-            # Prepend magic bytes
-            nvm_data = NVM_SETTINGS_MAGIC + packed_data
+            # Prepend v3 magic bytes
+            nvm_data = NVM_SETTINGS_MAGIC_V3 + packed_data
 
             # Write to NVM
             microcontroller.nvm[NVM_SETTINGS_START:NVM_SETTINGS_START + len(nvm_data)] = nvm_data
 
-            print(f"Settings saved to NVM ({len(packed_data)} bytes)")
+            print(f"Settings saved to NVM (v3 format, {len(packed_data)} bytes)")
             return True
 
         except Exception as e:
@@ -684,68 +658,150 @@ class Settings:
 
     def load(self):
         """
-        Load settings from NVM (non-volatile memory) using compact binary format
+        Load settings from NVM with format migration (v2 → v3)
 
         Returns:
             True if successful, False otherwise
         """
         try:
-            # Calculate how many bytes we need to read
-            struct_size = struct.calcsize(SETTINGS_STRUCT_FORMAT)
-            total_size = len(NVM_SETTINGS_MAGIC) + struct_size
+            # Try v3 format first (current)
+            struct_size_v3 = struct.calcsize(SETTINGS_STRUCT_FORMAT_V3)
+            total_size_v3 = len(NVM_SETTINGS_MAGIC_V3) + struct_size_v3
+            nvm_data = bytes(microcontroller.nvm[NVM_SETTINGS_START:NVM_SETTINGS_START + total_size_v3])
 
-            # Read from NVM
-            nvm_data = bytes(microcontroller.nvm[NVM_SETTINGS_START:NVM_SETTINGS_START + total_size])
+            if nvm_data.startswith(NVM_SETTINGS_MAGIC_V3):
+                # V3 format detected
+                packed_data = nvm_data[len(NVM_SETTINGS_MAGIC_V3):]
+                unpacked = struct.unpack(SETTINGS_STRUCT_FORMAT_V3, packed_data)
+                self._load_v3(unpacked)
+                print(f"Settings loaded (v3 format, {struct_size_v3} bytes)")
+                return True
 
-            # Check magic bytes
-            if not nvm_data.startswith(NVM_SETTINGS_MAGIC):
-                print("No saved settings found in NVM, using defaults")
-                return False
+            # Try v2 format (migration needed)
+            struct_size_v2 = struct.calcsize(SETTINGS_STRUCT_FORMAT)
+            total_size_v2 = len(NVM_SETTINGS_MAGIC) + struct_size_v2
+            nvm_data = bytes(microcontroller.nvm[NVM_SETTINGS_START:NVM_SETTINGS_START + total_size_v2])
 
-            # Extract binary data (skip magic bytes)
-            packed_data = nvm_data[len(NVM_SETTINGS_MAGIC):]
+            if nvm_data.startswith(NVM_SETTINGS_MAGIC):
+                # V2 format detected - migrate to v3
+                print("Migrating settings from v2 to v3 format...")
+                packed_data = nvm_data[len(NVM_SETTINGS_MAGIC):]
+                unpacked = struct.unpack(SETTINGS_STRUCT_FORMAT, packed_data)
+                self._load_v2_and_migrate(unpacked)
+                self.save()  # Save in new v3 format
+                print("Settings migrated to v3 format")
+                return True
 
-            # Unpack settings from binary format
-            # Order must match SETTINGS_STRUCT_FORMAT and save() method
-            unpacked = struct.unpack(SETTINGS_STRUCT_FORMAT, packed_data)
-
-            # Assign to settings (order must match pack() in save())
-            self.pattern = unpacked[0]
-            self.enabled = bool(unpacked[1])
-            self.clock_source = unpacked[2]
-            self.internal_bpm = unpacked[3]
-            self.clock_division = unpacked[4]
-            self.octave_range = unpacked[5]
-            self.midi_channel = unpacked[6]
-            self.velocity_passthrough = bool(unpacked[7])
-            self.fixed_velocity = unpacked[8]
-            self.latch = bool(unpacked[9])
-            self.cv_enabled = bool(unpacked[10])
-            self.cv_scale = unpacked[11]
-            self.trigger_polarity = unpacked[12]
-            self.scale_type = unpacked[13]
-            self.scale_root = unpacked[14]
-            self.gate_length = unpacked[15]
-            self.custom_cc_source = unpacked[16]
-            self.custom_cc_number = unpacked[17]
-            self.custom_cc_smoothing = unpacked[18]
-            # Translation Hub settings (8 new values)
-            self.routing_mode = unpacked[19]
-            self.input_source = unpacked[20]
-            self.scale_enabled = bool(unpacked[21])
-            self.arp_enabled = bool(unpacked[22])
-            self.clock_multiply = unpacked[23]
-            self.clock_divide = unpacked[24]
-            self.swing_percent = unpacked[25]
-            self.clock_enabled = bool(unpacked[26])
-
-            print(f"Settings loaded from NVM ({struct_size} bytes)")
-            return True
+            # No valid settings found
+            print("No saved settings found in NVM, using defaults")
+            return False
 
         except Exception as e:
             print(f"Failed to load settings from NVM: {e}")
             print("Using default settings")
             return False
+
+    def _load_v3(self, unpacked):
+        """Load v3 format settings
+
+        Args:
+            unpacked: Tuple of unpacked values from struct.unpack
+        """
+        self.pattern = unpacked[0]
+        self.enabled = bool(unpacked[1])
+        self.clock_source = unpacked[2]
+        self.internal_bpm = unpacked[3]
+        self.clock_division = unpacked[4]
+        self.octave_range = unpacked[5]
+        self.midi_channel = unpacked[6]
+        self.velocity_passthrough = bool(unpacked[7])
+        self.fixed_velocity = unpacked[8]
+        self.latch = bool(unpacked[9])
+        # cv_enabled removed in v3
+        self.cv_scale = unpacked[10]
+        self.trigger_polarity = unpacked[11]
+        self.scale_type = unpacked[12]
+        self.scale_root = unpacked[13]
+        self.gate_length = unpacked[14]
+        self.custom_cc_source = unpacked[15]
+        self.custom_cc_number = unpacked[16]
+        self.custom_cc_smoothing = unpacked[17]
+        # Translation Hub v3
+        self.routing_mode = unpacked[18]
+        self.input_source = unpacked[19]
+        # Unified controls (v3)
+        self.clock_rate = unpacked[20]
+        self.timing_feel = unpacked[21]
+        self.midi_filter = unpacked[22]
+        self.likelihood = unpacked[23]
+        self.strum_speed = unpacked[24]
+        self.strum_octaves = unpacked[25]
+        self.strum_repeat = bool(unpacked[26])
+        self.strum_direction = unpacked[27]
+
+    def _load_v2_and_migrate(self, unpacked):
+        """Load v2 format and migrate to v3
+
+        Args:
+            unpacked: Tuple of unpacked values from v2 struct.unpack
+        """
+        # Load core settings (unchanged)
+        self.pattern = unpacked[0]
+        self.enabled = bool(unpacked[1])
+        self.clock_source = unpacked[2]
+        self.internal_bpm = unpacked[3]
+        self.clock_division = unpacked[4]
+        self.octave_range = unpacked[5]
+        self.midi_channel = unpacked[6]
+        self.velocity_passthrough = bool(unpacked[7])
+        self.fixed_velocity = unpacked[8]
+        self.latch = bool(unpacked[9])
+        # Skip cv_enabled (unpacked[10]) - removed in v3
+        self.cv_scale = unpacked[11]
+        self.trigger_polarity = unpacked[12]
+        self.scale_type = unpacked[13]
+        self.scale_root = unpacked[14]
+        self.gate_length = unpacked[15]
+        self.custom_cc_source = unpacked[16]
+        self.custom_cc_number = unpacked[17]
+        self.custom_cc_smoothing = unpacked[18]
+        # Translation Hub basics
+        self.routing_mode = unpacked[19]
+        self.input_source = unpacked[20]
+        # Skip scale_enabled, arp_enabled (unpacked[21-22]) - removed in v3
+
+        # Migrate clock settings (v2 → v3)
+        clock_multiply = unpacked[23]
+        clock_divide = unpacked[24]
+        swing_percent = unpacked[25]
+        # clock_enabled = unpacked[26]  # Ignored (auto-detected in v3)
+
+        # Convert multiply/divide to unified clock_rate
+        if clock_divide == 8:
+            self.clock_rate = self.CLOCK_RATE_DIV_8
+        elif clock_divide == 4:
+            self.clock_rate = self.CLOCK_RATE_DIV_4
+        elif clock_divide == 2:
+            self.clock_rate = self.CLOCK_RATE_DIV_2
+        elif clock_multiply == 2:
+            self.clock_rate = self.CLOCK_RATE_2X
+        elif clock_multiply == 4:
+            self.clock_rate = self.CLOCK_RATE_4X
+        elif clock_multiply == 8:
+            self.clock_rate = self.CLOCK_RATE_8X
+        else:
+            self.clock_rate = self.CLOCK_RATE_1X  # Default
+
+        # Convert swing to timing_feel
+        self.timing_feel = max(50, swing_percent)
+
+        # Default new v3 settings
+        self.midi_filter = self.MIDI_FILTER_OFF
+        self.likelihood = 100  # All notes (disabled)
+        self.strum_speed = 1  # /32
+        self.strum_octaves = 1
+        self.strum_repeat = False
+        self.strum_direction = 0  # Up
 
 
 # Global settings instance
