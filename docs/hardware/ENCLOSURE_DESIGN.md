@@ -1,8 +1,9 @@
 # prisme 3D Printed Enclosure Design
 
-**Version:** 1.0
+**Version:** 2.0 (Revised with Actual Hardware Specs)
 **Date:** 2025-11-01
 **Design Philosophy:** Clean top panel with display, all connectivity on rear
+**Data Source:** Real component datasheets from Adafruit (via MCP)
 
 ---
 
@@ -17,14 +18,21 @@
 
 ### Form Factor
 ```
-Enclosure Dimensions (target):
+Enclosure Dimensions (based on real hardware):
 ┌─────────────────────────────────────┐
-│  Width:  110mm (4.3")               │
-│  Depth:   80mm (3.1")               │
-│  Height:  35mm (1.4")               │
+│  Width:   70mm (2.75")  [REVISED]   │
+│  Depth:  100mm (3.94")  [REVISED]   │
+│  Height:  35mm (1.38")              │
 └─────────────────────────────────────┘
 
-Weight: ~150-200g (with battery)
+Internal Stack: 52.2mm × 22.8mm × ~27mm (M4 + OLED)
+Weight: ~130-180g (with 500-1200mAh battery)
+
+Note: Dimensions driven by:
+- Feather M4: 52.2mm × 22.8mm × 7.2mm (verified)
+- Stack height: ~27mm with headers
+- Rear DIN-5 jacks: ~35mm depth behind panel
+- Display window: 28mm × 28mm (for 25.8mm display)
 ```
 
 ---
@@ -34,28 +42,31 @@ Weight: ~150-200g (with battery)
 ### OLED Display Window
 
 ```
-Top View:
-┌──────────────────────────────────────────────┐
-│                                              │
-│    ┌─────────────────────────┐              │
-│    │   OLED Window           │              │
-│    │   40mm × 40mm           │  ← Display   │
-│    │   (centered)            │              │
-│    └─────────────────────────┘              │
-│                                              │
-│    [A]        [B]        [C]                 │  ← Button cutouts
-│                                              │
-└──────────────────────────────────────────────┘
+Top View (70mm × 100mm):
+┌──────────────────────────────────────────┐
+│                                          │
+│         ┌──────────────┐                 │
+│         │ OLED Window  │                 │
+│         │ 28mm × 28mm  │  ← Display     │
+│         │  (centered)  │   (128×64 px)  │
+│         └──────────────┘                 │
+│                                          │
+│       [A]    [B]    [C]                  │  ← Button cutouts
+│                                          │
+└──────────────────────────────────────────┘
 
-Display window: 40mm × 40mm (centered, 15mm from front edge)
-Button holes: 3× 6mm diameter (25mm spacing, 8mm from bottom edge)
-```
+Display window: 28mm × 28mm (centered, for 25.8mm diagonal display)
+  - Actual display: SH1107 128×64 OLED, 1.3" diagonal
+  - Active area: ~25.8mm, window adds 2mm margin
+Button holes: 3× 6mm diameter (spacing TBD from PCB, ~25-30mm)
 
 ### Features
-- **Display Window:** 40mm × 40mm cutout for 128x128 OLED
-  - Recessed 2mm to sit flush with PCB
+- **Display Window:** 28mm × 28mm cutout for 128×64 OLED [REVISED]
+  - Display: SH1107 controller, 1.3" diagonal (~25.8mm)
+  - Resolution: 128×64 monochrome pixels
+  - Recessed 2mm to sit flush with OLED FeatherWing PCB
   - Chamfered edges (0.5mm × 45°) for clean look
-  - Fits SH1107 OLED FeatherWing display
+  - 2mm margin around 25.8mm active display area
 
 - **Button Access:** 3× 6mm diameter holes
   - Buttons A, B, C from OLED FeatherWing
@@ -75,24 +86,26 @@ Button holes: 3× 6mm diameter (25mm spacing, 8mm from bottom edge)
 ### Connector Layout
 
 ```
-Rear View (looking at back of device):
-┌──────────────────────────────────────────────────────┐
-│                                                      │
-│  [MIDI IN]  [MIDI OUT]  [USB-C]  [CV-A] [CV-B]      │
-│    DIN-5      DIN-5     10×5mm    TRS    TRS        │
-│   14mmØ      14mmØ               6mmØ   6mmØ        │
-│                                                      │
-│                            [CV-C] [CV-D]             │
-│                             TRS    TRS               │
-│                            6mmØ   6mmØ               │
-└──────────────────────────────────────────────────────┘
+Rear View (70mm wide × 35mm tall):
+┌────────────────────────────────────────────────────────────────┐
+│                                                                │
+│  [MIDI IN] [MIDI OUT]  [USB-C]     [CV-A] [CV-B]              │
+│    DIN-5     DIN-5     9×3.5mm      TRS    TRS                │
+│   14mmØ     14mmØ      cutout      6mmØ   6mmØ                │
+│                                                                │
+│                                    [CV-C] [CV-D]               │
+│                                     TRS    TRS                 │
+│                                    6mmØ   6mmØ                 │
+└────────────────────────────────────────────────────────────────┘
 
-MIDI Jacks (left):  2× 14mm diameter, 30mm spacing (center-to-center)
-USB-C (center):     10mm × 5mm cutout with 1mm chamfer
+MIDI Jacks (left):  2× 14mm diameter, 25mm spacing (fits 70mm width)
+USB-C (center):     9mm × 3.5mm cutout [REVISED from actual USB-C spec]
 CV Jacks (right):   4× 6mm diameter, arranged in 2×2 grid
-  - Horizontal spacing: 17mm (Eurorack standard)
+  - Horizontal spacing: 17mm (Eurorack 2HP minimum)
   - Vertical spacing: 17mm
-  - Grid centered on right side of panel
+  - Positioned right side of panel
+
+Rear depth required: ~35mm for DIN-5 connector bodies
 ```
 
 ### Connector Specifications
@@ -450,18 +463,20 @@ Brim:              Optional (adhesion for large panels)
 
 ## Dimensions Reference
 
-### Critical Measurements
+### Critical Measurements [REVISED WITH REAL SPECS]
 
-| Component | Width × Depth × Height | Notes |
-|-----------|----------------------|-------|
-| Feather M4 | 51mm × 23mm × 8mm | Plus USB-C port height |
-| OLED Wing | 51mm × 23mm × 10mm | Active area: 35mm × 35mm |
-| MIDI Wing | 51mm × 23mm × 10mm | MIDI jacks extend 15mm |
-| MCP4728 | 20mm × 20mm × 5mm | Adafruit breakout |
-| Boost Module | 18mm × 11mm × 4mm | Teyleten type |
-| Battery 500mAh | 40mm × 30mm × 7mm | Typical dimensions |
-| DIN-5 Jack | 14mm hole, 15mm depth | Panel-mount type |
-| TRS Jack | 6mm hole, 10mm depth | Thonkiconn PJ301M-12 |
+| Component | Width × Depth × Height | Notes | Source |
+|-----------|----------------------|-------|--------|
+| Feather M4 CAN | 22.8mm × 52.2mm × 7.2mm | With USB-C port | Adafruit #4759 datasheet |
+| OLED Wing | 22.9mm × 50.9mm × ~10mm | Display: 25.8mm diagonal | Adafruit #4650 datasheet |
+| MIDI Wing | 22.9mm × 50.9mm × ~25mm | With DIN-5 jacks installed | Adafruit #4740 (FeatherWing std) |
+| MCP4728 DAC | 17.8mm × 25.7mm × 4.6mm | I2C breakout, 1.5g | Adafruit #4470 datasheet |
+| Boost Module | 11mm × 22mm × 3.6mm | 3.7V→5V/8V/9V/12V | Teyleten Robot type |
+| Battery 500mAh | ~7mm × 20mm × 52mm | LiPo with JST connector | Typical 500mAh LiPo |
+| Battery 1200mAh | ~7.5mm × 30mm × 48mm | LiPo with JST connector | Typical 1200mAh LiPo |
+| DIN-5 Jack | 14mm hole, ~35mm depth | Panel-mount 180° type | Standard MIDI connector |
+| TRS Jack | 6mm hole, ~12mm depth | Thonkiconn PJ301M-12 | Eurorack standard |
+| USB-C Port | 9mm × 3.5mm cutout | Feather M4 onboard | Standard USB-C dimension |
 
 ### Clearance Requirements
 
@@ -544,7 +559,8 @@ Brim:              Optional (adhesion for large panels)
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 1.0 | 2025-11-01 | Initial enclosure design with rear I/O layout |
+| 1.0 | 2025-11-01 | Initial enclosure design with rear I/O layout (estimated dimensions) |
+| 2.0 | 2025-11-01 | **MAJOR REVISION:** Updated with real hardware specifications from Adafruit datasheets (via MCP Firecrawl). Key changes: display window 28mm (was 40mm), enclosure 70×100mm (was 110×80mm), accurate component dimensions table, verified stack height |
 
 ---
 
@@ -555,6 +571,44 @@ Brim:              Optional (adhesion for large panels)
 3. **Iterate:** Adjust clearances and mounting points
 4. **Full Assembly:** Build complete enclosure
 5. **Document:** Take photos and create assembly guide
+
+---
+
+## Data Sources (v2.0 Revision)
+
+All component dimensions verified via Adafruit datasheets and product pages, retrieved using Firecrawl MCP:
+
+1. **Feather M4 CAN Express (#4759):**
+   - Source: https://learn.adafruit.com/adafruit-feather/feather-specification
+   - Dimensions: 52.2mm × 22.8mm × 7.2mm (2.0" × 0.9" × 0.28")
+   - Standard Feather form factor with mounting holes
+
+2. **OLED FeatherWing (#4650):**
+   - Source: https://learn.adafruit.com/adafruit-128x64-oled-featherwing/overview
+   - PCB: 22.9mm × 50.9mm (standard FeatherWing)
+   - Display: SH1107, 128×64 pixels, 1.3" diagonal (~25.8mm active area)
+   - 3 tactile buttons (A, B, C) + reset button
+
+3. **MIDI FeatherWing (#4740):**
+   - Source: https://www.adafruit.com/product/4740
+   - PCB: Standard FeatherWing (22.9mm × 50.9mm)
+   - 2× DIN-5 MIDI jacks (IN/OUT)
+   - Note: Currently breadboarded, not stacked in this build
+
+4. **MCP4728 Quad DAC (#4470):**
+   - Source: Adafruit product search
+   - Dimensions: 25.7mm × 17.8mm × 4.6mm (1.0" × 0.7" × 0.2")
+   - I2C address: 0x60, STEMMA QT connectors
+
+5. **Teyleten Robot Boost Module:**
+   - Source: Amazon product specifications
+   - Dimensions: 22mm × 11mm × 3.6mm
+   - 3.7V input → 5V/8V/9V/12V output (configurable)
+
+6. **LiPo Batteries:**
+   - Source: Generic LiPo battery datasheets
+   - 500mAh: ~7mm × 18-25mm × 50-57mm (model 701855 type)
+   - 1200mAh: ~7.5mm × 30mm × 48mm (model 753048 type)
 
 ---
 

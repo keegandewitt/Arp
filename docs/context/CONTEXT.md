@@ -9,11 +9,83 @@
 
 ## Session Handoff
 
-**Last Updated:** 2025-11-01 (Session 15 - Translation Hub Research COMPLETE)
-**Session Status:** ✅ COMPLETE - Translation Hub research complete, implementation plan ready!
+**Last Updated:** 2025-11-01 (Session 16 - Translation Hub IMPLEMENTATION COMPLETE + Display Rotation)
+**Session Status:** ✅ COMPLETE - Translation Hub fully implemented, Display rotation feature added, project cleaned!
 **Token Usage:** ~79K / 200K
 
-### Current Session Summary (Session 15)
+### Current Session Summary (Session 16)
+**What was accomplished:**
+- ✅ **TRANSLATION HUB IMPLEMENTATION COMPLETE (Phases 1-5)**
+  - **Phase 1-2:** Created class-based translation layer system with Scale→Arp pipeline
+  - **Phase 3:** Implemented clock transformations (swing, multiply, divide) using Roger Linn's formula
+  - **Phase 4:** Integrated USB MIDI for note input alongside existing clock sync
+  - **Phase 5:** Migrated to class-based arpeggiator with 16 patterns including new Strum mode
+  - **NVM v3 Format:** Expanded settings from 19 to 28 values (40 bytes/256)
+  - **All 30 unit tests passing:** test_translation.py (8), test_clock.py (14), test_input_router.py (8)
+- ✅ **NEW FEATURE: STRUM ARPEGGIATOR MODE (Pattern 16)**
+  - Plays held notes sequentially with configurable strum speed (fast→slow)
+  - Perfect for guitar-style chord strumming on synths
+  - Implemented in `arp/core/arpeggiator.py:224-246`
+- ✅ **NEW FEATURE: DISPLAY ROTATION FOR LEFT/RIGHT-HANDED USERS**
+  - Software-based 180° rotation with automatic button remapping (A↔C swap)
+  - Added to Firmware settings menu (0° = right-handed, 180° = left-handed)
+  - Single enclosure design accommodates both orientations
+  - Changes: `config.py` (NVM v3→29 values), `display.py`, `buttons.py`, `menu.py`, `main.py`
+- ✅ **PROJECT CLEANUP - REMOVED VINTAGECAPTURE**
+  - Deleted entire `VintageCapture/` directory (19 files, C++ VST plugin)
+  - Cleaned all references from README.md, PROJECT_STATUS.md, CONTEXT.md, OCCUPANCY.md
+  - Focused project scope: MIDI/CV Translation Hub only
+- ✅ **SESSION END PROTOCOL EXECUTED**
+  - Manual backup created: `_Backups/Arp_manual_20251101_210929.zip`
+  - All changes staged and ready to commit
+  - Documentation updated
+
+**Key Technical Achievements:**
+1. **Translation Layer Architecture:** Modular layer system (Scale, Arp, Clock) with fixed ordering
+2. **Class-Based Arpeggiator:** 16 patterns with scale quantization and configurable octave range
+3. **Unified Clock System:** Single rate control (±8× multiply/divide) + timing feel (50-100%)
+4. **Input Routing:** Support for MIDI IN, USB MIDI, CV IN, Gate IN sources
+5. **Display Rotation:** Hardware-agnostic enclosure design with software orientation control
+
+**Files Modified (This Session):**
+- **Core Implementation:**
+  - `arp/core/translation.py` (NEW) - Translation layer pipeline
+  - `arp/core/layers.py` (NEW) - ScaleQuantizeLayer + ArpeggiatorLayer classes
+  - `arp/core/arpeggiator.py` - Added Strum mode, updated all 16 patterns
+  - `arp/core/input_router.py` (NEW) - Input source abstraction
+  - `arp/core/clock.py` - Timing feel + unified rate transformations
+- **Display Rotation:**
+  - `arp/utils/config.py` - Added display_rotation (NVM v3: 28→29 values)
+  - `arp/ui/display.py` - Apply rotation from settings
+  - `arp/ui/buttons.py` - Button remapping for 180° rotation
+  - `arp/ui/menu.py` - Added rotation toggle in Firmware category
+  - `main.py` - Reordered initialization (settings before display)
+- **Documentation:**
+  - `README.md` - Removed VintageCapture section
+  - `PROJECT_STATUS.md` - Removed VintageCapture references
+  - `docs/OCCUPANCY.md` - Removed VintageCapture references
+  - `docs/context/CONTEXT.md` - This session handoff
+  - `docs/hardware/ENCLOSURE_DESIGN.md` - Updated for display rotation
+
+**Next Steps (Session 17+):**
+1. **[IMMEDIATE]** Test display rotation on hardware (Settings → Firmware → Display Rotation)
+2. **[HIGH]** Test Translation Hub on hardware (THRU vs TRANSLATION routing modes)
+3. **[HIGH]** Verify all 16 arpeggiator patterns work correctly
+4. **[HIGH]** Test Strum mode with different strum speeds
+5. **[MEDIUM]** Complete enclosure design (3D printed case with display rotation in mind)
+6. **[MEDIUM]** Implement CV/Gate output driver for MCP4728
+7. **[LOW]** Add velocity curves and latch mode
+
+**Git Status:**
+- **Branch:** feature/translation-hub
+- **Last Commit:** 3ea4985 - docs: Add comprehensive 3D printed enclosure design spec
+- **Staged Changes:** VintageCapture deletion + all implementation files
+- **Working Tree:** All changes staged, ready to commit
+- **Remote:** Behind origin/main (need to push after commit)
+
+---
+
+### Previous Session Summary (Session 15)
 **What was accomplished:**
 - ✅ **TRANSLATION HUB RESEARCH COMPLETE (97% CONFIDENCE)**
   - Created comprehensive prep document via deep codebase analysis
@@ -38,31 +110,9 @@
 4. **PyTest + mocking for testing** - CircuitPython modules can be mocked for unit tests
 5. **Clock transformations via tick interval** - Clean formula: `(base_interval * divide) / multiply`
 
-**Critical Discovery:**
-- **Two architectures exist side-by-side!**
-  - Current: Inline arpeggiator in `main.py` (5 patterns, no scale quantization)
-  - Alternate: Class-based `Arpeggiator` in `arp/core/arpeggiator.py` (16 patterns, scale quantization at line 45)
-  - **Migration path:** Use class-based architecture as foundation for Translation Hub
-
-**Next Steps (Session 16+):**
-1. **[IMMEDIATE]** Begin Phase 1: Foundation Setup (feature branch, file structure)
-2. **[HIGH]** Phase 2: Translation Layer System (pipeline + layer classes)
-3. **[HIGH]** Phase 3: Clock Transformations (swing, multiply, divide)
-4. **[HIGH]** Phase 4: USB MIDI Integration (note input, not just clock)
-5. **[MEDIUM]** Phase 5: Main Loop Integration (class-based arpeggiator)
-6. **[MEDIUM]** Phase 6: Menu System Updates (routing mode, layer ordering)
-7. **[MEDIUM]** Phase 7: Testing & Validation (PyTest + hardware tests)
-8. **[LOW]** Phase 8: Documentation & Merge (finalize and merge to main)
-
-**Git Status:**
-- **Branch:** main
-- **Last Commit:** 2bb5b25 - docs: Add Translation Hub research and implementation documentation
-- **Working Tree:** Clean
-- **Remote:** Up to date with origin/main (all commits pushed)
-
 ---
 
-### Previous Session Summary (Session 14)
+### Session 14 Summary
 **What was accomplished:**
 - ✅ **CUSTOM CC OUTPUT SYSTEM - COMPLETE SOFTWARE IMPLEMENTATION**
   - Complete MIDI-to-CV conversion system for MCP4728 Channel D
@@ -318,13 +368,6 @@ dac.channel_a.raw_value = 4095  # Direct 12-bit control → Full 4.83V
 - **Outcome:** Discovered MIDI clock not integrated, clarified hardware constraints
 - **Major Realization:** ClockHandler exists but unused - external sync is critical for vintage users
 - **Status:** 🔄 In Progress - Ready for clock integration
-
-### Session 5 (2025-10-22)
-- **Focus:** VintageCapture VST plugin - Complete implementation
-- **Outcome:** Built full VST plugin for vintage synth capture workflow
-- **Major Achievement:** Solved vintage synth Local Control Off problem with two-stage workflow
-- **Lines of Code:** 1800+ (C++, fully functional)
-- **Status:** ✅ Complete
 
 ### Session 4 (2025-10-22)
 - **Focus:** Documentation optimization and /start command improvement

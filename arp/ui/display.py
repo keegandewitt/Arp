@@ -23,12 +23,13 @@ import adafruit_displayio_sh1107
 class Display:
     """Handles OLED display and UI rendering"""
 
-    def __init__(self, i2c):
+    def __init__(self, i2c, settings):
         """
         Initialize the OLED display
 
         Args:
             i2c: I2C bus object
+            settings: Settings object for display rotation preference
         """
         # Release any existing displays
         displayio.release_displays()
@@ -40,10 +41,12 @@ class Display:
         # Create display (128x64 for Adafruit OLED FeatherWing #4650)
         # Hardware: Adafruit OLED FeatherWing 128x64 (Product ID: 4650)
         # CRITICAL: This uses SH1107 driver, NOT SSD1306!
+        # Rotation supports 0 (normal) or 180 (flipped for left-handed users)
         self.display = adafruit_displayio_sh1107.SH1107(
             display_bus,
             width=128,
-            height=64
+            height=64,
+            rotation=settings.display_rotation  # 0 or 180 degrees
         )
 
         # Set optimal brightness for readability and power efficiency
