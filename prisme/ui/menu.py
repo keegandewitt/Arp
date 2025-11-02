@@ -45,8 +45,9 @@ class SettingsMenu:
     # Trigger settings (only polarity now - always gate mode)
     TRIGGER_POLARITY = 0  # V-trig vs S-trig
 
-    # CV settings
-    CV_SCALE = 0  # 1V/octave vs 1.035V/octave (Moog)
+    # CV settings (Session 19 - Translation Hub)
+    CV_SCALE = 0          # 1V/octave vs 1.035V/octave (Moog)
+    CV_NOTE_PRIORITY = 1  # Note priority for monophonic CV (Highest/Lowest/Last/First)
 
     # Custom CC settings
     CUSTOM_CC_SOURCE = 0    # Source type (CC, Aftertouch, PitchBend, Velocity, Disabled)
@@ -98,11 +99,10 @@ class SettingsMenu:
             self.SCALE_ROOT: "Root"
         }
 
-        # Translation setting names
+        # Translation setting names (v3 - clock auto-enabled, no user config)
         self.translation_setting_names = {
             self.TRANSLATION_ROUTING_MODE: "Mode",
-            self.TRANSLATION_INPUT_SOURCE: "Input",
-            self.TRANSLATION_CLOCK_ENABLED: "Clock"
+            self.TRANSLATION_INPUT_SOURCE: "Input"
         }
 
         # Clock setting names (v3 unified controls)
@@ -118,9 +118,10 @@ class SettingsMenu:
             self.TRIGGER_POLARITY: "Polarity"
         }
 
-        # CV setting names
+        # CV setting names (Session 19 - Translation Hub)
         self.cv_setting_names = {
-            self.CV_SCALE: "Scale"
+            self.CV_SCALE: "Scale",
+            self.CV_NOTE_PRIORITY: "Note Priority"
         }
 
         # Custom CC setting names
@@ -171,8 +172,7 @@ class SettingsMenu:
                 # Triggers only has one setting, no cycle needed
                 pass
             elif self.current_category == self.CATEGORY_CV:
-                # CV only has one setting, no cycle needed
-                pass
+                self.current_setting = (self.current_setting - 1) % 2  # 2 settings (v3: Scale, Note Priority)
             elif self.current_category == self.CATEGORY_CUSTOM_CC:
                 self.current_setting = (self.current_setting - 1) % 3  # 3 settings
             elif self.current_category == self.CATEGORY_FIRMWARE:
@@ -202,8 +202,7 @@ class SettingsMenu:
                 # Triggers only has one setting, no cycle needed
                 pass
             elif self.current_category == self.CATEGORY_CV:
-                # CV only has one setting, no cycle needed
-                pass
+                self.current_setting = (self.current_setting - 1) % 2  # 2 settings (v3: Scale, Note Priority)
             elif self.current_category == self.CATEGORY_CUSTOM_CC:
                 self.current_setting = (self.current_setting + 1) % 3  # 3 settings
             elif self.current_category == self.CATEGORY_FIRMWARE:
@@ -221,10 +220,6 @@ class SettingsMenu:
                 # Triggers goes directly to polarity adjustment (only one setting)
                 self.current_level = self.LEVEL_VALUE
                 self.current_setting = self.TRIGGER_POLARITY
-            elif self.current_category == self.CATEGORY_CV:
-                # CV goes directly to scale adjustment (only one setting)
-                self.current_level = self.LEVEL_VALUE
-                self.current_setting = self.CV_SCALE
             elif self.current_category == self.CATEGORY_FIRMWARE:
                 # Firmware goes directly to info display
                 self.current_level = self.LEVEL_VALUE
@@ -249,7 +244,6 @@ class SettingsMenu:
         if self.current_level == self.LEVEL_VALUE:
             # Go back to setting selection (or category for single-setting categories)
             if (self.current_category == self.CATEGORY_TRIGGERS or
-                self.current_category == self.CATEGORY_CV or
                 self.current_category == self.CATEGORY_FIRMWARE):
                 self.current_level = self.LEVEL_CATEGORY
             else:
@@ -312,6 +306,9 @@ class SettingsMenu:
             if self.current_setting == self.CV_SCALE:
                 # Cycle to next CV scale
                 self.settings.next_cv_scale()
+            elif self.current_setting == self.CV_NOTE_PRIORITY:
+                # Cycle to next note priority mode (Session 19)
+                self.settings.next_note_priority()
 
         elif self.current_category == self.CATEGORY_CUSTOM_CC:
             if self.current_setting == self.CUSTOM_CC_SOURCE:
@@ -384,6 +381,9 @@ class SettingsMenu:
             if self.current_setting == self.CV_SCALE:
                 # Cycle to previous CV scale
                 self.settings.previous_cv_scale()
+            elif self.current_setting == self.CV_NOTE_PRIORITY:
+                # Cycle to previous note priority mode (Session 19)
+                self.settings.previous_note_priority()
 
         elif self.current_category == self.CATEGORY_CUSTOM_CC:
             if self.current_setting == self.CUSTOM_CC_SOURCE:
@@ -441,7 +441,10 @@ class SettingsMenu:
                     preview = f"{self.settings.get_trigger_polarity_name()}"
                     return f"{cat_name} ({preview})"
                 elif cat_index == self.CATEGORY_CV:
-                    preview = f"{self.settings.get_cv_scale_name()}"
+                    # Show both CV scale and note priority (Session 19)
+                    scale_name = self.settings.get_cv_scale_name()
+                    priority_name = self.settings.get_note_priority_name()
+                    preview = f"{scale_name}/{priority_name}"
                     return f"{cat_name} ({preview})"
                 elif cat_index == self.CATEGORY_CUSTOM_CC:
                     preview = f"{self.settings.get_custom_cc_source_name()}"
@@ -513,12 +516,14 @@ class SettingsMenu:
                 num_settings = 2  # Mode, Input (v3 - clock auto-enabled)
             elif self.current_category == self.CATEGORY_CLOCK:
                 num_settings = 4  # Source, BPM, Rate, Feel (v3 unified)
+            elif self.current_category == self.CATEGORY_CV:
+                num_settings = 2  # Scale, Note Priority (Session 19)
             elif self.current_category == self.CATEGORY_CUSTOM_CC:
                 num_settings = 3  # Source, CC Number, Smoothing
             elif self.current_category == self.CATEGORY_FIRMWARE:
                 num_settings = 3  # Info, Update, Display Rotation
             else:
-                num_settings = 1  # Triggers, CV only have 1 setting
+                num_settings = 1  # Triggers only has 1 setting
 
             # Current setting
             current_setting_name = get_setting_name(self.current_setting)
@@ -668,6 +673,14 @@ class SettingsMenu:
                             "  1V/octave",
                             "> Moog (1.035V)"
                         )
+                elif self.current_setting == self.CV_NOTE_PRIORITY:
+                    # Show note priority mode (Session 19 - Translation Hub)
+                    value = self.settings.get_note_priority_name()
+                    return (
+                        "Note Priority:",
+                        f"> {value} <",
+                        "Hi/Lo/Last/First"
+                    )
 
             elif self.current_category == self.CATEGORY_CUSTOM_CC:
                 if self.current_setting == self.CUSTOM_CC_SOURCE:
