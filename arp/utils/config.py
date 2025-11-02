@@ -94,6 +94,21 @@ class Settings:
     CLOCK_DIVIDE_4 = 4
     CLOCK_DIVIDE_8 = 8
 
+    # Clock Rate (unified multiply/divide) - NEW in v3
+    CLOCK_RATE_DIV_8 = 0
+    CLOCK_RATE_DIV_4 = 1
+    CLOCK_RATE_DIV_2 = 2
+    CLOCK_RATE_1X = 3      # Default - no transformation
+    CLOCK_RATE_2X = 4
+    CLOCK_RATE_4X = 5
+    CLOCK_RATE_8X = 6
+
+    # MIDI Filter presets - NEW in v3
+    MIDI_FILTER_OFF = 0      # Pass everything
+    MIDI_FILTER_VINTAGE = 1  # Safe for vintage synths
+    MIDI_FILTER_MINIMAL = 2  # Only Note + Clock (future)
+    MIDI_FILTER_CUSTOM = 3   # User-defined (future)
+
     # Scale types (chromatic intervals from root note)
     SCALE_CHROMATIC = 0    # All notes (no quantization)
     SCALE_MAJOR = 1        # Major scale
@@ -202,6 +217,20 @@ class Settings:
         self.clock_divide = self.CLOCK_DIVIDE_1      # Default to 1 (no divide)
         self.swing_percent = 50    # Default to 50% (no swing)
         self.clock_enabled = True  # Clock transformation layer enabled
+
+        # ============================================================================
+        # NEW UNIFIED CONTROLS (v3) - Backward compatible with old settings above
+        # ============================================================================
+        self.clock_rate = self.CLOCK_RATE_1X  # Unified multiply/divide: /8 to 8x
+        self.timing_feel = 50  # Unified swing/humanize: 50-100% (50=robot, 51-75=swing, 76-100=humanize)
+        self.midi_filter = self.MIDI_FILTER_OFF  # MIDI filter preset: Off/Vintage/Minimal
+        self.likelihood = 100  # Note probability: 0-100% (100=all notes, disabled)
+
+        # Strum arpeggiator settings (for future feature)
+        self.strum_speed = 1  # Clock division: 0=/64, 1=/32, 2=/16, 3=/8, 4=/4, 5=/2
+        self.strum_octaves = 1  # Octave range: 1-4
+        self.strum_repeat = False  # One-shot or loop
+        self.strum_direction = 0  # 0=Up, 1=Down, 2=UpDown
 
     def get_pattern_name(self):
         """Return human-readable pattern name"""
@@ -406,6 +435,150 @@ class Settings:
             self.INPUT_SOURCE_GATE_IN: "Gate IN"
         }
         return source_names.get(self.input_source, "Unknown")
+
+    # ============================================================================
+    # NEW UNIFIED CONTROLS HELPERS (v3)
+    # ============================================================================
+
+    def get_clock_multiply_divide(self):
+        """Convert clock_rate to multiply/divide values for clock engine
+
+        Returns:
+            tuple: (multiply, divide) for backward compatibility with clock engine
+        """
+        rates = [
+            (1, 8),  # CLOCK_RATE_DIV_8
+            (1, 4),  # CLOCK_RATE_DIV_4
+            (1, 2),  # CLOCK_RATE_DIV_2
+            (1, 1),  # CLOCK_RATE_1X
+            (2, 1),  # CLOCK_RATE_2X
+            (4, 1),  # CLOCK_RATE_4X
+            (8, 1),  # CLOCK_RATE_8X
+        ]
+        return rates[self.clock_rate]
+
+    def get_clock_rate_name(self):
+        """Return human-readable clock rate name"""
+        rate_names = {
+            self.CLOCK_RATE_DIV_8: "/8",
+            self.CLOCK_RATE_DIV_4: "/4",
+            self.CLOCK_RATE_DIV_2: "/2",
+            self.CLOCK_RATE_1X: "1x",
+            self.CLOCK_RATE_2X: "2x",
+            self.CLOCK_RATE_4X: "4x",
+            self.CLOCK_RATE_8X: "8x",
+        }
+        return rate_names.get(self.clock_rate, "1x")
+
+    def next_clock_rate(self):
+        """Cycle to next clock rate"""
+        self.clock_rate = (self.clock_rate + 1) % 7  # 7 options: /8 to 8x
+
+    def previous_clock_rate(self):
+        """Cycle to previous clock rate"""
+        self.clock_rate = (self.clock_rate - 1) % 7
+
+    def get_swing_percent(self):
+        """Extract swing percentage from timing_feel (for backward compat)
+
+        Returns:
+            int: Swing percentage (50-75), or 50 if in humanize mode
+        """
+        if self.timing_feel <= 50:
+            return 50  # No swing
+        elif self.timing_feel <= 75:
+            return self.timing_feel  # Swing range
+        else:
+            return 50  # Humanize mode (no swing)
+
+    def get_humanize_amount(self):
+        """Extract humanize amount from timing_feel
+
+        Returns:
+            int: Humanize percentage (0-100)
+        """
+        if self.timing_feel <= 75:
+            return 0  # No humanize
+        else:
+            # Map 76-100 to 0-100% humanize
+            return (self.timing_feel - 75) * 4
+
+    def is_clock_active(self):
+        """Check if clock transformations are active
+
+        Returns:
+            bool: True if clock rate != 1x OR timing feel != 50%
+        """
+        return self.clock_rate != self.CLOCK_RATE_1X or self.timing_feel != 50
+
+    def is_scale_enabled(self):
+        """Check if scale quantization is active
+
+        Chromatic scale = all notes allowed = effectively disabled
+
+        Returns:
+            bool: True if scale type is not Chromatic
+        """
+        return self.scale_type != self.SCALE_CHROMATIC
+
+    def is_arp_enabled(self):
+        """Check if arpeggiator is active
+
+        Zero octaves = no arpeggio = disabled
+
+        Returns:
+            bool: True if octave range > 0
+        """
+        return self.octave_range > 0
+
+    def get_midi_filter_name(self):
+        """Return human-readable MIDI filter name"""
+        filter_names = {
+            self.MIDI_FILTER_OFF: "Off",
+            self.MIDI_FILTER_VINTAGE: "Vintage",
+            self.MIDI_FILTER_MINIMAL: "Minimal",
+            self.MIDI_FILTER_CUSTOM: "Custom",
+        }
+        return filter_names.get(self.midi_filter, "Off")
+
+    def next_midi_filter(self):
+        """Cycle to next MIDI filter preset"""
+        self.midi_filter = (self.midi_filter + 1) % 4  # 4 options for now
+
+    def previous_midi_filter(self):
+        """Cycle to previous MIDI filter preset"""
+        self.midi_filter = (self.midi_filter - 1) % 4
+
+    def should_filter_message(self, msg):
+        """Check if MIDI message should be filtered based on current preset
+
+        Args:
+            msg: MIDI message object
+
+        Returns:
+            bool: True if message should be filtered (blocked)
+        """
+        if self.midi_filter == self.MIDI_FILTER_OFF:
+            return False  # Pass everything
+
+        if self.midi_filter == self.MIDI_FILTER_VINTAGE:
+            # Filter problematic messages for vintage synths
+            # Import here to avoid circular dependencies
+            try:
+                from adafruit_midi.active_sensing import ActiveSensing
+                from adafruit_midi.channel_pressure import ChannelPressure
+                from adafruit_midi.polyphonic_key_pressure import PolyphonicKeyPressure
+                from adafruit_midi.program_change import ProgramChange
+
+                return isinstance(msg, (ActiveSensing, ChannelPressure,
+                                        PolyphonicKeyPressure, ProgramChange))
+            except ImportError:
+                # Running in test environment without adafruit_midi
+                return False
+
+        # Future: MIDI_FILTER_MINIMAL (only Note + Clock)
+        # Future: MIDI_FILTER_CUSTOM (user-defined)
+        return False
 
     def quantize_to_scale(self, midi_note):
         """
