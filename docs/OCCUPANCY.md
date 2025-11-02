@@ -317,7 +317,6 @@ Arpeggiator Step Callback
 | Task | Frequency | Priority | Purpose |
 |------|-----------|----------|---------|
 | **CV Output Update** | On note change | HIGH | Update MCP4728 CV pitch + gate |
-| **Vintage Mode Playback** | On buffer event | HIGH | Timeline-locked MIDI playback for VintageCapture VST |
 
 ---
 
@@ -343,7 +342,6 @@ Arpeggiator Step Callback
 | **arp/ui/menu.py** | ✅ COMPLETE | Settings menu navigation | Settings |
 | **arp/utils/config.py** | ✅ COMPLETE | Settings persistence (NVM) | struct, microcontroller.nvm |
 | **arp/drivers/cv_gate.py** | 🔴 RESERVED | CV/Gate output driver | adafruit_mcp4728, i2c |
-| **arp/modes/vintage_mode.py** | 🟡 PLANNED | VintageCapture VST integration | usb_midi, time |
 
 ---
 

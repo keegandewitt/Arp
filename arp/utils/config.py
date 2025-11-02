@@ -24,11 +24,11 @@ NVM_SETTINGS_START = 0  # Start offset in NVM
 # 27 values: 19 core + 8 Translation Hub
 SETTINGS_STRUCT_FORMAT = 'BBBHBBBBBBBBBBBfBBBBBBBBBBB'  # v2 (migration only)
 
-# V3 format (unified controls): 4 (magic) + 30 bytes = 34 bytes total (11.7% of 256 byte limit)
-# 28 values: 18 core + 2 Translation basics + 8 v3 unified controls
+# V3 format (unified controls): 4 (magic) + 31 bytes = 35 bytes total (13.7% of 256 byte limit)
+# 29 values: 18 core + 2 Translation basics + 8 v3 unified controls + 1 display
 # Removed (7): cv_enabled, scale_enabled, arp_enabled, clock_multiply, clock_divide, swing_percent, clock_enabled
-# Added (8): clock_rate, timing_feel, midi_filter, likelihood, strum_speed, strum_octaves, strum_repeat, strum_direction
-SETTINGS_STRUCT_FORMAT_V3 = 'BBBHBBBBBBBBBBfBBBBBBBBBBBB'  # v3 (current)
+# Added (9): clock_rate, timing_feel, midi_filter, likelihood, strum_speed, strum_octaves, strum_repeat, strum_direction, display_rotation
+SETTINGS_STRUCT_FORMAT_V3 = 'BBBHBBBBBBBBBBfBBBBBBBBBBBBBH'  # v3 (29 values + display_rotation)
 
 class Settings:
     """Global settings container for the arpeggiator"""
@@ -91,6 +91,10 @@ class Settings:
     INPUT_SOURCE_USB = 1       # USB MIDI
     INPUT_SOURCE_CV_IN = 2     # CV IN (future)
     INPUT_SOURCE_GATE_IN = 3   # Gate IN (future)
+
+    # Display rotation (for handedness preference)
+    DISPLAY_ROTATION_0 = 0     # Normal (USB-C on left for right-handed)
+    DISPLAY_ROTATION_180 = 180 # Rotated 180° (USB-C on right for left-handed)
 
     # Translation Hub - Clock transformations
     CLOCK_MULTIPLY_1X = 1
@@ -233,6 +237,9 @@ class Settings:
         self.strum_octaves = 1  # Octave range: 1-4
         self.strum_repeat = False  # One-shot or loop
         self.strum_direction = 0  # 0=Up, 1=Down, 2=UpDown
+
+        # Display settings
+        self.display_rotation = self.DISPLAY_ROTATION_0  # 0 (normal) or 180 (flipped for left-handed)
 
     def get_pattern_name(self):
         """Return human-readable pattern name"""
@@ -714,7 +721,8 @@ class Settings:
                 self.strum_speed,          # B (byte)
                 self.strum_octaves,        # B (byte)
                 int(self.strum_repeat),    # B (byte as bool)
-                self.strum_direction       # B (byte)
+                self.strum_direction,      # B (byte)
+                self.display_rotation      # H (unsigned short: 0 or 180)
             )
 
             # Prepend v3 magic bytes
@@ -812,6 +820,7 @@ class Settings:
         self.strum_octaves = unpacked[25]
         self.strum_repeat = bool(unpacked[26])
         self.strum_direction = unpacked[27]
+        self.display_rotation = unpacked[28]
 
     def _load_v2_and_migrate(self, unpacked):
         """Load v2 format and migrate to v3
@@ -876,6 +885,7 @@ class Settings:
         self.strum_octaves = 1
         self.strum_repeat = False
         self.strum_direction = 0  # Up
+        self.display_rotation = self.DISPLAY_ROTATION_0  # Normal orientation
 
 
 # Global settings instance

@@ -10,14 +10,15 @@ import digitalio
 class ButtonHandler:
     """Handles button input with debouncing"""
 
-    def __init__(self, button_a_pin, button_b_pin, button_c_pin):
+    def __init__(self, button_a_pin, button_b_pin, button_c_pin, settings=None):
         """
         Initialize button handler
 
         Args:
-            button_a_pin: Pin for button A
-            button_b_pin: Pin for button B
-            button_c_pin: Pin for button C
+            button_a_pin: Pin for button A (physical)
+            button_b_pin: Pin for button B (physical)
+            button_c_pin: Pin for button C (physical)
+            settings: Settings object for display rotation (optional for button remapping)
         """
         # Configure button A
         self.button_a = digitalio.DigitalInOut(button_a_pin)
@@ -33,6 +34,9 @@ class ButtonHandler:
         self.button_c = digitalio.DigitalInOut(button_c_pin)
         self.button_c.direction = digitalio.Direction.INPUT
         self.button_c.pull = digitalio.Pull.UP
+
+        # Settings reference for rotation-based button remapping
+        self.settings = settings
 
         # Button state tracking
         self.last_a_state = True  # Pull-up means True when not pressed
@@ -76,10 +80,23 @@ class ButtonHandler:
         b_long_press = False
         ac_long_press = False
 
-        # Read current states
-        current_a = self.button_a.value
-        current_b = self.button_b.value
-        current_c = self.button_c.value
+        # Read current PHYSICAL button states
+        physical_a = self.button_a.value
+        physical_b = self.button_b.value
+        physical_c = self.button_c.value
+
+        # Apply button remapping based on display rotation
+        # When display is rotated 180°, buttons swap positions from user's perspective
+        # Physical: [A] [B] [C] → After rotation: [C] [B] [A] (from user's view)
+        # So we remap: physical_a → logical_c, physical_c → logical_a
+        if self.settings and self.settings.display_rotation == 180:
+            current_a = physical_c  # Physical C becomes logical A
+            current_b = physical_b  # Physical B stays B (center)
+            current_c = physical_a  # Physical A becomes logical C
+        else:
+            current_a = physical_a  # No remapping needed
+            current_b = physical_b
+            current_c = physical_c
 
         # Check for A+C combo (both pressed) - this has two modes:
         # 1. Short press = ac_combo (existing behavior)

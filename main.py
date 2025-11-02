@@ -106,30 +106,34 @@ if DEBUG_MEMORY:
 # Hardware Initialization
 # =============================================================================
 
-print("[1/3] Initializing MIDI...")
+print("[1/5] Loading Settings...")
+# Load settings first so display can use rotation preference
+settings = Settings()
+settings.load()  # Load saved settings from NVM (or use defaults if no file exists)
+print(f"      ✓ Settings ready (rotation: {settings.display_rotation}°)")
+
+print("[2/5] Initializing MIDI...")
 # MIDI FeatherWing on UART (TX=D1, RX=D0)
 uart = busio.UART(board.TX, board.RX, baudrate=31250, timeout=0.001)
 midi = MIDI(midi_in=uart, midi_out=uart, in_channel=0, out_channel=0)
 print("      ✓ MIDI ready (31250 baud)")
 
-print("[2/3] Initializing Display...")
-# OLED FeatherWing on I2C
+print("[3/5] Initializing Display...")
+# OLED FeatherWing on I2C (rotation set from settings)
 i2c = board.I2C()
-display = Display(i2c)
+display = Display(i2c, settings)
 display.show_startup(version=__version__)
 print("      ✓ Display ready (SH1107 128x64)")
 
-print("[3/3] Initializing Buttons...")
+print("[4/5] Initializing Buttons...")
 # Buttons on OLED FeatherWing (D9=A, D6=B, D5=C)
-buttons = ButtonHandler(board.D9, board.D6, board.D5)
-print("      ✓ Buttons ready (A, B, C)")
+# Pass settings for rotation-based button remapping
+buttons = ButtonHandler(board.D9, board.D6, board.D5, settings)
+print("      ✓ Buttons ready (A, B, C with rotation support)")
 
-print("[4/5] Initializing Settings...")
-# Global settings object
-settings = Settings()
-settings.load()  # Load saved settings from file (or use defaults if no file exists)
+print("[5/5] Initializing Menu...")
 menu = SettingsMenu(settings)
-print("      ✓ Settings ready")
+print("      ✓ Menu ready")
 
 print("[5/7] Initializing Clock...")
 # Clock handler with USB MIDI input for external clock

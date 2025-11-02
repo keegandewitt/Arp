@@ -54,8 +54,9 @@ class SettingsMenu:
     CUSTOM_CC_SMOOTHING = 2 # Smoothing level (Off, Low, Mid, High)
 
     # Firmware settings
-    FIRMWARE_INFO = 0     # Show firmware info
-    FIRMWARE_UPDATE = 1   # Update firmware option
+    FIRMWARE_INFO = 0          # Show firmware info
+    FIRMWARE_UPDATE = 1        # Update firmware option
+    FIRMWARE_DISPLAY_ROTATION = 2  # Display rotation (0° or 180°)
 
     def __init__(self, settings):
         """
@@ -132,7 +133,8 @@ class SettingsMenu:
         # Firmware setting names
         self.firmware_setting_names = {
             self.FIRMWARE_INFO: "Info",
-            self.FIRMWARE_UPDATE: "Update"
+            self.FIRMWARE_UPDATE: "Update",
+            self.FIRMWARE_DISPLAY_ROTATION: "Display Rotation"
         }
 
     def enter_menu(self):
@@ -174,7 +176,7 @@ class SettingsMenu:
             elif self.current_category == self.CATEGORY_CUSTOM_CC:
                 self.current_setting = (self.current_setting - 1) % 3  # 3 settings
             elif self.current_category == self.CATEGORY_FIRMWARE:
-                self.current_setting = (self.current_setting - 1) % 2
+                self.current_setting = (self.current_setting - 1) % 3  # 3 settings (info, update, rotation)
 
         elif self.current_level == self.LEVEL_VALUE:
             # Decrease value
@@ -205,7 +207,7 @@ class SettingsMenu:
             elif self.current_category == self.CATEGORY_CUSTOM_CC:
                 self.current_setting = (self.current_setting + 1) % 3  # 3 settings
             elif self.current_category == self.CATEGORY_FIRMWARE:
-                self.current_setting = (self.current_setting + 1) % 2
+                self.current_setting = (self.current_setting + 1) % 3  # 3 settings (info, update, rotation)
 
         elif self.current_level == self.LEVEL_VALUE:
             # Increase value
@@ -322,6 +324,14 @@ class SettingsMenu:
                 # Cycle to next smoothing level
                 self.settings.next_custom_cc_smoothing()
 
+        elif self.current_category == self.CATEGORY_FIRMWARE:
+            if self.current_setting == self.FIRMWARE_DISPLAY_ROTATION:
+                # Toggle between 0° and 180°
+                if self.settings.display_rotation == self.settings.DISPLAY_ROTATION_0:
+                    self.settings.display_rotation = self.settings.DISPLAY_ROTATION_180
+                else:
+                    self.settings.display_rotation = self.settings.DISPLAY_ROTATION_0
+
         # Auto-save settings after change
         self.settings.save()
 
@@ -385,6 +395,14 @@ class SettingsMenu:
             elif self.current_setting == self.CUSTOM_CC_SMOOTHING:
                 # Cycle to previous smoothing level
                 self.settings.previous_custom_cc_smoothing()
+
+        elif self.current_category == self.CATEGORY_FIRMWARE:
+            if self.current_setting == self.FIRMWARE_DISPLAY_ROTATION:
+                # Toggle between 0° and 180° (same as increase for binary toggle)
+                if self.settings.display_rotation == self.settings.DISPLAY_ROTATION_0:
+                    self.settings.display_rotation = self.settings.DISPLAY_ROTATION_180
+                else:
+                    self.settings.display_rotation = self.settings.DISPLAY_ROTATION_0
 
         # Auto-save settings after change
         self.settings.save()
@@ -498,7 +516,7 @@ class SettingsMenu:
             elif self.current_category == self.CATEGORY_CUSTOM_CC:
                 num_settings = 3  # Source, CC Number, Smoothing
             elif self.current_category == self.CATEGORY_FIRMWARE:
-                num_settings = 2
+                num_settings = 3  # Info, Update, Display Rotation
             else:
                 num_settings = 1  # Triggers, CV only have 1 setting
 
@@ -706,6 +724,20 @@ class SettingsMenu:
                         "Connect to PC",
                         ""
                     )
+                elif self.current_setting == self.FIRMWARE_DISPLAY_ROTATION:
+                    # Show both options with current selected
+                    if self.settings.display_rotation == self.settings.DISPLAY_ROTATION_0:
+                        return (
+                            "Display Rotation:",
+                            "> 0° (Right-handed)",
+                            "  180° (Left-handed)"
+                        )
+                    else:
+                        return (
+                            "Display Rotation:",
+                            "  0° (Right-handed)",
+                            "> 180° (Left-handed)"
+                        )
 
         return ("Settings", "Error", "")
 
