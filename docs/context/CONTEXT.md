@@ -9,11 +9,75 @@
 
 ## Session Handoff
 
-**Last Updated:** 2025-11-01 (Session 16 - Translation Hub IMPLEMENTATION COMPLETE + Display Rotation)
-**Session Status:** ✅ COMPLETE - Translation Hub fully implemented, Display rotation feature added, project cleaned!
-**Token Usage:** ~79K / 200K
+**Last Updated:** 2025-11-02 (Session 17 - CV Output Jack Wiring Started)
+**Session Status:** ⚠️ BLOCKED - MCP4728 Channel A voltage output issue
+**Token Usage:** ~110K / 200K
 
-### Current Session Summary (Session 16)
+### Current Session Summary (Session 17)
+**What was accomplished:**
+- ✅ **WIRING COLOR CONVENTION ESTABLISHED**
+  - Official standard: RED = Tip (signal), WHITE = Sleeve (ground)
+  - Created `docs/hardware/WIRING_COLOR_CONVENTION.md` - authoritative reference
+  - Updated all wiring guides to use RED/WHITE convention
+  - Cleaner, more consistent than previous black ground approach
+- ✅ **COMPREHENSIVE WIRING DOCUMENTATION CREATED**
+  - `docs/hardware/OUTPUT_JACKS_WIRING_GUIDE.md` - Complete 6-phase guide (2,800+ lines)
+  - `docs/hardware/QUICK_START_JACK_WIRING.md` - Fast-track guide for first output
+  - Covers: CV Pitch, V-Trig Gate, S-Trig, Custom CC, optional 0-10V op-amp
+  - Each phase: wiring steps, schematics, testing, troubleshooting
+- ✅ **CV PITCH OUTPUT JACK WIRED**
+  - MCP4728 Channel A (VOUTA) → 1/8" TS jack
+  - RED wire to Tip, WHITE wire to Sleeve
+  - Continuity tests passed (3/3)
+  - Ready for voltage testing
+- ⚠️ **TESTING BLOCKED - NO VOLTAGE AT CHANNEL A**
+  - Deployed working test code from Session 12 (`cv_1v_octave_test.py`)
+  - Code runs without errors, cycles through notes C0-C4
+  - MCP4728 has power (VDD = 5V measured)
+  - **Problem:** Measuring 0V at Channel A output pin (expected 0-5V)
+  - Wiring verified correct via continuity tests
+  - **Root cause unknown** - needs hardware investigation
+
+**Research Conducted:**
+- Deep search confirmed MCP4728 Channel A was working in Sessions 12-13
+- Found exact working code and test files
+- Session 12: Full 0-5V range verified with multimeter
+- Session 13: Dual gate output (Ch C) verified on scope
+- Critical bug fix history: `.value` vs `.raw_value` property (Session 12)
+
+**Blocker Details:**
+- Issue: MCP4728 Channel A not outputting voltage
+- Tests tried: `cv_1v_octave_test.py`, `mcp4728_correct_voltage_test.py`
+- Hardware checks: VDD power confirmed, continuity verified
+- Next action needed: Verify I2C communication, check MCP4728 physical connections
+
+**Files Created (This Session):**
+- `docs/hardware/OUTPUT_JACKS_WIRING_GUIDE.md` (NEW)
+- `docs/hardware/QUICK_START_JACK_WIRING.md` (NEW)
+- `docs/hardware/WIRING_COLOR_CONVENTION.md` (NEW)
+
+**Next Steps (Session 18):**
+1. **[IMMEDIATE - BLOCKER]** Debug MCP4728 Channel A voltage output issue
+   - Run I2C scan to verify MCP4728 is responding (0x60)
+   - Check SDA/SCL physical connections to M4 (D21/D22)
+   - Verify MCP4728 wakeup and configuration sequence
+   - Test with oscilloscope if multimeter shows 0V
+   - Consider reseating MCP4728 or checking for hardware damage
+2. **[HIGH]** Once CV Pitch working: Wire V-Trig Gate output (Channel C)
+3. **[HIGH]** Wire S-Trig output circuit (GPIO D10 + NPN transistor)
+4. **[MEDIUM]** Wire Custom CC output (Channel D)
+5. **[LOW]** Optional: Wire LM358N op-amp for 0-10V CV
+
+**Git Status:**
+- **Branch:** feature/translation-hub
+- **Last Commit:** 22c6608 - docs: Add comprehensive output jack wiring guides with RED/WHITE color standard
+- **Working Tree:** Clean
+- **Untracked:** None
+- **Remote:** Behind origin/main (will push after resolving blocker)
+
+---
+
+### Previous Session Summary (Session 16)
 **What was accomplished:**
 - ✅ **TRANSLATION HUB IMPLEMENTATION COMPLETE (Phases 1-5)**
   - **Phase 1-2:** Created class-based translation layer system with Scale→Arp pipeline
