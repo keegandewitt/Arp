@@ -33,6 +33,11 @@ class Arpeggiator:
         self.current_note = None  # Currently playing note
         self.step_sequence = []  # Generated sequence of notes to play
 
+        # Strum mode state
+        self.strum_index = 0  # Current position in strum pattern
+        self.strum_active = False  # True when strumming (for one-shot mode)
+        self.strum_tick_counter = 0  # Clock tick counter for strum speed
+
     def add_note(self, note, velocity):
         """
         Add a note to the arpeggiator buffer
@@ -55,6 +60,10 @@ class Arpeggiator:
             # If this is the first note, reset step counter
             if len(self.note_buffer) == 1:
                 self.current_step = 0
+                # For strum one-shot mode, trigger new strum
+                if self.settings.pattern == self.settings.ARP_STRUM:
+                    self.strum_index = 0
+                    self.strum_active = True
 
     def remove_note(self, note):
         """
@@ -97,6 +106,11 @@ class Arpeggiator:
         self.note_order = []
         self.step_sequence = []
         self.current_step = 0
+
+        # Reset strum state
+        self.strum_index = 0
+        self.strum_active = False
+        self.strum_tick_counter = 0
 
     def _generate_sequence(self):
         """Generate the note sequence based on current pattern and settings"""
@@ -256,6 +270,30 @@ class Arpeggiator:
                         break
             self.step_sequence = as_played
 
+        elif self.settings.pattern == self.settings.ARP_STRUM:
+            # Strum pattern - like guitar strumming
+            # Expand notes across strum_octaves (not main octave_range)
+            strum_notes = []
+            for octave in range(self.settings.strum_octaves):
+                for note, velocity in sorted_notes:
+                    transposed_note = note + (octave * 12)
+                    if transposed_note <= 127:  # Stay within MIDI range
+                        strum_notes.append((transposed_note, velocity))
+
+            # Apply strum direction
+            if self.settings.strum_direction == self.settings.STRUM_DOWN:
+                # Strum from high to low
+                self.step_sequence = list(reversed(strum_notes))
+            elif self.settings.strum_direction == self.settings.STRUM_UP_DOWN:
+                # Strum up then down (don't repeat top/bottom notes)
+                if len(strum_notes) > 1:
+                    self.step_sequence = strum_notes + list(reversed(strum_notes[1:-1]))
+                else:
+                    self.step_sequence = strum_notes
+            else:
+                # STRUM_UP (default) - low to high
+                self.step_sequence = strum_notes
+
         # Wrap step position if needed
         if self.step_sequence and self.current_step >= len(self.step_sequence):
             self.current_step = 0
@@ -269,6 +307,66 @@ class Arpeggiator:
         if not self.settings.enabled or not self.step_sequence:
             return
 
+        # Handle Strum mode separately (uses strum_speed instead of clock_division)
+        if self.settings.pattern == self.settings.ARP_STRUM:
+            # Increment strum tick counter
+            self.strum_tick_counter += 1
+
+            # Get strum speed division (how many ticks per strum note)
+            strum_division = self.settings.get_strum_speed_division()
+
+            # Only step when we've reached the strum division
+            if self.strum_tick_counter < strum_division:
+                return  # Not time to strum yet
+
+            # Reset tick counter
+            self.strum_tick_counter = 0
+
+            # Check one-shot mode
+            if not self.settings.strum_repeat:
+                # One-shot mode: strum once then stop
+                if not self.strum_active:
+                    return  # Strum already completed
+
+                # Check if we've reached the end of the strum
+                if self.strum_index >= len(self.step_sequence):
+                    self.strum_active = False
+                    self.strum_index = 0
+                    return
+
+            # Turn off previous note if still playing
+            if self.current_note is not None:
+                self.midi_io.send_note_off(self.current_note, self.settings.midi_channel)
+                if self.cv_output:
+                    self.cv_output.note_off()
+
+            # Get next note in strum sequence
+            note, velocity = self.step_sequence[self.strum_index]
+
+            # Use fixed or original velocity
+            if not self.settings.velocity_passthrough:
+                velocity = self.settings.fixed_velocity
+
+            # Play the note
+            self.midi_io.send_note_on(note, velocity, self.settings.midi_channel)
+            self.current_note = note
+
+            # Send CV output
+            if self.cv_output:
+                self.cv_output.note_on(note)
+
+            # Advance strum index
+            self.strum_index += 1
+
+            # Loop or stop for one-shot
+            if self.strum_index >= len(self.step_sequence):
+                if self.settings.strum_repeat:
+                    self.strum_index = 0  # Loop
+                # else: one-shot will stop on next call
+
+            return
+
+        # Regular arp patterns (non-strum)
         # Turn off previous note if still playing
         if self.current_note is not None:
             self.midi_io.send_note_off(self.current_note, self.settings.midi_channel)
