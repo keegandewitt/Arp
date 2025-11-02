@@ -16,9 +16,9 @@ from arp.core.layers import ScaleQuantizeLayer, ArpeggiatorLayer
 
 
 def test_fixed_layer_ordering(mock_settings, mock_arpeggiator):
-    """Test fixed Scale → Arp layer ordering"""
-    mock_settings.scale_enabled = True
-    mock_settings.arp_enabled = True
+    """Test fixed Scale → Arp layer ordering (v3)"""
+    mock_settings.scale_type = 1  # SCALE_MAJOR (enabled)
+    mock_settings.octave_range = 1  # Arp enabled (octaves > 0)
 
     pipeline = TranslationPipeline(mock_settings, mock_arpeggiator)
 
@@ -30,9 +30,9 @@ def test_fixed_layer_ordering(mock_settings, mock_arpeggiator):
 
 
 def test_scale_disabled(mock_settings, mock_arpeggiator):
-    """Test with scale layer disabled"""
-    mock_settings.scale_enabled = False
-    mock_settings.arp_enabled = True
+    """Test with scale layer disabled (v3: scale_type = CHROMATIC)"""
+    mock_settings.scale_type = 0  # SCALE_CHROMATIC = disabled
+    mock_settings.octave_range = 1  # Arp enabled (octaves > 0)
 
     pipeline = TranslationPipeline(mock_settings, mock_arpeggiator)
 
@@ -43,9 +43,9 @@ def test_scale_disabled(mock_settings, mock_arpeggiator):
 
 
 def test_arp_disabled(mock_settings, mock_arpeggiator):
-    """Test with arpeggiator layer disabled"""
-    mock_settings.scale_enabled = True
-    mock_settings.arp_enabled = False
+    """Test with arpeggiator layer disabled (v3: octave_range = 0)"""
+    mock_settings.scale_type = 1  # SCALE_MAJOR (enabled)
+    mock_settings.octave_range = 0  # Arp disabled (octaves = 0)
 
     pipeline = TranslationPipeline(mock_settings, mock_arpeggiator)
 
@@ -56,9 +56,9 @@ def test_arp_disabled(mock_settings, mock_arpeggiator):
 
 
 def test_both_layers_disabled(mock_settings, mock_arpeggiator):
-    """Test with all layers disabled (pass-through)"""
-    mock_settings.scale_enabled = False
-    mock_settings.arp_enabled = False
+    """Test with all layers disabled (v3: CHROMATIC + octaves=0)"""
+    mock_settings.scale_type = 0  # SCALE_CHROMATIC = disabled
+    mock_settings.octave_range = 0  # Arp disabled (octaves = 0)
 
     pipeline = TranslationPipeline(mock_settings, mock_arpeggiator)
 
@@ -68,8 +68,8 @@ def test_both_layers_disabled(mock_settings, mock_arpeggiator):
 
 def test_process_note(mock_settings, mock_arpeggiator):
     """Test note processing through pipeline"""
-    mock_settings.scale_enabled = True
-    mock_settings.arp_enabled = True
+    mock_settings.scale_type = 1  # SCALE_MAJOR (enabled)
+    mock_settings.octave_range = 1  # Arp enabled
 
     # Mock quantization to shift note by 1 semitone
     def quantize_to_scale(note):
@@ -87,17 +87,17 @@ def test_process_note(mock_settings, mock_arpeggiator):
 
 
 def test_reconfigure(mock_settings, mock_arpeggiator):
-    """Test pipeline reconfiguration after settings change"""
-    mock_settings.scale_enabled = True
-    mock_settings.arp_enabled = True
+    """Test pipeline reconfiguration after settings change (v3)"""
+    mock_settings.scale_type = 1  # SCALE_MAJOR (enabled)
+    mock_settings.octave_range = 1  # Arp enabled (octaves > 0)
 
     pipeline = TranslationPipeline(mock_settings, mock_arpeggiator)
 
     # Initial state: 2 layers
     assert pipeline.get_layer_count() == 2
 
-    # Change settings
-    mock_settings.scale_enabled = False
+    # Change settings (disable scale in v3: set to CHROMATIC)
+    mock_settings.scale_type = 0  # SCALE_CHROMATIC = disabled
 
     # Reconfigure
     pipeline.reconfigure()
@@ -109,7 +109,7 @@ def test_reconfigure(mock_settings, mock_arpeggiator):
 
 
 def test_scale_quantize_layer(mock_settings):
-    """Test ScaleQuantizeLayer directly"""
+    """Test ScaleQuantizeLayer directly (v3)"""
     layer = ScaleQuantizeLayer(mock_settings)
 
     # Mock quantization
@@ -121,14 +121,14 @@ def test_scale_quantize_layer(mock_settings):
         return note
 
     mock_settings.quantize_to_scale = quantize_to_scale
-    mock_settings.scale_enabled = True
+    mock_settings.scale_type = 1  # SCALE_MAJOR (enabled)
 
     # Test quantization
     result = layer.transform(66, 100)  # F# should become G
     assert result == 67
 
-    # Test with scale disabled
-    mock_settings.scale_enabled = False
+    # Test with scale disabled (v3: CHROMATIC)
+    mock_settings.scale_type = 0  # SCALE_CHROMATIC = disabled
     result = layer.transform(66, 100)  # Should pass through
     assert result == 66
 

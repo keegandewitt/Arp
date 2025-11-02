@@ -53,22 +53,39 @@ import pytest
 
 @pytest.fixture
 def mock_settings():
-    """Mock Settings object for testing
+    """Mock Settings object for testing (v3 format)
 
     Returns:
-        Mock Settings with default values
+        Mock Settings with default v3 values
     """
     from unittest.mock import MagicMock
 
     settings = MagicMock()
-    settings.scale_enabled = True
-    settings.arp_enabled = True
-    settings.layer_order = 0  # LAYER_ORDER_SCALE_FIRST
+
+    # V3 settings (unified controls)
+    settings.scale_type = 1  # SCALE_MAJOR (enabled)
+    settings.octave_range = 1  # Arp enabled (octaves > 0)
     settings.routing_mode = 1  # ROUTING_TRANSLATION
     settings.input_source = 0  # INPUT_SOURCE_MIDI_IN
-    settings.clock_multiply = 1
-    settings.clock_divide = 1
-    settings.swing_percent = 50
+    settings.clock_rate = 3  # CLOCK_RATE_1X
+    settings.timing_feel = 50  # No swing
+
+    # V3 helper methods (must return actual booleans)
+    def is_scale_enabled():
+        """V3: Scale enabled when scale_type != CHROMATIC (0)"""
+        return settings.scale_type != 0
+
+    def is_arp_enabled():
+        """V3: Arp enabled when octave_range > 0"""
+        return settings.octave_range > 0
+
+    def is_clock_active():
+        """V3: Clock active when rate != 1x OR timing_feel != 50%"""
+        return settings.clock_rate != 3 or settings.timing_feel != 50
+
+    settings.is_scale_enabled = is_scale_enabled
+    settings.is_arp_enabled = is_arp_enabled
+    settings.is_clock_active = is_clock_active
 
     # Mock quantize_to_scale method
     def quantize_to_scale(note):

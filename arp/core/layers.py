@@ -30,10 +30,12 @@ class TranslationLayer:
 
 
 class ScaleQuantizeLayer(TranslationLayer):
-    """Quantize notes to the current scale
+    """Quantize notes to the current scale (v3)
 
     Uses settings.quantize_to_scale() to snap incoming notes
     to the nearest note in the selected scale and root.
+
+    V3: Enabled when scale_type != CHROMATIC (checked via is_scale_enabled())
     """
 
     def transform(self, note, velocity=64):
@@ -46,7 +48,7 @@ class ScaleQuantizeLayer(TranslationLayer):
         Returns:
             Quantized note number (snapped to scale)
         """
-        if self.settings.scale_enabled:
+        if self.settings.is_scale_enabled():
             return self.settings.quantize_to_scale(note)
         return note
 
