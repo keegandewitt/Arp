@@ -23,8 +23,9 @@ NVM_SETTINGS_START = 0  # Start offset in NVM
 # midi_channel, velocity_passthrough, fixed_velocity, latch, cv_enabled,
 # cv_scale, trigger_polarity, scale_type, scale_root, gate_length,
 # custom_cc_source, custom_cc_number, custom_cc_smoothing (19 values)
-# + Translation Hub: routing_mode, input_source, layer_order, scale_enabled,
-#   arp_enabled, clock_multiply, clock_divide, swing_percent (8 values)
+# + Translation Hub: routing_mode, input_source, scale_enabled, arp_enabled,
+#   clock_multiply, clock_divide, swing_percent, clock_enabled (8 values)
+# NOTE: Layer order is hardcoded as Scale → Arp - Clock (no user config needed)
 SETTINGS_STRUCT_FORMAT = 'BBBHBBBBBBBBBBBfBBBBBBBBBBB'  # 27 values total (19 + 8)
 
 class Settings:
@@ -82,10 +83,6 @@ class Settings:
     INPUT_SOURCE_USB = 1       # USB MIDI
     INPUT_SOURCE_CV_IN = 2     # CV IN (future)
     INPUT_SOURCE_GATE_IN = 3   # Gate IN (future)
-
-    # Translation Hub - Layer ordering
-    LAYER_ORDER_SCALE_FIRST = 0  # Scale → Arp
-    LAYER_ORDER_ARP_FIRST = 1    # Arp → Scale
 
     # Translation Hub - Clock transformations
     CLOCK_MULTIPLY_1X = 1
@@ -168,14 +165,43 @@ class Settings:
         self.custom_cc_smoothing = self.CC_SMOOTH_LOW  # Default to light smoothing
 
         # Translation Hub settings (8 new bytes)
+        # ============================================================================
+        # TRANSLATION LAYERS ARCHITECTURE:
+        # prisme has THREE translation layers in FIXED ORDER:
+        #   1. Scale (pitch quantization)
+        #   2. Arp (sequence generation)
+        #   3. Clock (timing transformation)
+        #
+        # WHY this order is fixed:
+        #   - Scale corrects pitch BEFORE musical processing (not an effect)
+        #   - Arp generates sequences from corrected notes
+        #   - Clock transforms timing globally
+        #
+        # IMPORTANT: Clock is architecturally separate from Scale/Arp:
+        #   - Scale/Arp: Data-driven (note in → note out) via TranslationPipeline
+        #   - Clock: Event-driven (callback-based timing engine) via ClockHandler
+        #
+        # WHY Clock is separate:
+        #   - Global timing: Affects all output, not just individual notes
+        #   - Source independence: Can be internal OR external MIDI clock
+        #   - Callback model: Triggers arpeggiator steps, not note transformation
+        #
+        # However, Clock IS a translation layer from the user's perspective:
+        #   - When enabled: Applies swing/multiply/divide timing transformations
+        #   - When disabled: 1:1 timing (multiply=1, divide=1, swing=50%)
+        #   - Only affects output in TRANSLATION mode (not THRU)
+        #
+        # Display format: "Scale → Arp - Clock" (dash indicates Clock is always last)
+        # User can enable/disable individual layers via settings
+        # ============================================================================
         self.routing_mode = self.ROUTING_TRANSLATION  # Default to translation mode
         self.input_source = self.INPUT_SOURCE_MIDI_IN  # Default to MIDI IN
-        self.layer_order = self.LAYER_ORDER_SCALE_FIRST  # Default to Scale → Arp
         self.scale_enabled = True  # Scale quantization layer enabled
         self.arp_enabled = True    # Arpeggiator layer enabled
         self.clock_multiply = self.CLOCK_MULTIPLY_1X  # Default to 1x (no multiply)
         self.clock_divide = self.CLOCK_DIVIDE_1      # Default to 1 (no divide)
         self.swing_percent = 50    # Default to 50% (no swing)
+        self.clock_enabled = True  # Clock transformation layer enabled
 
     def get_pattern_name(self):
         """Return human-readable pattern name"""
@@ -381,21 +407,6 @@ class Settings:
         }
         return source_names.get(self.input_source, "Unknown")
 
-    def next_layer_order(self):
-        """Cycle to next layer order (wraps around)"""
-        self.layer_order = (self.layer_order + 1) % 2  # 2 options: Scale First, Arp First
-
-    def previous_layer_order(self):
-        """Cycle to previous layer order (wraps around)"""
-        self.layer_order = (self.layer_order - 1) % 2
-
-    def get_layer_order_name(self):
-        """Return human-readable layer order name"""
-        if self.layer_order == self.LAYER_ORDER_SCALE_FIRST:
-            return "Scale First"
-        else:
-            return "Arp First"
-
     def quantize_to_scale(self, midi_note):
         """
         Quantize a MIDI note to the current scale
@@ -477,12 +488,12 @@ class Settings:
                 # Translation Hub settings (8 new bytes)
                 self.routing_mode,         # B (byte)
                 self.input_source,         # B (byte)
-                self.layer_order,          # B (byte)
                 int(self.scale_enabled),   # B (byte as bool)
                 int(self.arp_enabled),     # B (byte as bool)
                 self.clock_multiply,       # B (byte)
                 self.clock_divide,         # B (byte)
-                self.swing_percent         # B (byte)
+                self.swing_percent,        # B (byte)
+                int(self.clock_enabled)    # B (byte as bool)
             )
 
             # Prepend magic bytes
@@ -548,12 +559,12 @@ class Settings:
             # Translation Hub settings (8 new values)
             self.routing_mode = unpacked[19]
             self.input_source = unpacked[20]
-            self.layer_order = unpacked[21]
-            self.scale_enabled = bool(unpacked[22])
-            self.arp_enabled = bool(unpacked[23])
-            self.clock_multiply = unpacked[24]
-            self.clock_divide = unpacked[25]
-            self.swing_percent = unpacked[26]
+            self.scale_enabled = bool(unpacked[21])
+            self.arp_enabled = bool(unpacked[22])
+            self.clock_multiply = unpacked[23]
+            self.clock_divide = unpacked[24]
+            self.swing_percent = unpacked[25]
+            self.clock_enabled = bool(unpacked[26])
 
             print(f"Settings loaded from NVM ({struct_size} bytes)")
             return True
