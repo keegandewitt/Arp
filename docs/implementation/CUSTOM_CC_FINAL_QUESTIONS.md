@@ -11,7 +11,7 @@
 **Observation:** `main.py` does NOT initialize `CVOutput` anywhere!
 
 **Evidence:**
-- Line 82-86: Imports don't include `from arp.drivers.cv_gate import CVOutput`
+- Line 82-86: Imports don't include `from prisme.drivers.cv_gate import CVOutput`
 - Lines 104-137: Initialization section has NO CV output setup
 - `cv_gate.py` exists and works, but it's never instantiated in main.py
 
@@ -221,16 +221,16 @@ except Exception as e:
 
 **Current Imports (lines 82-86):**
 ```python
-from arp.ui.display import Display
-from arp.ui.buttons import ButtonHandler
-from arp.core.clock import ClockHandler
-from arp.ui.menu import SettingsMenu
-from arp.utils.config import Settings
+from prisme.ui.display import Display
+from prisme.ui.buttons import ButtonHandler
+from prisme.core.clock import ClockHandler
+from prisme.ui.menu import SettingsMenu
+from prisme.utils.config import Settings
 ```
 
 **Questions:**
-1. Should I add `from arp.drivers.cv_gate import CVOutput`?
-2. Should I add `from arp.drivers.midi_custom_cc import CustomCCHandler`?
+1. Should I add `from prisme.drivers.cv_gate import CVOutput`?
+2. Should I add `from prisme.drivers.midi_custom_cc import CustomCCHandler`?
 3. Or should these be conditional imports (only if hardware detected)?
 
 **Pattern Matching:** All current imports are unconditional, so I assume unconditional is correct.

@@ -58,17 +58,17 @@ from adafruit_midi.mtc_quarter_frame import MtcQuarterFrame
 from adafruit_midi.midi_message import MIDIUnknownEvent, MIDIBadEvent
 
 # Import our modules
-from arp.ui.display import Display
-from arp.ui.buttons import ButtonHandler
-from arp.core.clock import ClockHandler
-from arp.ui.menu import SettingsMenu
-from arp.utils.config import Settings
-from arp.drivers.cv_gate import CVOutput
-from arp.drivers.midi_custom_cc import CustomCCHandler
-from arp.drivers.midi_output import MidiIO
-from arp.core.arpeggiator import Arpeggiator
-from arp.core.translation import TranslationPipeline
-from arp.core.input_router import InputRouter
+from prisme.ui.display import Display
+from prisme.ui.buttons import ButtonHandler
+from prisme.core.clock import ClockHandler
+from prisme.ui.menu import SettingsMenu
+from prisme.utils.config import Settings
+from prisme.drivers.cv_gate import CVOutput
+from prisme.drivers.midi_custom_cc import CustomCCHandler
+from prisme.drivers.midi_output import MidiIO
+from prisme.core.arpeggiator import Arpeggiator
+from prisme.core.translation import TranslationPipeline
+from prisme.core.input_router import InputRouter
 
 print("\n" + "="*60)
 print(f"prisme - MIDI/CV Translation Hub v{__version__}")

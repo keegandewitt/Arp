@@ -250,8 +250,8 @@ class TranslationPipeline:
 ```python
 """Unit tests for translation pipeline"""
 import pytest
-from arp.core.translation import TranslationPipeline
-from arp.core.config import Settings, LAYER_ORDER_SCALE_FIRST, LAYER_ORDER_ARP_FIRST
+from prisme.core.translation import TranslationPipeline
+from prisme.core.config import Settings, LAYER_ORDER_SCALE_FIRST, LAYER_ORDER_ARP_FIRST
 
 def test_scale_first_ordering():
     """Test Scale → Arp layer ordering"""
@@ -476,8 +476,8 @@ def get_midi_input():
 
 **Replace inline arpeggiator (lines 181-204 in main.py) with:**
 ```python
-from arp.core.arpeggiator import Arpeggiator
-from arp.core.translation import TranslationPipeline
+from prisme.core.arpeggiator import Arpeggiator
+from prisme.core.translation import TranslationPipeline
 
 # Initialize (after settings loaded)
 arpeggiator = Arpeggiator(settings)

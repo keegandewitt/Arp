@@ -65,7 +65,7 @@ While this is a private repo, GitHub's push protection blocks commits with API k
 ## File Structure
 
 ```
-/Cursor/Arp/
+/Cursor/prisme/
 ├── .mcp.json                          # MCP server config (uses ${ENV_VARS})
 ├── .claude/
 │   ├── commands/                      # Custom slash commands

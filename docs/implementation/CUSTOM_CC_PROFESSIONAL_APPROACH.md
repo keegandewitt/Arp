@@ -230,7 +230,7 @@ Custom CC Output Handler with LEARN MODE
 Based on Expert Sleepers FH-2 implementation pattern.
 """
 
-from arp.data.midi_cc_names import get_cc_short_name
+from prisme.data.midi_cc_names import get_cc_short_name
 import adafruit_midi
 from adafruit_midi.control_change import ControlChange
 from adafruit_midi.channel_pressure import ChannelPressure

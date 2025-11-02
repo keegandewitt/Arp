@@ -171,7 +171,7 @@ See [ARCHITECTURE.md - Pin Allocation](docs/ARCHITECTURE.md#pin-allocation) for 
    ```
 3. Clone repository:
    ```bash
-   git clone https://github.com/keegandewitt/Arp.git prisme
+   git clone https://github.com/keegandewitt/prisme.git prisme
    cd prisme
    ```
 
@@ -252,9 +252,9 @@ python3 scripts/monitor_serial.py --reload --duration 60
 
 ## Repository
 
-- **GitHub:** https://github.com/keegandewitt/Arp
+- **GitHub:** https://github.com/keegandewitt/prisme
 - **License:** MIT (TBD)
-- **Issues:** [Report bugs](https://github.com/keegandewitt/Arp/issues)
+- **Issues:** [Report bugs](https://github.com/keegandewitt/prisme/issues)
 
 ---
 

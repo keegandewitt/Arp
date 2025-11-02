@@ -9,7 +9,7 @@ print("\n=== Display Class Integration Test (SH1107) ===\n")
 
 # Import the Display class
 import sys
-sys.path.insert(0, '/Users/keegandewitt/Cursor/Arp')
+sys.path.insert(0, '/Users/keegandewitt/Cursor/prisme')
 from display import Display
 
 print("[1] Creating I2C bus...")

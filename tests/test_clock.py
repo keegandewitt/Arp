@@ -11,7 +11,7 @@ import os
 # Add parent directory to path so we can import arp modules
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from arp.core.clock import ClockHandler
+from prisme.core.clock import ClockHandler
 
 
 def test_base_interval_calculation():
