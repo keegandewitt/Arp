@@ -74,40 +74,45 @@ class Display:
             y=0
         )
 
-        # Create text labels (positioned for 128x64 display)
-        # Line 1: BPM
-        self.bpm_label = label.Label(
+        # Create text labels for new 3-line Translation Hub display
+        # Line 1: MODE and INPUT SOURCE
+        self.line1_label = label.Label(
             terminalio.FONT,
-            text="BPM: ---",
+            text="MODE: XLAT  IN: MIDI",
             color=0xFFFFFF,
             x=0,
-            y=20  # Positioned for 64-pixel height
+            y=20
         )
 
-        # Line 2: Pattern (current)
-        self.pattern_label = label.Label(
+        # Line 2: CLOCK SOURCE, BPM, and modifiers
+        self.line2_label = label.Label(
             terminalio.FONT,
-            text="Pattern: Up",
+            text="CLK SRC: Int  BPM: 120",
             color=0xFFFFFF,
             x=0,
-            y=35  # Middle of display
+            y=35
         )
 
-        # Line 3: Status/Selection indicator
-        self.status_label = label.Label(
+        # Line 3: TRANSLATION active layers
+        self.line3_label = label.Label(
             terminalio.FONT,
-            text="",
+            text="XLAT: Scale -> Arp - Clock",
             color=0xFFFFFF,
             x=0,
-            y=50  # Lower third of display
+            y=50
         )
+
+        # Legacy labels (for backward compatibility with old display methods)
+        self.bpm_label = self.line2_label  # Alias for old code
+        self.pattern_label = self.line3_label  # Alias for old code
+        self.status_label = self.line3_label  # Alias for old code
 
         # Add labels to group
         self.group.append(self.midi_in_label)
         self.group.append(self.midi_out_label)
-        self.group.append(self.bpm_label)
-        self.group.append(self.pattern_label)
-        self.group.append(self.status_label)
+        self.group.append(self.line1_label)
+        self.group.append(self.line2_label)
+        self.group.append(self.line3_label)
 
         # Show the group
         self.display.root_group = self.group
@@ -459,3 +464,150 @@ class Display:
         self.status_message = message
         self.status_end_time = time.monotonic() + duration_seconds
         self.status_label.text = message
+
+    def update_translation_display(self, settings):
+        """
+        Update the main display with Translation Hub info
+
+        Args:
+            settings: Settings object with all current values
+        """
+        # Skip updates if display is sleeping or in menu
+        if self.is_sleeping or self.settings_menu_mode:
+            return
+
+        # Line 1: MODE and INPUT
+        mode_text = "THRU" if settings.routing_mode == settings.ROUTING_THRU else "XLAT"
+        input_text = self._format_input_source(settings.input_source)
+        self.line1_label.text = f"MODE: {mode_text}  IN: {input_text}"
+
+        # Line 2: CLOCK SOURCE, BPM, modifiers
+        clk_src = "Int" if settings.clock_source == settings.CLOCK_INTERNAL else "Ext"
+
+        # BPM with status or modifiers
+        if settings.clock_source == settings.CLOCK_INTERNAL:
+            bpm_text = str(settings.internal_bpm)
+        else:
+            bpm_text = "---"  # External clock, BPM detected elsewhere
+
+        # Add clock modifiers if any
+        modifiers = self._format_clock_modifiers(settings)
+
+        self.line2_label.text = f"CLK SRC: {clk_src}  BPM: {bpm_text}{modifiers}"
+
+        # Line 3: TRANSLATION layers (only if in TRANSLATION mode)
+        if settings.routing_mode == settings.ROUTING_TRANSLATION:
+            layers_text = self._format_active_layers(settings)
+            self.line3_label.text = f"XLAT: {layers_text}"
+        else:
+            # THRU mode: show simple pass-through indicator
+            self.line3_label.text = "PASS-THROUGH (no translation)"
+
+    def _format_input_source(self, input_source):
+        """Format input source for display (short)"""
+        if input_source == 0:  # INPUT_SOURCE_MIDI_IN
+            return "MIDI"
+        elif input_source == 1:  # INPUT_SOURCE_USB
+            return "USB"
+        elif input_source == 2:  # INPUT_SOURCE_CV_IN
+            return "CV"
+        elif input_source == 3:  # INPUT_SOURCE_GATE_IN
+            return "GATE"
+        return "?"
+
+    def _format_clock_modifiers(self, settings):
+        """Format clock modifiers for display (compact)"""
+        modifiers = []
+
+        # Only show modifiers if clock transformations are enabled
+        if not settings.clock_enabled:
+            return ""
+
+        # Swing (only if not 50%)
+        if settings.swing_percent != 50:
+            modifiers.append(f"sw:{settings.swing_percent}%")
+
+        # Multiply (only if not 1x)
+        if settings.clock_multiply != 1:
+            modifiers.append(f"x{settings.clock_multiply}")
+
+        # Divide (only if not /1)
+        if settings.clock_divide != 1:
+            modifiers.append(f"/{settings.clock_divide}")
+
+        if modifiers:
+            return " (" + " ".join(modifiers) + ")"
+        return ""
+
+    def _format_active_layers(self, settings):
+        """Format active translation layers with values
+
+        Format: Scale(Maj) -> Arp(Up) - Clk(Int)
+        Only shows enabled layers
+        """
+        layers = []
+
+        # Scale layer (if enabled)
+        if settings.scale_enabled:
+            scale_short = self._get_scale_short_name(settings.scale_type)
+            layers.append(f"Scale({scale_short})")
+
+        # Arp layer (if enabled)
+        if settings.arp_enabled:
+            pattern_short = self._get_pattern_short_name(settings.pattern)
+            layers.append(f"Arp({pattern_short})")
+
+        # Clock layer (if enabled) - always last with dash
+        if settings.clock_enabled and layers:
+            clk_src = "Int" if settings.clock_source == settings.CLOCK_INTERNAL else "Ext"
+            return " -> ".join(layers) + f" - Clk({clk_src})"
+        elif settings.clock_enabled:
+            # Only clock enabled
+            clk_src = "Int" if settings.clock_source == settings.CLOCK_INTERNAL else "Ext"
+            return f"Clk({clk_src})"
+        elif layers:
+            # No clock, but other layers
+            return " -> ".join(layers)
+        else:
+            # No layers enabled!
+            return "No layers active"
+
+    def _get_scale_short_name(self, scale_type):
+        """Get short scale name for display"""
+        scale_names = {
+            0: "Chr",   # Chromatic
+            1: "Maj",   # Major
+            2: "Min",   # Minor
+            3: "Dor",   # Dorian
+            4: "Phr",   # Phrygian
+            5: "Lyd",   # Lydian
+            6: "Mix",   # Mixolydian
+            7: "Aeo",   # Aeolian
+            8: "Loc",   # Locrian
+            9: "Blu",   # Blues
+            10: "Pnt",  # Pentatonic Major
+            11: "PnM"   # Pentatonic Minor
+        }
+        return scale_names.get(scale_type, "?")
+
+    def _get_pattern_short_name(self, pattern):
+        """Get short pattern name for display"""
+        pattern_names = {
+            0: "Up",
+            1: "Dn",
+            2: "UpDn",
+            3: "DnUp",
+            4: "Rnd",
+            5: "Play",
+            6: "UpI",   # Up-Down Inclusive
+            7: "DnI",   # Down-Up Inclusive
+            8: "Up2",   # Up 2x
+            9: "Dn2",   # Down 2x
+            10: "Conv", # Converge
+            11: "Div",  # Diverge
+            12: "Pnky", # Pinky Up
+            13: "Thmb", # Thumb Up
+            14: "Oct",  # Octave Up
+            15: "Chrd"  # Chord Repeat
+        }
+        return pattern_names.get(pattern, "?")
