@@ -553,46 +553,30 @@ class Display:
             self.line3_label.text = "Pass-through mode"
 
     def _format_clock_rate(self, settings):
-        """Format clock rate for compact display
+        """Format clock rate for compact display (v3)
 
         Returns empty string if 1x (no transformation)
         Examples: x2, x4, /2, /4
         """
-        # Use new unified clock_rate if available
-        if hasattr(settings, 'clock_rate'):
-            rate_map = {
-                0: "/8",   # CLOCK_RATE_DIV_8
-                1: "/4",   # CLOCK_RATE_DIV_4
-                2: "/2",   # CLOCK_RATE_DIV_2
-                3: "",     # CLOCK_RATE_1X (no display)
-                4: "x2",   # CLOCK_RATE_2X
-                5: "x4",   # CLOCK_RATE_4X
-                6: "x8",   # CLOCK_RATE_8X
-            }
-            return rate_map.get(settings.clock_rate, "")
-
-        # Fallback to old multiply/divide settings
-        if settings.clock_multiply > 1:
-            return f"x{settings.clock_multiply}"
-        elif settings.clock_divide > 1:
-            return f"/{settings.clock_divide}"
-        return ""
+        rate_map = {
+            0: "/8",   # CLOCK_RATE_DIV_8
+            1: "/4",   # CLOCK_RATE_DIV_4
+            2: "/2",   # CLOCK_RATE_DIV_2
+            3: "",     # CLOCK_RATE_1X (no display)
+            4: "x2",   # CLOCK_RATE_2X
+            5: "x4",   # CLOCK_RATE_4X
+            6: "x8",   # CLOCK_RATE_8X
+        }
+        return rate_map.get(settings.clock_rate, "")
 
     def _format_timing_feel(self, settings):
-        """Format timing feel for compact display
+        """Format timing feel for compact display (v3)
 
         Returns empty string if 50% (robot mode)
         Examples: ~66 (swing), ~85 (humanize)
         """
-        # Use new unified timing_feel if available
-        if hasattr(settings, 'timing_feel'):
-            if settings.timing_feel != 50:
-                return f"~{settings.timing_feel}"
-            return ""
-
-        # Fallback to old swing_percent
-        if hasattr(settings, 'swing_percent') and settings.swing_percent != 50:
-            return f"~{settings.swing_percent}"
+        if settings.timing_feel != 50:
+            return f"~{settings.timing_feel}"
         return ""
 
     def _format_layer_flow(self, settings):
@@ -627,63 +611,6 @@ class Display:
         elif input_source == 3:  # INPUT_SOURCE_GATE_IN
             return "GATE"
         return "?"
-
-    def _format_clock_modifiers(self, settings):
-        """Format clock modifiers for display (compact)"""
-        modifiers = []
-
-        # Only show modifiers if clock transformations are enabled
-        if not settings.clock_enabled:
-            return ""
-
-        # Swing (only if not 50%)
-        if settings.swing_percent != 50:
-            modifiers.append(f"sw:{settings.swing_percent}%")
-
-        # Multiply (only if not 1x)
-        if settings.clock_multiply != 1:
-            modifiers.append(f"x{settings.clock_multiply}")
-
-        # Divide (only if not /1)
-        if settings.clock_divide != 1:
-            modifiers.append(f"/{settings.clock_divide}")
-
-        if modifiers:
-            return " (" + " ".join(modifiers) + ")"
-        return ""
-
-    def _format_active_layers(self, settings):
-        """Format active translation layers with values
-
-        Format: Scale(Maj) -> Arp(Up) - Clk(Int)
-        Only shows enabled layers
-        """
-        layers = []
-
-        # Scale layer (if enabled)
-        if settings.scale_enabled:
-            scale_short = self._get_scale_short_name(settings.scale_type)
-            layers.append(f"Scale({scale_short})")
-
-        # Arp layer (if enabled)
-        if settings.arp_enabled:
-            pattern_short = self._get_pattern_short_name(settings.pattern)
-            layers.append(f"Arp({pattern_short})")
-
-        # Clock layer (if enabled) - always last with dash
-        if settings.clock_enabled and layers:
-            clk_src = "Int" if settings.clock_source == settings.CLOCK_INTERNAL else "Ext"
-            return " -> ".join(layers) + f" - Clk({clk_src})"
-        elif settings.clock_enabled:
-            # Only clock enabled
-            clk_src = "Int" if settings.clock_source == settings.CLOCK_INTERNAL else "Ext"
-            return f"Clk({clk_src})"
-        elif layers:
-            # No clock, but other layers
-            return " -> ".join(layers)
-        else:
-            # No layers enabled!
-            return "No layers active"
 
     def _get_scale_short_name(self, scale_type):
         """Get short scale name for display"""

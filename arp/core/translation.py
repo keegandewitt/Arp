@@ -41,13 +41,17 @@ class TranslationPipeline:
 
         Only enabled layers are added to the chain.
         Layer order is FIXED and cannot be changed.
+
+        V3: Layers are auto-enabled based on settings values:
+        - Scale: enabled when scale_type != CHROMATIC
+        - Arp: enabled when octave_range > 0
         """
         self.layers = []
 
         # Fixed order: Scale → Arp
-        if self.settings.scale_enabled:
+        if self.settings.is_scale_enabled():
             self.layers.append(ScaleQuantizeLayer(self.settings))
-        if self.settings.arp_enabled:
+        if self.settings.is_arp_enabled():
             self.layers.append(ArpeggiatorLayer(self.settings, self.arpeggiator))
 
     def reconfigure(self):
