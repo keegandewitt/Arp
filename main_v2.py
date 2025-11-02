@@ -207,8 +207,7 @@ print("-"*60 + "\n")
 
 # Update display with initial state
 time.sleep(1)
-clock_src_label = settings.get_clock_source_short()
-display.update_display(clock.get_bpm(), settings.get_pattern_name(), clock.is_running(), clock_src_label)
+display.update_translation_display(settings)
 
 # =============================================================================
 # Main Loop
@@ -330,22 +329,19 @@ while True:
                 clock.set_multiply(settings.clock_multiply)
                 clock.set_divide(settings.clock_divide)
 
-                clock_src_label = settings.get_clock_source_short()
-                display.update_display(clock.get_bpm(), settings.get_pattern_name(), clock.is_running(), clock_src_label)
+                display.update_translation_display(settings)
                 print("Settings saved and exited menu")
 
         if ac_long:
             menu.exit_menu()
             display.exit_settings_menu()
-            clock_src_label = settings.get_clock_source_short()
-            display.update_display(clock.get_bpm(), settings.get_pattern_name(), clock.is_running(), clock_src_label)
+            display.update_translation_display(settings)
             print("Exited settings menu")
         elif a_long:
             menu.back()
             if not menu.menu_active:
                 display.exit_settings_menu()
-                clock_src_label = settings.get_clock_source_short()
-                display.update_display(clock.get_bpm(), settings.get_pattern_name(), clock.is_running(), clock_src_label)
+                display.update_translation_display(settings)
 
         if b_long and menu.current_category == menu.CATEGORY_CUSTOM_CC:
             custom_cc.enter_learn_mode()
@@ -374,15 +370,13 @@ while True:
         elif button_a:
             settings.pattern = (settings.pattern - 1) % 16
             print(f"Pattern: {settings.get_pattern_name()}")
-            clock_src_label = settings.get_clock_source_short()
-            display.update_display(clock.get_bpm(), settings.get_pattern_name(), clock.is_running(), clock_src_label)
+            display.update_translation_display(settings)
             settings.save()
 
         if button_c:
             settings.next_pattern()
             print(f"Pattern: {settings.get_pattern_name()}")
-            clock_src_label = settings.get_clock_source_short()
-            display.update_display(clock.get_bpm(), settings.get_pattern_name(), clock.is_running(), clock_src_label)
+            display.update_translation_display(settings)
             settings.save()
 
     # Button B: Demo arpeggio
@@ -414,10 +408,7 @@ while True:
     # Periodic Display Updates
     # -------------------------------------------------------------------------
     if not menu.menu_active and (current_time - last_display_update >= display_update_interval):
-        clock_src_label = settings.get_clock_source_short()
-        bpm = clock.get_bpm()
-        is_running = clock.is_running()
-        display.update_display(bpm, settings.get_pattern_name(), is_running, clock_src_label)
+        display.update_translation_display(settings)
         last_display_update = current_time
 
     # -------------------------------------------------------------------------
