@@ -30,11 +30,11 @@ class SettingsMenu:
     SCALE_TYPE = 0        # Scale type (Major, Minor, etc.)
     SCALE_ROOT = 1        # Root note (C, C#, D, etc.)
 
-    # Translation settings
+    # Translation settings (v3)
     TRANSLATION_ROUTING_MODE = 0  # THRU or TRANSLATION
     TRANSLATION_INPUT_SOURCE = 1  # MIDI IN or USB
-    TRANSLATION_CLOCK_ENABLED = 2  # Clock layer enabled/disabled
     # NOTE: Layer order is fixed as Scale → Arp (no user config)
+    # NOTE: Clock layer is auto-enabled via is_clock_active() (v3)
 
     # Clock settings (v3 unified controls)
     CLOCK_SOURCE = 0      # Internal or External
@@ -162,7 +162,7 @@ class SettingsMenu:
             elif self.current_category == self.CATEGORY_SCALE:
                 self.current_setting = (self.current_setting - 1) % 2
             elif self.current_category == self.CATEGORY_TRANSLATION:
-                self.current_setting = (self.current_setting - 1) % 3  # 3 settings (Mode, Input, Clock)
+                self.current_setting = (self.current_setting - 1) % 2  # 2 settings (Mode, Input) - v3
             elif self.current_category == self.CATEGORY_CLOCK:
                 self.current_setting = (self.current_setting - 1) % 4  # 4 settings (v3: Source, BPM, Rate, Feel)
             elif self.current_category == self.CATEGORY_TRIGGERS:
@@ -193,7 +193,7 @@ class SettingsMenu:
             elif self.current_category == self.CATEGORY_SCALE:
                 self.current_setting = (self.current_setting + 1) % 2
             elif self.current_category == self.CATEGORY_TRANSLATION:
-                self.current_setting = (self.current_setting + 1) % 3  # 3 settings (Mode, Input, Clock)
+                self.current_setting = (self.current_setting + 1) % 2  # 2 settings (Mode, Input) - v3
             elif self.current_category == self.CATEGORY_CLOCK:
                 self.current_setting = (self.current_setting + 1) % 4  # 4 settings (v3: Source, BPM, Rate, Feel)
             elif self.current_category == self.CATEGORY_TRIGGERS:
@@ -286,9 +286,6 @@ class SettingsMenu:
             elif self.current_setting == self.TRANSLATION_INPUT_SOURCE:
                 # Cycle input source (MIDI IN/USB/CV IN/GATE IN)
                 self.settings.next_input_source()
-            elif self.current_setting == self.TRANSLATION_CLOCK_ENABLED:
-                # Toggle clock transformation layer (enabled/disabled)
-                self.settings.clock_enabled = not self.settings.clock_enabled
 
         elif self.current_category == self.CATEGORY_CLOCK:
             if self.current_setting == self.CLOCK_SOURCE:
@@ -353,9 +350,6 @@ class SettingsMenu:
             elif self.current_setting == self.TRANSLATION_INPUT_SOURCE:
                 # Cycle input source (MIDI IN/USB/CV IN/GATE IN)
                 self.settings.previous_input_source()
-            elif self.current_setting == self.TRANSLATION_CLOCK_ENABLED:
-                # Toggle clock transformation layer (enabled/disabled)
-                self.settings.clock_enabled = not self.settings.clock_enabled
 
         elif self.current_category == self.CATEGORY_CLOCK:
             if self.current_setting == self.CLOCK_SOURCE:
@@ -498,7 +492,7 @@ class SettingsMenu:
             elif self.current_category == self.CATEGORY_SCALE:
                 num_settings = 2
             elif self.current_category == self.CATEGORY_TRANSLATION:
-                num_settings = 3  # Mode, Input, Clock
+                num_settings = 2  # Mode, Input (v3 - clock auto-enabled)
             elif self.current_category == self.CATEGORY_CLOCK:
                 num_settings = 4  # Source, BPM, Rate, Feel (v3 unified)
             elif self.current_category == self.CATEGORY_CUSTOM_CC:
@@ -580,20 +574,6 @@ class SettingsMenu:
                         f"> {value} <",
                         ""
                     )
-                elif self.current_setting == self.TRANSLATION_CLOCK_ENABLED:
-                    # Show both options with current selected
-                    if self.settings.clock_enabled:
-                        return (
-                            "Clock Layer:",
-                            "> Enabled",
-                            "  Disabled"
-                        )
-                    else:
-                        return (
-                            "Clock Layer:",
-                            "  Enabled",
-                            "> Disabled"
-                        )
 
             elif self.current_category == self.CATEGORY_CLOCK:
                 if self.current_setting == self.CLOCK_SOURCE:

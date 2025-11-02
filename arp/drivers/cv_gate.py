@@ -203,7 +203,7 @@ class CVOutput:
         Args:
             midi_note: MIDI note number (0-127)
         """
-        if not self.dac_available or not self.settings.cv_enabled:
+        if not self.dac_available:
             return
 
         try:
@@ -217,7 +217,7 @@ class CVOutput:
 
     def trigger_on(self):
         """Activate the trigger output (gate mode)"""
-        if not self.dac_available or not self.settings.cv_enabled:
+        if not self.dac_available:
             return
 
         try:
@@ -237,7 +237,7 @@ class CVOutput:
 
     def trigger_off(self):
         """Deactivate the trigger output (gate mode)"""
-        if not self.dac_available or not self.settings.cv_enabled:
+        if not self.dac_available:
             return
 
         try:
@@ -262,7 +262,7 @@ class CVOutput:
         Args:
             midi_note: MIDI note number
         """
-        if not self.dac_available or not self.settings.cv_enabled:
+        if not self.dac_available:
             return
 
         # Set pitch CV
@@ -273,7 +273,7 @@ class CVOutput:
 
     def note_off(self):
         """Handle note-off event: deactivate trigger"""
-        if not self.dac_available or not self.settings.cv_enabled:
+        if not self.dac_available:
             return
 
         # Turn off trigger (gate mode)
@@ -339,7 +339,6 @@ class CVOutput:
         """
         return {
             'dac_available': self.dac_available,
-            'cv_enabled': self.settings.cv_enabled,
             'current_note': self.current_note,
             'current_voltage': self.note_to_voltage(self.current_note) if self.current_note else 0.0,
             'trigger_active': self.trigger_active,
