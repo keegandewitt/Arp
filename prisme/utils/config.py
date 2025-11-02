@@ -106,6 +106,21 @@ class Settings:
     CLOCK_DIVIDE_4 = 4
     CLOCK_DIVIDE_8 = 8
 
+    # Note priority strategies (for monophonic CV output)
+    # See: docs/architecture/POLYPHONY_DESIGN.md
+    # Validated against professional gear: Kenton PRO SOLO Mk3, Pittsburgh MIDI 3, etc.
+    NOTE_PRIORITY_HIGHEST = 0  # Play highest note (lead synth)
+    NOTE_PRIORITY_LOWEST = 1   # Play lowest note (bass synth)
+    NOTE_PRIORITY_LAST = 2     # Play most recent note (default - most intuitive)
+    NOTE_PRIORITY_FIRST = 3    # Play first note (drone synth)
+
+    NOTE_PRIORITY_NAMES = [
+        "Highest",  # 0
+        "Lowest",   # 1
+        "Last",     # 2
+        "First"     # 3
+    ]
+
     # Clock Rate (unified multiply/divide) - NEW in v3
     CLOCK_RATE_DIV_8 = 0
     CLOCK_RATE_DIV_4 = 1
@@ -240,6 +255,11 @@ class Settings:
 
         # Display settings
         self.display_rotation = self.DISPLAY_ROTATION_0  # 0 (normal) or 180 (flipped for left-handed)
+
+        # CV/Gate polyphony settings (Session 19)
+        # When Arp OFF: Polyphonic MIDI → Monophonic CV requires note priority
+        # See: docs/architecture/POLYPHONY_DESIGN.md
+        self.note_priority = self.NOTE_PRIORITY_LAST  # Default: Last note (most intuitive)
 
     def get_pattern_name(self):
         """Return human-readable pattern name"""
@@ -419,6 +439,24 @@ class Settings:
     def previous_custom_cc_smoothing(self):
         """Cycle to previous Custom CC smoothing level"""
         self.custom_cc_smoothing = (self.custom_cc_smoothing - 1) % 4
+
+    def get_note_priority_name(self):
+        """Return human-readable note priority name
+
+        Note priority determines which note plays when multiple notes
+        are held simultaneously in monophonic CV output mode (when Arp OFF).
+
+        See: docs/architecture/POLYPHONY_DESIGN.md
+        """
+        return self.NOTE_PRIORITY_NAMES[self.note_priority]
+
+    def next_note_priority(self):
+        """Cycle to next note priority mode"""
+        self.note_priority = (self.note_priority + 1) % 4  # 4 options
+
+    def previous_note_priority(self):
+        """Cycle to previous note priority mode"""
+        self.note_priority = (self.note_priority - 1) % 4
 
     def next_routing_mode(self):
         """Cycle to next routing mode (wraps around)"""
