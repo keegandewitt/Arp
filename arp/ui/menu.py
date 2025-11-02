@@ -33,7 +33,8 @@ class SettingsMenu:
     # Translation settings
     TRANSLATION_ROUTING_MODE = 0  # THRU or TRANSLATION
     TRANSLATION_INPUT_SOURCE = 1  # MIDI IN or USB
-    TRANSLATION_LAYER_ORDER = 2   # Scale→Arp or Arp→Scale
+    TRANSLATION_CLOCK_ENABLED = 2  # Clock layer enabled/disabled
+    # NOTE: Layer order is fixed as Scale → Arp (no user config)
 
     # Clock settings
     CLOCK_SOURCE = 0      # Internal or External
@@ -101,7 +102,7 @@ class SettingsMenu:
         self.translation_setting_names = {
             self.TRANSLATION_ROUTING_MODE: "Mode",
             self.TRANSLATION_INPUT_SOURCE: "Input",
-            self.TRANSLATION_LAYER_ORDER: "Layers"
+            self.TRANSLATION_CLOCK_ENABLED: "Clock"
         }
 
         # Clock setting names
@@ -163,7 +164,7 @@ class SettingsMenu:
             elif self.current_category == self.CATEGORY_SCALE:
                 self.current_setting = (self.current_setting - 1) % 2
             elif self.current_category == self.CATEGORY_TRANSLATION:
-                self.current_setting = (self.current_setting - 1) % 3  # 3 settings
+                self.current_setting = (self.current_setting - 1) % 3  # 3 settings (Mode, Input, Clock)
             elif self.current_category == self.CATEGORY_CLOCK:
                 self.current_setting = (self.current_setting - 1) % 5  # 5 settings now
             elif self.current_category == self.CATEGORY_TRIGGERS:
@@ -194,7 +195,7 @@ class SettingsMenu:
             elif self.current_category == self.CATEGORY_SCALE:
                 self.current_setting = (self.current_setting + 1) % 2
             elif self.current_category == self.CATEGORY_TRANSLATION:
-                self.current_setting = (self.current_setting + 1) % 3  # 3 settings
+                self.current_setting = (self.current_setting + 1) % 3  # 3 settings (Mode, Input, Clock)
             elif self.current_category == self.CATEGORY_CLOCK:
                 self.current_setting = (self.current_setting + 1) % 5  # 5 settings now
             elif self.current_category == self.CATEGORY_TRIGGERS:
@@ -287,9 +288,9 @@ class SettingsMenu:
             elif self.current_setting == self.TRANSLATION_INPUT_SOURCE:
                 # Cycle input source (MIDI IN/USB/CV IN/GATE IN)
                 self.settings.next_input_source()
-            elif self.current_setting == self.TRANSLATION_LAYER_ORDER:
-                # Toggle layer order (Scale First/Arp First)
-                self.settings.next_layer_order()
+            elif self.current_setting == self.TRANSLATION_CLOCK_ENABLED:
+                # Toggle clock transformation layer (enabled/disabled)
+                self.settings.clock_enabled = not self.settings.clock_enabled
 
         elif self.current_category == self.CATEGORY_CLOCK:
             if self.current_setting == self.CLOCK_SOURCE:
@@ -369,9 +370,9 @@ class SettingsMenu:
             elif self.current_setting == self.TRANSLATION_INPUT_SOURCE:
                 # Cycle input source (MIDI IN/USB/CV IN/GATE IN)
                 self.settings.previous_input_source()
-            elif self.current_setting == self.TRANSLATION_LAYER_ORDER:
-                # Toggle layer order (Scale First/Arp First)
-                self.settings.previous_layer_order()
+            elif self.current_setting == self.TRANSLATION_CLOCK_ENABLED:
+                # Toggle clock transformation layer (enabled/disabled)
+                self.settings.clock_enabled = not self.settings.clock_enabled
 
         elif self.current_category == self.CATEGORY_CLOCK:
             if self.current_setting == self.CLOCK_SOURCE:
@@ -528,7 +529,7 @@ class SettingsMenu:
             elif self.current_category == self.CATEGORY_SCALE:
                 num_settings = 2
             elif self.current_category == self.CATEGORY_TRANSLATION:
-                num_settings = 3  # Mode, Input, Layers
+                num_settings = 3  # Mode, Input, Clock
             elif self.current_category == self.CATEGORY_CLOCK:
                 num_settings = 5  # Source, BPM, Swing, Multiply, Divide
             elif self.current_category == self.CATEGORY_CUSTOM_CC:
@@ -610,19 +611,19 @@ class SettingsMenu:
                         f"> {value} <",
                         ""
                     )
-                elif self.current_setting == self.TRANSLATION_LAYER_ORDER:
+                elif self.current_setting == self.TRANSLATION_CLOCK_ENABLED:
                     # Show both options with current selected
-                    if self.settings.layer_order == self.settings.LAYER_ORDER_SCALE_FIRST:
+                    if self.settings.clock_enabled:
                         return (
-                            "Layer Order:",
-                            "> Scale First",
-                            "  Arp First"
+                            "Clock Layer:",
+                            "> Enabled",
+                            "  Disabled"
                         )
                     else:
                         return (
-                            "Layer Order:",
-                            "  Scale First",
-                            "> Arp First"
+                            "Clock Layer:",
+                            "  Enabled",
+                            "> Disabled"
                         )
 
             elif self.current_category == self.CATEGORY_CLOCK:

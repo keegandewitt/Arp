@@ -1,26 +1,27 @@
-"""Translation pipeline - configurable layer chain
+"""Translation pipeline - fixed layer chain
 
 Part of prisme Translation Hub architecture.
-Manages the ordered chain of translation layers based on user settings.
+Manages the ordered chain of translation layers.
+
+LAYER ORDER IS FIXED: Scale → Arp → Clock
+- Scale corrects pitch BEFORE musical processing (not an effect)
+- Arp generates sequences from corrected notes
+- Clock (external to pipeline) transforms timing globally
+
+This order cannot be changed because Scale is a correction layer,
+not a creative effect. It must process notes before Arp.
 """
 
 from .layers import ScaleQuantizeLayer, ArpeggiatorLayer
 
 
-# Layer ordering constants (imported from config.py)
-LAYER_ORDER_SCALE_FIRST = 0  # Scale → Arp
-LAYER_ORDER_ARP_FIRST = 1    # Arp → Scale
-
-
 class TranslationPipeline:
     """Manages the translation layer chain
 
-    Builds and maintains a dynamic chain of translation layers
-    based on user configuration. Supports two layer orderings:
-    - Scale → Arp: Quantize notes first, then arpeggiate
-    - Arp → Scale: Arpeggiate first, then quantize output
+    Builds a fixed-order chain of translation layers:
+    Scale → Arp
 
-    Each layer can be independently enabled/disabled.
+    Each layer can be independently enabled/disabled via settings.
     """
 
     def __init__(self, settings, arpeggiator):
@@ -36,31 +37,24 @@ class TranslationPipeline:
         self._configure_layers()
 
     def _configure_layers(self):
-        """Build layer chain based on user settings
+        """Build layer chain in fixed order: Scale → Arp
 
-        Creates layer instances in the order specified by
-        settings.layer_order. Only enabled layers are added.
+        Only enabled layers are added to the chain.
+        Layer order is FIXED and cannot be changed.
         """
         self.layers = []
 
-        if self.settings.layer_order == LAYER_ORDER_SCALE_FIRST:
-            # Scale → Arp ordering
-            if self.settings.scale_enabled:
-                self.layers.append(ScaleQuantizeLayer(self.settings))
-            if self.settings.arp_enabled:
-                self.layers.append(ArpeggiatorLayer(self.settings, self.arpeggiator))
-        else:
-            # Arp → Scale ordering (LAYER_ORDER_ARP_FIRST)
-            if self.settings.arp_enabled:
-                self.layers.append(ArpeggiatorLayer(self.settings, self.arpeggiator))
-            if self.settings.scale_enabled:
-                self.layers.append(ScaleQuantizeLayer(self.settings))
+        # Fixed order: Scale → Arp
+        if self.settings.scale_enabled:
+            self.layers.append(ScaleQuantizeLayer(self.settings))
+        if self.settings.arp_enabled:
+            self.layers.append(ArpeggiatorLayer(self.settings, self.arpeggiator))
 
     def reconfigure(self):
         """Reconfigure layers after settings change
 
-        Call this method when user changes layer order or
-        enables/disables layers via menu system.
+        Call this method when user enables/disables layers
+        via menu system.
         """
         self._configure_layers()
 
