@@ -39,7 +39,7 @@ Your Arp saves settings to `settings.json` on the device. To preserve your setti
 
 ## Step 2: Download Firmware
 
-1. Go to the [Arp Releases](https://github.com/keegandewitt/Arp/releases) page
+1. Go to the [Arp Releases](https://github.com/keegandewitt/prisme/releases) page
 2. Download the latest `arp-firmware-vX.X.X.arpfw` file
 3. Save it to your Downloads folder
 
@@ -282,7 +282,7 @@ python3 scripts/monitor_serial.py
 
 If the update causes problems, you can roll back to the previous version:
 
-1. Download the previous firmware version from [Releases](https://github.com/keegandewitt/Arp/releases)
+1. Download the previous firmware version from [Releases](https://github.com/keegandewitt/prisme/releases)
 2. Follow the same update procedure above
 3. Restore your backed-up `settings.json`
 
@@ -293,12 +293,12 @@ If the update causes problems, you can roll back to the previous version:
 If you encounter issues:
 
 1. **Check the logs:** Connect to serial console to see error messages
-2. **Report a bug:** [Open an issue](https://github.com/keegandewitt/Arp/issues) with:
+2. **Report a bug:** [Open an issue](https://github.com/keegandewitt/prisme/issues) with:
    - Current firmware version
    - Target firmware version
    - Full serial output
    - Steps to reproduce the problem
-3. **Community support:** [Join the discussion](https://github.com/keegandewitt/Arp/discussions)
+3. **Community support:** [Join the discussion](https://github.com/keegandewitt/prisme/discussions)
 
 ---
 

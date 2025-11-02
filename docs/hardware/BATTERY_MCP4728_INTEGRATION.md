@@ -1162,7 +1162,7 @@ def update_status(self, pattern, bpm, battery_voltage=0.0):
 
 ```python
 # Add battery monitor
-from arp.utils.battery import BatteryMonitor
+from prisme.utils.battery import BatteryMonitor
 
 # Initialize
 battery = BatteryMonitor()

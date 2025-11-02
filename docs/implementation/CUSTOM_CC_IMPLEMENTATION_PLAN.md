@@ -210,7 +210,7 @@ Custom CC Output Handler
 Monitors incoming MIDI messages and outputs selected message to Custom CC jack.
 """
 
-from arp.data.midi_cc_names import get_cc_short_name, get_cc_full_name
+from prisme.data.midi_cc_names import get_cc_short_name, get_cc_full_name
 
 class CustomCCHandler:
     def __init__(self, cv_output, settings):

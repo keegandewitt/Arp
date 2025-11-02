@@ -79,13 +79,13 @@ from adafruit_midi.mtc_quarter_frame import MtcQuarterFrame
 from adafruit_midi.midi_message import MIDIUnknownEvent, MIDIBadEvent
 
 # Import our modules
-from arp.ui.display import Display
-from arp.ui.buttons import ButtonHandler
-from arp.core.clock import ClockHandler
-from arp.ui.menu import SettingsMenu
-from arp.utils.config import Settings
-from arp.drivers.cv_gate import CVOutput
-from arp.drivers.midi_custom_cc import CustomCCHandler
+from prisme.ui.display import Display
+from prisme.ui.buttons import ButtonHandler
+from prisme.core.clock import ClockHandler
+from prisme.ui.menu import SettingsMenu
+from prisme.utils.config import Settings
+from prisme.drivers.cv_gate import CVOutput
+from prisme.drivers.midi_custom_cc import CustomCCHandler
 
 print("\n" + "="*60)
 print(f"ARP - Hardware Arpeggiator v{__version__}")

@@ -513,8 +513,8 @@ pytest --cov-report term-missing --cov=arp tests/
 
 import board
 import time
-from arp.core.arpeggiator import Arpeggiator
-from arp.core.translation import TranslationPipeline
+from prisme.core.arpeggiator import Arpeggiator
+from prisme.core.translation import TranslationPipeline
 
 print("Translation Hub Hardware Test")
 print("="*40)

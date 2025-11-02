@@ -11,8 +11,8 @@ import os
 # Add parent directory to path so we can import arp modules
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from arp.core.translation import TranslationPipeline
-from arp.core.layers import ScaleQuantizeLayer, ArpeggiatorLayer
+from prisme.core.translation import TranslationPipeline
+from prisme.core.layers import ScaleQuantizeLayer, ArpeggiatorLayer
 
 
 def test_fixed_layer_ordering(mock_settings, mock_arpeggiator):

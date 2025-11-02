@@ -258,17 +258,17 @@ while True:
 ## Key Files Modified
 
 ### Production Code
-- **`/Users/keegandewitt/Cursor/Arp/arp/drivers/cv_output.py`**
+- **`/Users/keegandewitt/Cursor/prisme/arp/drivers/cv_output.py`**
   - ✅ Added S-TRIG support (`gate_mode` parameter)
   - ✅ Modified `set_gate()` method to support both polarities
   - ✅ This code is GOOD and should be kept
 
 ### Test Code (Not in Repo)
 - **`/Volumes/CIRCUITPY/code.py`** - Currently deployed (BROKEN)
-- **`/Users/keegandewitt/Cursor/Arp/tests/cv_scope_test.py`** - Created but had import issues
+- **`/Users/keegandewitt/Cursor/prisme/tests/cv_scope_test.py`** - Created but had import issues
 
 ### Documentation
-- **`/Users/keegandewitt/Cursor/Arp/docs/hardware/LM358_WIRING_GUIDE.md`** - Previously created (GOOD)
+- **`/Users/keegandewitt/Cursor/prisme/docs/hardware/LM358_WIRING_GUIDE.md`** - Previously created (GOOD)
 - **This handoff document**
 
 ---

@@ -16,7 +16,7 @@
 ```python
 # Add at line 117 in main.py:
 print("[X/X] Initializing CV Output...")
-from arp.drivers.cv_gate import CVOutput
+from prisme.drivers.cv_gate import CVOutput
 cv_output = CVOutput(i2c, settings)
 print("      ✓ CV Output ready (MCP4728 on I2C)")
 ```
@@ -36,7 +36,7 @@ print("      ✓ CV Output ready (MCP4728 on I2C)")
 ```python
 # After CV Output init:
 print("[X/X] Initializing Custom CC Handler...")
-from arp.drivers.midi_custom_cc import CustomCCHandler
+from prisme.drivers.midi_custom_cc import CustomCCHandler
 custom_cc = CustomCCHandler(cv_output, settings)
 print("      ✓ Custom CC Handler ready")
 ```
@@ -166,13 +166,13 @@ except Exception as e:
 
 **Add at line 86 in `main.py`:**
 ```python
-from arp.ui.display import Display
-from arp.ui.buttons import ButtonHandler
-from arp.core.clock import ClockHandler
-from arp.ui.menu import SettingsMenu
-from arp.utils.config import Settings
-from arp.drivers.cv_gate import CVOutput  # NEW
-from arp.drivers.midi_custom_cc import CustomCCHandler  # NEW
+from prisme.ui.display import Display
+from prisme.ui.buttons import ButtonHandler
+from prisme.core.clock import ClockHandler
+from prisme.ui.menu import SettingsMenu
+from prisme.utils.config import Settings
+from prisme.drivers.cv_gate import CVOutput  # NEW
+from prisme.drivers.midi_custom_cc import CustomCCHandler  # NEW
 ```
 
 **Rationale:**
@@ -255,8 +255,8 @@ def _increase_value(self):
 
 ### Addition 1: Imports (line 86)
 ```python
-from arp.drivers.cv_gate import CVOutput
-from arp.drivers.midi_custom_cc import CustomCCHandler
+from prisme.drivers.cv_gate import CVOutput
+from prisme.drivers.midi_custom_cc import CustomCCHandler
 ```
 
 ### Addition 2: CV Output Init (after line 116)

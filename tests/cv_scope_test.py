@@ -17,7 +17,7 @@ Expected waveform:
 import time
 import board
 import digitalio
-from arp.drivers.cv_output import CVOutput
+from prisme.drivers.cv_output import CVOutput
 
 # Setup LED for visual feedback
 led = digitalio.DigitalInOut(board.D13)

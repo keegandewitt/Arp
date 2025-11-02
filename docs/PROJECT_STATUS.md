@@ -164,7 +164,7 @@ arp/
   - `scripts/monitor_serial.py` - Serial debugging
 
 ### Repository
-- **Git:** https://github.com/keegandewitt/Arp
+- **Git:** https://github.com/keegandewitt/prisme
 - **Branch:** main
 - **Latest Commit:** `5264711` - MIDI integration complete
 

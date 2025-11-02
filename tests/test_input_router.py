@@ -10,7 +10,7 @@ import os
 # Add parent directory to path so we can import arp modules
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from arp.core.input_router import InputRouter
+from prisme.core.input_router import InputRouter
 
 
 def test_midi_in_source(mock_settings):
