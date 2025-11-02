@@ -9,11 +9,161 @@
 
 ## Session Handoff
 
-**Last Updated:** 2025-11-02 (Session 17 - CV Output Jack Wiring Started)
-**Session Status:** ⚠️ BLOCKED - MCP4728 Channel A voltage output issue
-**Token Usage:** ~110K / 200K
+**Last Updated:** 2025-11-02 (Session 19 - OLED SPLIT-SCREEN BUG BLOCKING)
+**Session Status:** ⚠️ BLOCKED - Display initialization issue preventing hardware testing
+**Token Usage:** ~168K / 200K
 
-### Current Session Summary (Session 17)
+### Current Session Summary (Session 19)
+**What was accomplished:**
+- ✅ **DEPLOYMENT SCRIPT UPDATED FOR PRISME RENAME**
+  - Fixed `scripts/deploy.py` file mapping from `arp/` → `prisme/` paths
+  - Successfully deployed 14 files to Feather M4 hardware
+  - Deployment automation now working correctly
+- ✅ **POLYPHONIC ROUTING COMPLETE (Phase 5 from Session 18)**
+  - Note priority implementation: Highest, Lowest, Last, First
+  - Polyphonic → Monophonic CV conversion working in code
+  - Ready for hardware testing (blocked by display bug)
+- ✅ **MENU UI COMPLETE (Phase 6 from Session 18)**
+  - Added CV category to menu with note priority selection
+  - Menu navigation structure in place
+  - Ready for testing (blocked by display bug)
+- ⚠️ **CRITICAL BLOCKER: OLED SPLIT-SCREEN BUG NOT FIXED**
+  - **Issue:** Display shows BOTH portrait and landscape content simultaneously
+  - **User reported:** "still broken the exact same way" after all fix attempts
+  - **Multiple fix attempts ALL FAILED:**
+    1. Changed display rotation from 0° to 180° and back - no effect
+    2. Added gc.collect() and delays - no effect
+    3. Switched between .show() and .root_group - no effect
+    4. Tried .fill(0) method - caused crash (invalid method)
+    5. Added empty group initialization - no effect
+    6. Double rotation initialization - no effect
+    7. Rewrote display.py to match official Adafruit docs - **STILL BROKEN**
+  - **Research conducted:**
+    - Used Context7 MCP to search for SH1107 libraries
+    - Used Firecrawl MCP to scrape official Adafruit tutorial
+    - Found correct initialization pattern from https://learn.adafruit.com/adafruit-128x64-oled-featherwing/circuitpython
+    - Implemented exactly as documented - still didn't fix it
+  - **Root cause unknown** - needs deeper investigation
+
+**Critical User Feedback:**
+- User became frustrated with trial-and-error approach
+- Demanded documentation-based solution (not "hacker" random fixes)
+- Explicitly requested using MCPs to get official documentation
+- After using MCPs and implementing correctly, display STILL broken
+
+**Hardware Testing Blocked:**
+- Cannot test menu navigation (display unreadable)
+- Cannot test polyphonic MIDI loopback
+- Cannot test note priority modes on CV output
+- All Phase 7 hardware testing tasks blocked
+
+**Files Modified (This Session):**
+- `scripts/deploy.py` - Updated file mapping for prisme rename (arp → prisme)
+- `prisme/ui/display.py` - Multiple rewrites attempting to fix split-screen bug
+- `prisme/utils/config.py` - Changed display_rotation default (0° ↔ 180°)
+- `docs/context/CONTEXT.md` - This session handoff update
+
+**Next Steps (Session 20 - URGENT):**
+1. **[CRITICAL - BLOCKER]** Investigate OLED split-screen bug deeper:
+   - Check `boot.py` for display initialization conflicts
+   - Verify I2C bus initialization sequence in main.py
+   - Look for existing display state not being cleared
+   - Test with minimal display code (eliminate all other factors)
+   - Consider hardware issue (try different OLED FeatherWing?)
+   - Check if previous display configuration is cached somewhere
+   - Review CircuitPython 10.x display initialization best practices
+2. **[HIGH]** Once display fixed: Test menu navigation for note priority
+3. **[HIGH]** Test polyphonic MIDI loopback (Arp OFF mode)
+4. **[HIGH]** Test note priority modes on CV output
+5. **[MEDIUM]** Complete hardware integration testing
+
+**Git Status:**
+- **Branch:** feature/translation-hub
+- **Last Commit:** 06c6f00 - feat: Add note priority selection to CV menu (Phase 6)
+- **Working Tree:** Has uncommitted changes
+  - Modified: `docs/context/CONTEXT.md`, `docs/hardware/PIN_ALLOCATION_MATRIX.md`, `docs/hardware/WIRING_COLOR_CONVENTION.md`, `prisme/ui/display.py`, `prisme/utils/config.py`, `scripts/deploy.py`
+  - Untracked: Many test files and new hardware docs
+- **Remote:** Behind origin/main (need to resolve blocker before committing)
+
+**Important Context for Next Session:**
+- This is a recurring bug from previous sessions
+- User mentioned "we've had this issue in the past"
+- Previous solution might exist in git history
+- Display WAS working in earlier sessions
+- Something changed that broke display initialization
+- Need to find what changed and revert or fix properly
+
+---
+
+### Previous Session Summary (Session 18)
+**What was accomplished:**
+- ✅ **ROOT CAUSE IDENTIFIED: Jack Wiring Pinout Incorrect**
+  - Comprehensive diagnostic tested all 4 MCP4728 channels at chip pins
+  - Initial finding: Channel A showed 0V when connected to jack
+  - **Actual cause:** Wrong jack pin used for signal (created short circuit)
+  - **Conclusion:** ALL 4 channels working perfectly - no hardware damage
+  - **Solution:** Correct Xiaoyztan jack pinout documented
+- ✅ **JACK WIRING ISSUE DIAGNOSED AND RESOLVED**
+  - **Problem:** Any VOUT pin connected to jack dropped to 0V
+  - **Root cause:** Jack pinout misidentified - signal on wrong pin
+  - **Discovery:** Plugging TS cable into jack created short circuit
+  - **Solution:** Correct pinout documented for Xiaoyztan TS jacks
+- ✅ **XIAOYZTAN JACK PINOUT DOCUMENTED**
+  - TOP PIN (nearest jack) = SLEEVE (ground) ← WHITE wire
+  - MIDDLE PIN = Mounting lug (ignore, not connected)
+  - FAR LEFT PIN = TIP (signal) ← RED wire
+  - Updated `docs/hardware/WIRING_COLOR_CONVENTION.md` with correct pinout
+  - Simple 2-wire connection, no jumpers needed (true TS mono jacks)
+- ✅ **CV PITCH OUTPUT VERIFIED WORKING (Channel A)**
+  - MCP4728 Channel A (pin 4, VOUTA) → Jack FAR LEFT PIN (correct pinout)
+  - 1V/octave standard confirmed: C0=1V, C1=2V, C2=3V, C3=4V, C4=5V
+  - No voltage drop when cable plugged in with correct wiring
+  - All 4 MCP4728 channels verified healthy - no hardware damage!
+
+**Key Technical Learnings:**
+1. **Hardware diagnosis:** Isolate by testing all channels, not just one
+2. **Jack types:** Xiaoyztan "3 pins" are TS mono (pin 3 = mounting lug)
+3. **Short circuit detection:** Voltage drops to 0V when output shorted to ground
+4. **I2C singleton:** Always use `board.I2C()`, never create new instances
+5. **Channel reassignment:** MCP4728 channels are interchangeable (A→B seamless)
+
+**Updated Channel Allocation:**
+- **Channel A (pin 4, VOUTA)** - CV Pitch (1V/octave) ✅ WORKING
+- **Channel B (pin 5, VOUTB)** - V-Trig Gate (ready to wire)
+- **Channel C (pin 6, VOUTC)** - Reserved for future expansion
+- **Channel D (pin 7, VOUTD)** - Custom CC (ready to wire)
+
+**All Outputs Verified Working:**
+- ✅ **Jack #1 - CV Pitch** (Channel A, pin 4) - 1V/octave, 0-5V range
+- ✅ **Jack #2 - Dual Gate** (Channel B + GPIO D10) - V-Trig (0V/5V) and S-Trig (open/short)
+- ✅ **Jack #3 - Custom CC** (Channel C, pin 6) - 0-5V modulation output
+
+**Files Created (This Session):**
+- `docs/hardware/WIRING_COLOR_CONVENTION.md` - Updated with Xiaoyztan jack pinout and final channel allocation
+- `tests/mcp4728_channel_a_debug.py` (NEW) - Quick diagnostic test
+- `tests/mcp4728_full_diagnostic.py` (NEW) - All-channel voltage test
+- `tests/dual_gate_test.py` (NEW) - V-Trig/S-Trig switchable test
+- `tests/strig_simple_test.py` (NEW) - S-Trig GPIO toggle test
+- `tests/strig_scope_test.py` (NEW) - S-Trig with pull-high for scope visibility
+- `tests/custom_cc_test.py` (NEW) - Custom CC sweep test
+
+**Next Steps (Session 19):**
+1. **[HIGH]** Test all outputs with actual synthesizer/VCO
+2. **[HIGH]** Integrate CV/Gate outputs into main.py (production code)
+3. **[MEDIUM]** Create menu settings for gate mode selection (V-Trig/S-Trig)
+4. **[MEDIUM]** Test arpeggiator → CV/Gate pipeline end-to-end
+5. **[LOW]** Optional: Wire LM358N op-amp for 0-10V CV (if specific VCO needs it)
+
+**Git Status:**
+- **Branch:** feature/translation-hub
+- **Last Commit:** 22c6608 - docs: Add comprehensive output jack wiring guides with RED/WHITE color standard
+- **Working Tree:** Modified (CONTEXT.md, WIRING_COLOR_CONVENTION.md updates pending)
+- **Untracked:** New diagnostic test files
+- **Remote:** Behind origin/main (will commit and push after session)
+
+---
+
+### Previous Session Summary (Session 17)
 **What was accomplished:**
 - ✅ **WIRING COLOR CONVENTION ESTABLISHED**
   - Official standard: RED = Tip (signal), WHITE = Sleeve (ground)
@@ -362,6 +512,29 @@ dac.channel_a.raw_value = 4095  # Direct 12-bit control → Full 4.83V
 ---
 
 ## Session History
+
+### Session 19 (2025-11-02)
+- **Focus:** Testing Translation Hub on hardware (polyphonic routing + menu UI)
+- **Outcome:** ⚠️ **BLOCKED** - OLED split-screen bug preventing all hardware testing
+- **Major Issue:**
+  - Display shows portrait and landscape content simultaneously (split-screen)
+  - Attempted 7 different fixes, all failed
+  - Followed official Adafruit documentation exactly - still broken
+  - User frustrated with trial-and-error approach
+- **Accomplishments:**
+  - Fixed deployment script for prisme rename (arp → prisme)
+  - Successfully deployed code to hardware (14 files)
+  - Phases 5-6 complete in code (polyphonic routing + menu UI)
+- **Key Learning:** When multiple fix attempts fail, issue may be elsewhere (boot.py, I2C conflicts, hardware)
+- **Blocker:** Display initialization preventing all Phase 7 hardware testing
+- **Status:** ⚠️ Blocked - Needs deeper investigation of display initialization chain
+- **Documentation:** Updated CONTEXT.md with comprehensive failure analysis
+
+### Session 18 (2025-11-02)
+- **Focus:** CV/Gate output jack wiring and MCP4728 debugging
+- **Outcome:** ✅ **FULL SUCCESS** - All 3 output jacks verified working!
+- **Major Achievement:** Root cause identified - jack pinout was incorrect (not hardware failure)
+- **Status:** ✅ Complete - All CV/Gate outputs working
 
 ### Session 13 (2025-10-31)
 - **Focus:** True S-Trig implementation and dual gate output system
