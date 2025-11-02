@@ -465,43 +465,156 @@ class Display:
         self.status_end_time = time.monotonic() + duration_seconds
         self.status_label.text = message
 
-    def update_translation_display(self, settings):
+    def update_translation_display(self, settings, clock_running=True):
         """
-        Update the main display with Translation Hub info
+        Update the main display with Translation Hub info (ASCII icon-based)
+
+        New compact format (v3):
+        Line 1: *120 P:Up S:Maj  >MIDI
+        Line 2: x2 ~66 .80%  [XLAT]
+
+        Icons: * = clock running, o = stopped
+               > = input arrow
+               x = multiply
+               ~ = timing feel (tilde suggests variation)
+               . = likelihood dot
 
         Args:
             settings: Settings object with all current values
+            clock_running: Whether clock is currently running (default True)
         """
         # Skip updates if display is sleeping or in menu
         if self.is_sleeping or self.settings_menu_mode:
             return
 
-        # Line 1: MODE and INPUT
-        mode_text = "THRU" if settings.routing_mode == settings.ROUTING_THRU else "XLAT"
-        input_text = self._format_input_source(settings.input_source)
-        self.line1_label.text = f"MODE: {mode_text}  IN: {input_text}"
+        # Line 1: Clock status + BPM + Pattern + Scale + Input
+        # Format: *120 P:Up S:Maj  >MIDI
+        clock_icon = "*" if clock_running else "o"
 
-        # Line 2: CLOCK SOURCE, BPM, modifiers
-        clk_src = "Int" if settings.clock_source == settings.CLOCK_INTERNAL else "Ext"
-
-        # BPM with status or modifiers
+        # BPM
         if settings.clock_source == settings.CLOCK_INTERNAL:
             bpm_text = str(settings.internal_bpm)
         else:
-            bpm_text = "---"  # External clock, BPM detected elsewhere
+            bpm_text = "---"
 
-        # Add clock modifiers if any
-        modifiers = self._format_clock_modifiers(settings)
-
-        self.line2_label.text = f"CLK SRC: {clk_src}  BPM: {bpm_text}{modifiers}"
-
-        # Line 3: TRANSLATION layers (only if in TRANSLATION mode)
-        if settings.routing_mode == settings.ROUTING_TRANSLATION:
-            layers_text = self._format_active_layers(settings)
-            self.line3_label.text = f"XLAT: {layers_text}"
+        # Pattern (only if arp enabled)
+        if settings.is_arp_enabled():
+            pattern_short = self._get_pattern_short_name(settings.pattern)
+            pattern_text = f" P:{pattern_short}"
         else:
-            # THRU mode: show simple pass-through indicator
-            self.line3_label.text = "PASS-THROUGH (no translation)"
+            pattern_text = ""
+
+        # Scale (only if enabled, skip if Chromatic)
+        if settings.is_scale_enabled():
+            scale_short = self._get_scale_short_name(settings.scale_type)
+            scale_text = f" S:{scale_short}"
+        else:
+            scale_text = ""
+
+        # Input source with arrow
+        input_short = self._format_input_source(settings.input_source)
+        input_text = f" >{input_short}"
+
+        self.line1_label.text = f"{clock_icon}{bpm_text}{pattern_text}{scale_text} {input_text}"
+
+        # Line 2: Clock rate + Timing Feel + Likelihood + Mode badge
+        # Format: x2 ~66 .80%  [XLAT]
+        parts = []
+
+        # Clock rate (only if not 1x)
+        clock_rate_text = self._format_clock_rate(settings)
+        if clock_rate_text:
+            parts.append(clock_rate_text)
+
+        # Timing Feel (only if not 50% = robot)
+        timing_text = self._format_timing_feel(settings)
+        if timing_text:
+            parts.append(timing_text)
+
+        # Likelihood (only if not 100% = all notes)
+        if hasattr(settings, 'likelihood') and settings.likelihood < 100:
+            parts.append(f".{settings.likelihood}%")
+
+        # Mode badge
+        mode_badge = "[THRU]" if settings.routing_mode == settings.ROUTING_THRU else "[XLAT]"
+
+        # Combine parts
+        if parts:
+            self.line2_label.text = f"{' '.join(parts)}  {mode_badge}"
+        else:
+            self.line2_label.text = mode_badge
+
+        # Line 3: Translation layer flow (simplified)
+        if settings.routing_mode == settings.ROUTING_TRANSLATION:
+            flow_text = self._format_layer_flow(settings)
+            self.line3_label.text = flow_text
+        else:
+            # THRU mode: simple indicator
+            self.line3_label.text = "Pass-through mode"
+
+    def _format_clock_rate(self, settings):
+        """Format clock rate for compact display
+
+        Returns empty string if 1x (no transformation)
+        Examples: x2, x4, /2, /4
+        """
+        # Use new unified clock_rate if available
+        if hasattr(settings, 'clock_rate'):
+            rate_map = {
+                0: "/8",   # CLOCK_RATE_DIV_8
+                1: "/4",   # CLOCK_RATE_DIV_4
+                2: "/2",   # CLOCK_RATE_DIV_2
+                3: "",     # CLOCK_RATE_1X (no display)
+                4: "x2",   # CLOCK_RATE_2X
+                5: "x4",   # CLOCK_RATE_4X
+                6: "x8",   # CLOCK_RATE_8X
+            }
+            return rate_map.get(settings.clock_rate, "")
+
+        # Fallback to old multiply/divide settings
+        if settings.clock_multiply > 1:
+            return f"x{settings.clock_multiply}"
+        elif settings.clock_divide > 1:
+            return f"/{settings.clock_divide}"
+        return ""
+
+    def _format_timing_feel(self, settings):
+        """Format timing feel for compact display
+
+        Returns empty string if 50% (robot mode)
+        Examples: ~66 (swing), ~85 (humanize)
+        """
+        # Use new unified timing_feel if available
+        if hasattr(settings, 'timing_feel'):
+            if settings.timing_feel != 50:
+                return f"~{settings.timing_feel}"
+            return ""
+
+        # Fallback to old swing_percent
+        if hasattr(settings, 'swing_percent') and settings.swing_percent != 50:
+            return f"~{settings.swing_percent}"
+        return ""
+
+    def _format_layer_flow(self, settings):
+        """Format layer processing flow for line 3 (simplified)
+
+        Shows active layers with arrows: MIDI>Scale>Arp>CV
+        Only shows enabled layers
+        """
+        flow = ["MIDI"]
+
+        # Add Scale if enabled
+        if settings.is_scale_enabled():
+            flow.append("Scale")
+
+        # Add Arp if enabled
+        if settings.is_arp_enabled():
+            flow.append("Arp")
+
+        # Output (CV or MIDI based on routing)
+        flow.append("CV")
+
+        return ">".join(flow)
 
     def _format_input_source(self, input_source):
         """Format input source for display (short)"""

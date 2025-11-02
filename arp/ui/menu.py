@@ -36,12 +36,11 @@ class SettingsMenu:
     TRANSLATION_CLOCK_ENABLED = 2  # Clock layer enabled/disabled
     # NOTE: Layer order is fixed as Scale → Arp (no user config)
 
-    # Clock settings
+    # Clock settings (v3 unified controls)
     CLOCK_SOURCE = 0      # Internal or External
     CLOCK_BPM = 1         # BPM (only shown if Internal)
-    CLOCK_SWING = 2       # Swing percent (50-75%)
-    CLOCK_MULTIPLY = 3    # Clock multiplier (1x, 2x, 4x)
-    CLOCK_DIVIDE = 4      # Clock divider (1, 2, 4, 8)
+    CLOCK_RATE = 2        # Unified multiply/divide: /8 to 8x
+    TIMING_FEEL = 3       # Unified swing/humanize: 50-100%
 
     # Trigger settings (only polarity now - always gate mode)
     TRIGGER_POLARITY = 0  # V-trig vs S-trig
@@ -105,13 +104,12 @@ class SettingsMenu:
             self.TRANSLATION_CLOCK_ENABLED: "Clock"
         }
 
-        # Clock setting names
+        # Clock setting names (v3 unified controls)
         self.clock_setting_names = {
             self.CLOCK_SOURCE: "Source",
             self.CLOCK_BPM: "BPM",
-            self.CLOCK_SWING: "Swing",
-            self.CLOCK_MULTIPLY: "Multiply",
-            self.CLOCK_DIVIDE: "Divide"
+            self.CLOCK_RATE: "Rate",
+            self.TIMING_FEEL: "Feel"
         }
 
         # Trigger setting names
@@ -166,7 +164,7 @@ class SettingsMenu:
             elif self.current_category == self.CATEGORY_TRANSLATION:
                 self.current_setting = (self.current_setting - 1) % 3  # 3 settings (Mode, Input, Clock)
             elif self.current_category == self.CATEGORY_CLOCK:
-                self.current_setting = (self.current_setting - 1) % 5  # 5 settings now
+                self.current_setting = (self.current_setting - 1) % 4  # 4 settings (v3: Source, BPM, Rate, Feel)
             elif self.current_category == self.CATEGORY_TRIGGERS:
                 # Triggers only has one setting, no cycle needed
                 pass
@@ -197,7 +195,7 @@ class SettingsMenu:
             elif self.current_category == self.CATEGORY_TRANSLATION:
                 self.current_setting = (self.current_setting + 1) % 3  # 3 settings (Mode, Input, Clock)
             elif self.current_category == self.CATEGORY_CLOCK:
-                self.current_setting = (self.current_setting + 1) % 5  # 5 settings now
+                self.current_setting = (self.current_setting + 1) % 4  # 4 settings (v3: Source, BPM, Rate, Feel)
             elif self.current_category == self.CATEGORY_TRIGGERS:
                 # Triggers only has one setting, no cycle needed
                 pass
@@ -299,27 +297,12 @@ class SettingsMenu:
             elif self.current_setting == self.CLOCK_BPM:
                 # Increase BPM by 1
                 self.settings.internal_bpm = min(300, self.settings.internal_bpm + 1)
-            elif self.current_setting == self.CLOCK_SWING:
-                # Increase swing (50-75%)
-                self.settings.swing_percent = min(75, self.settings.swing_percent + 1)
-            elif self.current_setting == self.CLOCK_MULTIPLY:
-                # Cycle clock multiply (1x -> 2x -> 4x -> 1x)
-                if self.settings.clock_multiply == self.settings.CLOCK_MULTIPLY_1X:
-                    self.settings.clock_multiply = self.settings.CLOCK_MULTIPLY_2X
-                elif self.settings.clock_multiply == self.settings.CLOCK_MULTIPLY_2X:
-                    self.settings.clock_multiply = self.settings.CLOCK_MULTIPLY_4X
-                else:
-                    self.settings.clock_multiply = self.settings.CLOCK_MULTIPLY_1X
-            elif self.current_setting == self.CLOCK_DIVIDE:
-                # Cycle clock divide (1 -> 2 -> 4 -> 8 -> 1)
-                if self.settings.clock_divide == self.settings.CLOCK_DIVIDE_1:
-                    self.settings.clock_divide = self.settings.CLOCK_DIVIDE_2
-                elif self.settings.clock_divide == self.settings.CLOCK_DIVIDE_2:
-                    self.settings.clock_divide = self.settings.CLOCK_DIVIDE_4
-                elif self.settings.clock_divide == self.settings.CLOCK_DIVIDE_4:
-                    self.settings.clock_divide = self.settings.CLOCK_DIVIDE_8
-                else:
-                    self.settings.clock_divide = self.settings.CLOCK_DIVIDE_1
+            elif self.current_setting == self.CLOCK_RATE:
+                # Cycle unified clock rate: /8 -> /4 -> /2 -> 1x -> 2x -> 4x -> 8x -> /8
+                self.settings.clock_rate = (self.settings.clock_rate + 1) % 7
+            elif self.current_setting == self.TIMING_FEEL:
+                # Increase timing feel (50-100%)
+                self.settings.timing_feel = min(100, self.settings.timing_feel + 1)
 
         elif self.current_category == self.CATEGORY_TRIGGERS:
             if self.current_setting == self.TRIGGER_POLARITY:
@@ -381,27 +364,12 @@ class SettingsMenu:
             elif self.current_setting == self.CLOCK_BPM:
                 # Decrease BPM by 1
                 self.settings.internal_bpm = max(30, self.settings.internal_bpm - 1)
-            elif self.current_setting == self.CLOCK_SWING:
-                # Decrease swing (50-75%)
-                self.settings.swing_percent = max(50, self.settings.swing_percent - 1)
-            elif self.current_setting == self.CLOCK_MULTIPLY:
-                # Cycle clock multiply backwards (1x -> 4x -> 2x -> 1x)
-                if self.settings.clock_multiply == self.settings.CLOCK_MULTIPLY_1X:
-                    self.settings.clock_multiply = self.settings.CLOCK_MULTIPLY_4X
-                elif self.settings.clock_multiply == self.settings.CLOCK_MULTIPLY_4X:
-                    self.settings.clock_multiply = self.settings.CLOCK_MULTIPLY_2X
-                else:
-                    self.settings.clock_multiply = self.settings.CLOCK_MULTIPLY_1X
-            elif self.current_setting == self.CLOCK_DIVIDE:
-                # Cycle clock divide backwards (1 -> 8 -> 4 -> 2 -> 1)
-                if self.settings.clock_divide == self.settings.CLOCK_DIVIDE_1:
-                    self.settings.clock_divide = self.settings.CLOCK_DIVIDE_8
-                elif self.settings.clock_divide == self.settings.CLOCK_DIVIDE_8:
-                    self.settings.clock_divide = self.settings.CLOCK_DIVIDE_4
-                elif self.settings.clock_divide == self.settings.CLOCK_DIVIDE_4:
-                    self.settings.clock_divide = self.settings.CLOCK_DIVIDE_2
-                else:
-                    self.settings.clock_divide = self.settings.CLOCK_DIVIDE_1
+            elif self.current_setting == self.CLOCK_RATE:
+                # Cycle unified clock rate backwards: /8 <- /4 <- /2 <- 1x <- 2x <- 4x <- 8x <- /8
+                self.settings.clock_rate = (self.settings.clock_rate - 1) % 7
+            elif self.current_setting == self.TIMING_FEEL:
+                # Decrease timing feel (50-100%)
+                self.settings.timing_feel = max(50, self.settings.timing_feel - 1)
 
         elif self.current_category == self.CATEGORY_TRIGGERS:
             if self.current_setting == self.TRIGGER_POLARITY:
@@ -499,18 +467,19 @@ class SettingsMenu:
                 elif self.current_category == self.CATEGORY_TRANSLATION:
                     return self.translation_setting_names.get(idx, "")
                 elif self.current_category == self.CATEGORY_CLOCK:
-                    # Add current value preview for Clock settings
+                    # Add current value preview for Clock settings (v3 unified controls)
                     setting_name = self.clock_setting_names.get(idx, "")
                     if idx == self.CLOCK_SOURCE:
                         return f"{setting_name} ({self.settings.get_clock_source_name()})"
                     elif idx == self.CLOCK_BPM:
                         return f"{setting_name} ({self.settings.internal_bpm})"
-                    elif idx == self.CLOCK_SWING:
-                        return f"{setting_name} ({self.settings.swing_percent}%)"
-                    elif idx == self.CLOCK_MULTIPLY:
-                        return f"{setting_name} ({self.settings.clock_multiply}x)"
-                    elif idx == self.CLOCK_DIVIDE:
-                        return f"{setting_name} (/{self.settings.clock_divide})"
+                    elif idx == self.CLOCK_RATE:
+                        # Show unified clock rate
+                        rate_name = self.settings.get_clock_rate_name()
+                        return f"{setting_name} ({rate_name})"
+                    elif idx == self.TIMING_FEEL:
+                        # Show timing feel percentage
+                        return f"{setting_name} ({self.settings.timing_feel}%)"
                     return setting_name
                 elif self.current_category == self.CATEGORY_TRIGGERS:
                     return self.trigger_setting_names.get(idx, "")
@@ -531,7 +500,7 @@ class SettingsMenu:
             elif self.current_category == self.CATEGORY_TRANSLATION:
                 num_settings = 3  # Mode, Input, Clock
             elif self.current_category == self.CATEGORY_CLOCK:
-                num_settings = 5  # Source, BPM, Swing, Multiply, Divide
+                num_settings = 4  # Source, BPM, Rate, Feel (v3 unified)
             elif self.current_category == self.CATEGORY_CUSTOM_CC:
                 num_settings = 3  # Source, CC Number, Smoothing
             elif self.current_category == self.CATEGORY_FIRMWARE:
@@ -647,23 +616,27 @@ class SettingsMenu:
                         f"> {self.settings.internal_bpm} <",
                         ""
                     )
-                elif self.current_setting == self.CLOCK_SWING:
+                elif self.current_setting == self.CLOCK_RATE:
+                    # Show unified clock rate name
+                    rate_name = self.settings.get_clock_rate_name()
                     return (
-                        "Swing:",
-                        f"> {self.settings.swing_percent}% <",
-                        ""
+                        "Clock Rate:",
+                        f"> {rate_name} <",
+                        "/8 /4 /2 1x 2x 4x 8x"
                     )
-                elif self.current_setting == self.CLOCK_MULTIPLY:
+                elif self.current_setting == self.TIMING_FEEL:
+                    # Show timing feel with descriptive text
+                    feel_text = ""
+                    if self.settings.timing_feel == 50:
+                        feel_text = " (Robot)"
+                    elif self.settings.timing_feel <= 66:
+                        feel_text = " (Swing)"
+                    else:
+                        feel_text = " (Humanize)"
                     return (
-                        "Clock Multiply:",
-                        f"> {self.settings.clock_multiply}x <",
-                        ""
-                    )
-                elif self.current_setting == self.CLOCK_DIVIDE:
-                    return (
-                        "Clock Divide:",
-                        f"> /{self.settings.clock_divide} <",
-                        ""
+                        "Timing Feel:",
+                        f"> {self.settings.timing_feel}%{feel_text} <",
+                        "50=Robot 66=Swing 85=Humanize"
                     )
 
             elif self.current_category == self.CATEGORY_TRIGGERS:
