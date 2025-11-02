@@ -1,7 +1,7 @@
 """Unit tests for translation pipeline
 
-Tests the TranslationPipeline and layer system to ensure
-correct behavior of user-configurable layer ordering.
+Tests the TranslationPipeline and layer system with fixed layer ordering.
+Layer order is FIXED: Scale → Arp (cannot be changed).
 """
 
 import pytest
@@ -11,43 +11,26 @@ import os
 # Add parent directory to path so we can import arp modules
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from arp.core.translation import TranslationPipeline, LAYER_ORDER_SCALE_FIRST, LAYER_ORDER_ARP_FIRST
+from arp.core.translation import TranslationPipeline
 from arp.core.layers import ScaleQuantizeLayer, ArpeggiatorLayer
 
 
-def test_scale_first_ordering(mock_settings, mock_arpeggiator):
-    """Test Scale → Arp layer ordering"""
-    mock_settings.layer_order = LAYER_ORDER_SCALE_FIRST
+def test_fixed_layer_ordering(mock_settings, mock_arpeggiator):
+    """Test fixed Scale → Arp layer ordering"""
     mock_settings.scale_enabled = True
     mock_settings.arp_enabled = True
 
     pipeline = TranslationPipeline(mock_settings, mock_arpeggiator)
 
-    # Verify layer chain
+    # Verify layer chain (fixed order: Scale → Arp)
     assert pipeline.get_layer_count() == 2
     layer_names = pipeline.get_layer_names()
     assert layer_names[0] == 'ScaleQuantizeLayer'
     assert layer_names[1] == 'ArpeggiatorLayer'
 
 
-def test_arp_first_ordering(mock_settings, mock_arpeggiator):
-    """Test Arp → Scale layer ordering"""
-    mock_settings.layer_order = LAYER_ORDER_ARP_FIRST
-    mock_settings.scale_enabled = True
-    mock_settings.arp_enabled = True
-
-    pipeline = TranslationPipeline(mock_settings, mock_arpeggiator)
-
-    # Verify layer chain
-    assert pipeline.get_layer_count() == 2
-    layer_names = pipeline.get_layer_names()
-    assert layer_names[0] == 'ArpeggiatorLayer'
-    assert layer_names[1] == 'ScaleQuantizeLayer'
-
-
 def test_scale_disabled(mock_settings, mock_arpeggiator):
     """Test with scale layer disabled"""
-    mock_settings.layer_order = LAYER_ORDER_SCALE_FIRST
     mock_settings.scale_enabled = False
     mock_settings.arp_enabled = True
 
@@ -61,7 +44,6 @@ def test_scale_disabled(mock_settings, mock_arpeggiator):
 
 def test_arp_disabled(mock_settings, mock_arpeggiator):
     """Test with arpeggiator layer disabled"""
-    mock_settings.layer_order = LAYER_ORDER_SCALE_FIRST
     mock_settings.scale_enabled = True
     mock_settings.arp_enabled = False
 
@@ -75,7 +57,6 @@ def test_arp_disabled(mock_settings, mock_arpeggiator):
 
 def test_both_layers_disabled(mock_settings, mock_arpeggiator):
     """Test with all layers disabled (pass-through)"""
-    mock_settings.layer_order = LAYER_ORDER_SCALE_FIRST
     mock_settings.scale_enabled = False
     mock_settings.arp_enabled = False
 
@@ -87,7 +68,6 @@ def test_both_layers_disabled(mock_settings, mock_arpeggiator):
 
 def test_process_note(mock_settings, mock_arpeggiator):
     """Test note processing through pipeline"""
-    mock_settings.layer_order = LAYER_ORDER_SCALE_FIRST
     mock_settings.scale_enabled = True
     mock_settings.arp_enabled = True
 
@@ -108,7 +88,6 @@ def test_process_note(mock_settings, mock_arpeggiator):
 
 def test_reconfigure(mock_settings, mock_arpeggiator):
     """Test pipeline reconfiguration after settings change"""
-    mock_settings.layer_order = LAYER_ORDER_SCALE_FIRST
     mock_settings.scale_enabled = True
     mock_settings.arp_enabled = True
 
