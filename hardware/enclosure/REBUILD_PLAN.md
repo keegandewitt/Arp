@@ -9,34 +9,40 @@ Based on hand-drawn sketch dated 2025-11-02
 
 ### TOP ROW - INPUT BOARD JACKS (2 jacks + 2 LEDs)
 ```
-CV IN  ○        TRIG IN  ○
+CV IN  ○        TRIG IN  ◉
   ●                ●
 ```
-- **CV IN:** 1/8" mono jack, 6mm hole
-- **TRIG IN:** 1/8" mono jack, 6mm hole
-- **Activity LEDs:** 3mm white LEDs, 3mm holes, 7mm right of each jack
+- **CV IN:** 1/8" mono jack, 6mm hole + **white LED** (activity indicator)
+- **TRIG IN:** 1/8" mono jack, 6mm hole + **RGB LED** (mode + activity indicator)
 - **Spacing:** 12mm jack center-to-center
 - **Position:** Center-left of back panel
 
 ### BOTTOM ROW - OUTPUT BOARD JACKS (6 jacks + 5 LEDs)
 ```
-USB-C    CV OUT ○   TRIG OUT ○   CC OUT ○      MIDI OUT ○   MIDI IN ○
+USB-C    CV OUT ○   TRIG OUT ◉   CC OUT ○      MIDI OUT ○   MIDI IN ○
  ▭         ●            ●           ●              ◯             ◯
 ```
 - **USB-C:** Panel mount, 9.5mm × 3.8mm rectangular cutout (no LED)
-- **CV OUT:** 1/8" mono jack, 6mm hole + 3mm LED
-- **TRIG OUT:** 1/8" mono jack, 6mm hole + 3mm LED
-- **CC OUT:** 1/8" mono jack, 6mm hole + 3mm LED
-- **MIDI OUT:** 5-pin DIN, 15.5mm hole + 3mm LED
-- **MIDI IN:** 5-pin DIN, 15.5mm hole + 3mm LED
-- **Activity LEDs:** 3mm white LEDs, 3mm holes, 7mm right of each jack
+- **CV OUT:** 1/8" mono jack, 6mm hole + **white LED**
+- **TRIG OUT:** 1/8" mono jack, 6mm hole + **RGB LED** (mode + activity indicator)
+- **CC OUT:** 1/8" mono jack, 6mm hole + **white LED**
+- **MIDI OUT:** 5-pin DIN, 15.5mm hole + **white LED**
+- **MIDI IN:** 5-pin DIN, 15.5mm hole + **white LED**
 
 **Spacing:**
 - 1/8" jacks: 12mm center-to-center
 - MIDI jacks: 20mm center-to-center (standard MIDI spacing)
-- LEDs: 7mm offset right from jack center
+- LEDs: 7mm offset right from jack center, 3mm holes
 
-**Total indicators:** 7 activity LEDs (white, 3mm clear)
+**Total indicators:**
+- **5× white LEDs** (3mm clear) - CV IN/OUT, CC OUT, MIDI IN/OUT
+- **2× RGB LEDs** (3mm clear, common cathode) - TRIG IN/OUT
+
+**RGB LED Color Coding:**
+- **Green:** V-Trig mode (modern Eurorack standard)
+- **Red:** S-Trig mode (vintage Moog/ARP standard)
+- **Off:** No gate activity
+- **Brightness:** Activity indicator when gate active
 
 ---
 
@@ -116,18 +122,28 @@ COMPONENT AREA:
        Position: Right side of board
 
   ACTIVITY LED CIRCUITS (5 LEDs on OUTPUT board):
-    [D12] ──[150Ω]──→ LED1 (CV OUT) ──→ GND
-    [A0]  ──[150Ω]──→ LED2 (TRIG OUT) ──→ GND
-    [A1]  ──[150Ω]──→ LED3 (CC OUT) ──→ GND
-    [A2]  ──[150Ω]──→ LED4 (MIDI OUT) ──→ GND
-    [A5]  ──[150Ω]──→ LED5 (MIDI IN) ──→ GND
 
-    LEDs: 3mm white, clear lens
-    Position: 7mm right of each jack
-    Each LED passes through back panel hole
+  WHITE LEDs (3× standard):
+    [D12]    ──[150Ω]──→ LED1 (CV OUT white) ──→ GND
+    [D25]    ──[150Ω]──→ LED2 (CC OUT white) ──→ GND
+    [CAN_TX] ──[150Ω]──→ LED3 (MIDI OUT white) ──→ GND
+    [A5]     ──[150Ω]──→ LED4 (MIDI IN white) ──→ GND
+
+  RGB LED (1× TRIG OUT, common cathode):
+    [A0] ──[150Ω]──→ RED channel   ──┐
+    [A1] ──[150Ω]──→ GREEN channel ──┼──→ Common cathode → GND
+    [A2] ──[150Ω]──→ BLUE channel  ──┘
+
+    Color logic:
+    - GREEN on = V-Trig mode active
+    - RED on = S-Trig mode active
+    - Brightness = gate activity
+
+  Position: All LEDs 7mm right of respective jacks
+  Each LED passes through 3mm back panel hole
 
   CONNECTIONS TO FEATHER:
-    [SDA][SCL][5V][GND][D10][D12][A0][A1][A2][A5] ← Header to Feather stack
+    [SDA][SCL][5V][GND][D10][D12][D25][CAN_TX][A0][A1][A2][A5] ← Header to Feather stack
 ```
 
 **Bill of Materials - OUTPUT BOARD:**
@@ -141,11 +157,12 @@ COMPONENT AREA:
 | 4 | Ceramic Cap | 100nF 50V | Output smoothing (3 used, 1 spare) |
 | 4 | Resistor | 100Ω 1/4W | Output protection |
 | 1 | Resistor | 1kΩ 1/4W | NPN base |
-| 5 | Resistor | 150Ω 1/4W | LED current limiting |
+| 7 | Resistor | 150Ω 1/4W | LED current limiting (4 white + 3 RGB) |
 | 1 | NPN Transistor | 2N3904 | S-Trig switching |
 | 3 | 1/8" mono jack | 3.5mm panel | CV/TRIG/CC outputs |
-| 5 | LED | 3mm white clear | Activity indicators |
-| 1 | 10-pin header | Male 0.1" | To Feather stack (expanded for LEDs) |
+| 4 | LED | 3mm white clear | Activity indicators (CV OUT, CC OUT, MIDI × 2) |
+| 1 | RGB LED | 3mm clear, common cathode | TRIG OUT mode + activity indicator |
+| 1 | 12-pin header | Male 0.1" | To Feather stack (expanded for RGB) |
 | 4 | M2.5 standoffs | 10mm | MCP4728 mounting |
 
 ### INPUT BOARD (Top Protoboard)
@@ -197,15 +214,25 @@ COMPONENT AREA:
                                              GND
 
   ACTIVITY LED CIRCUITS (2 LEDs on INPUT board):
-    [D4]  ──[150Ω]──→ LED6 (CV IN) ──→ GND
-    [D11] ──[150Ω]──→ LED7 (TRIG IN) ──→ GND
 
-    LEDs: 3mm white, clear lens
-    Position: 7mm right of each jack
-    Each LED passes through back panel hole
+  WHITE LED (1× standard):
+    [D4] ──[150Ω]──→ LED (CV IN white) ──→ GND
+
+  RGB LED (1× TRIG IN, common cathode):
+    [D11]  ──[150Ω]──→ RED channel   ──┐
+    [D23]  ──[150Ω]──→ GREEN channel ──┼──→ Common cathode → GND
+    [D24]  ──[150Ω]──→ BLUE channel  ──┘
+
+    Color logic:
+    - GREEN on = V-Trig mode active
+    - RED on = S-Trig mode active
+    - Brightness = gate activity
+
+  Position: All LEDs 7mm right of respective jacks
+  Each LED passes through 3mm back panel hole
 
   CONNECTIONS TO FEATHER:
-    [A3][A4][3.3V][GND][D4][D11] ← Header to Feather stack
+    [A3][A4][3.3V][GND][D4][D11][D23][D24] ← Header to Feather stack
 ```
 
 **Bill of Materials - INPUT BOARD:**
@@ -217,11 +244,12 @@ COMPONENT AREA:
 | 4 | Resistor | 10kΩ 1/4W | Voltage divider (series) |
 | 2 | Resistor | 22kΩ 1/4W | Voltage divider (to GND) |
 | 2 | Resistor | 10kΩ 1/4W | Series protection |
-| 2 | Resistor | 150Ω 1/4W | LED current limiting |
+| 4 | Resistor | 150Ω 1/4W | LED current limiting (1 white + 3 RGB) |
 | 2 | Schottky Diode | BAT85 | Overvoltage clamp |
 | 2 | 1/8" mono jack | 3.5mm panel | CV/TRIG inputs |
-| 2 | LED | 3mm white clear | Activity indicators |
-| 1 | 6-pin header | Male 0.1" | To Feather stack (expanded for LEDs) |
+| 1 | LED | 3mm white clear | CV IN activity indicator |
+| 1 | RGB LED | 3mm clear, common cathode | TRIG IN mode + activity indicator |
+| 1 | 8-pin header | Male 0.1" | To Feather stack (expanded for RGB) |
 
 ---
 
@@ -380,35 +408,57 @@ Feather TX/RX ──→ MIDI FeatherWing (via stacking headers)
 
 **GPIO Pin Allocation for LEDs:**
 
-| Jack | LED Pin | Detection Logic | Software Implementation |
-|------|---------|-----------------|-------------------------|
-| CV IN | D4 | Monitor A3 ADC | LED on when voltage > 0.1V |
-| TRIG IN | D11 | Monitor A4 ADC | LED on when gate HIGH (>2V) |
-| CV OUT | D12 | Software controlled | LED on when DAC Ch A outputting |
-| TRIG OUT | A0 | Software controlled | LED on when DAC Ch C or D10 active |
-| CC OUT | A1 | Software controlled | LED on when DAC Ch B outputting |
-| MIDI OUT | A2 | Monitor UART TX | LED pulse on TX activity |
-| MIDI IN | A5 | Monitor UART RX | LED pulse on RX activity |
+| Jack | LED Type | Pins Used | Detection Logic | Color/Behavior |
+|------|----------|-----------|-----------------|----------------|
+| CV IN | White | D4 | Monitor A3 ADC | White when voltage > 0.1V |
+| TRIG IN | **RGB** | **D11, D23, D24** | Monitor A4 ADC + mode | **Green (V-Trig) / Red (S-Trig)** |
+| CV OUT | White | D12 | Software controlled | White when DAC Ch A outputting |
+| TRIG OUT | **RGB** | **A0, A1, A2** | Software controlled + mode | **Green (V-Trig) / Red (S-Trig)** |
+| CC OUT | White | D25 | Software controlled | White when DAC Ch B outputting |
+| MIDI OUT | White | CAN_TX | Monitor UART TX | White pulse on TX activity |
+| MIDI IN | White | A5 | Monitor UART RX | White pulse on RX activity |
+
+**Total pins used: 11** (out of 14 available)
 
 **Detection Methods:**
 
-1. **Input Monitoring (CV IN, TRIG IN):**
+1. **Input Monitoring (CV IN):**
    - Periodic ADC reads (100Hz sampling)
-   - Threshold detection
-   - LED on while signal present
+   - Threshold detection (>0.1V)
+   - White LED on while signal present
 
-2. **Output Status (CV OUT, TRIG OUT, CC OUT):**
+2. **Gate Input Monitoring (TRIG IN - RGB):**
+   - Periodic ADC reads (100Hz sampling)
+   - Mode awareness from software state
+   - **V-Trig mode:** GREEN led when gate HIGH (>2V)
+   - **S-Trig mode:** RED led when gate active (<1V)
+   - Brightness indicates activity
+
+3. **Output Status (CV OUT, CC OUT):**
    - Software-controlled based on internal state
-   - LED mirrors output activity directly
+   - White LED mirrors output activity directly
 
-3. **MIDI Activity (MIDI IN, MIDI OUT):**
+4. **Gate Output (TRIG OUT - RGB):**
+   - Software-controlled based on internal state
+   - Mode awareness from software state
+   - **V-Trig mode:** GREEN led when gate active
+   - **S-Trig mode:** RED led when gate active
+   - Brightness indicates activity
+
+5. **MIDI Activity (MIDI IN, MIDI OUT):**
    - Monitor UART buffer activity
-   - LED pulse (50-100ms) on message detection
+   - White LED pulse (50-100ms) on message detection
    - Debounce to prevent flickering
 
+**RGB LED Color Codes:**
+- **Green only:** V-Trig mode active
+- **Red only:** S-Trig mode active
+- **Off:** No gate activity in either mode
+
 **Power Consumption:**
-- 7 LEDs × 20mA = 140mA max (all LEDs on)
-- Typical usage: 2-3 LEDs active = 40-60mA
+- 5 white LEDs × 3mA = 15mA
+- 2 RGB LEDs × 3mA per channel × 1 channel = 6mA (only one color on at a time)
+- **Total typical: ~20-30mA** (much less than previous estimate)
 - Well within Feather M4's capabilities
 
 ---
