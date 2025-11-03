@@ -9,11 +9,64 @@
 
 ## Session Handoff
 
-**Last Updated:** 2025-11-03 (Session 23 - FUSION 360 CAD ASSEMBLY + OPENSCAD CLEANUP)
-**Session Status:** ✅ COMPLETE - Fusion 360 automation ready, OpenSCAD archived
-**Token Usage:** ~95K / 200K
+**Last Updated:** 2025-11-03 (Session 24 - SCHEMATIC LABEL POSITIONING FIX)
+**Session Status:** ✅ COMPLETE - Clean schematics with proper label positioning
+**Token Usage:** ~46K / 200K
 
-### Current Session Summary (Session 23 - FUSION 360 AUTOMATION)
+### Current Session Summary (Session 24 - SCHEMATIC LABEL POSITIONING)
+**What was accomplished:**
+- ✅ **FIXED SCHEMDRAW LABEL POSITIONING ISSUE**
+  - Initial problem: Labels on vertical components (resistors, capacitors, diodes) overlapping symbols
+  - Root cause: Using `.label()` method on vertical components causes text to overlay the symbol
+  - User feedback: "labels and values to the SIDE of the line" and "DIRECTLY TO THE LEFT"
+  - Multiple iterations to get positioning exactly right
+- ✅ **DEVELOPED CORRECT LABELING PATTERN**
+  - Pattern: Draw component FIRST, then add label at calculated offset position
+  - Position calculation: Middle of component (1.5 units down) and close to symbol (0.6 units left)
+  - Applied to ALL vertical components: R15, R17, D2, D3, C3, C4, C5, C6, C7
+  - Horizontal components kept original `.label()` method (works fine for horizontal orientation)
+- ✅ **REFINED LABEL PROXIMITY**
+  - Initial offset: -1.2 units (too far from components)
+  - Final offset: -0.6 units (close enough for clarity, not overlapping)
+  - User approved final positioning
+- ✅ **REGENERATED BOTH BOARD SCHEMATICS**
+  - `TOP_BOARD_SCHEMATIC.svg` - Input board (CV/TRIG protection circuits)
+  - `BOTTOM_BOARD_SCHEMATIC.svg` - Output board (DAC channels, LED indicators)
+  - Both now have clean, readable labels positioned beside vertical components
+
+**Correct Label Positioning Pattern:**
+```python
+# WRONG (previous attempts):
+dwg += elm.Resistor().down().label('R15 10kΩ', loc='left')  # Overlaps symbol!
+
+# CORRECT (final solution):
+# 1. Draw the component first
+dwg += elm.Line().down(1)
+dwg += elm.Resistor().down()  # NO .label() call
+dwg += elm.Line().down(1)
+dwg += elm.Ground()
+
+# 2. Then position label at middle of component, offset to the left
+dwg.here = (node_x - 0.6, node_y - 1.5)  # -0.6 left, -1.5 down (middle)
+dwg += elm.Label().label('R15\n10kΩ', fontsize=10)
+```
+
+**Files Modified (Session 24):**
+- `hardware/enclosure/generate_top_board_schematic.py` - Fixed 7 vertical component labels
+- `hardware/enclosure/generate_bottom_board_schematic.py` - Fixed 2 vertical component labels
+- `docs/context/CONTEXT.md` - This session handoff
+
+**Key Learning:**
+- schemdraw's `.label()` method works differently for horizontal vs vertical components
+- Vertical components require manual label positioning using coordinate manipulation
+- User testing and iterative feedback essential for finding exact positioning
+
+**Next Steps (Session 25):**
+1. **[HIGH]** Continue with physical hardware assembly using JACK_WIRING_GUIDE.md
+2. **[MEDIUM]** Use schematics as reference during protoboard population
+3. **[LOW]** Consider generating additional schematic views if needed (power distribution, etc.)
+
+### Previous Session Summary (Session 23 - FUSION 360 AUTOMATION)
 **What was accomplished:**
 - ⚠️ **OPENSCAD VISUALIZATION ABANDONED - FUNDAMENTALLY INADEQUATE**
   - Attempted to create accurate 3D hardware visualization using OpenSCAD
