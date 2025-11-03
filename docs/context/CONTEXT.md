@@ -9,11 +9,104 @@
 
 ## Session Handoff
 
-**Last Updated:** 2025-11-02 (Session 19 - OLED SPLIT-SCREEN BUG BLOCKING)
-**Session Status:** ⚠️ BLOCKED - Display initialization issue preventing hardware testing
-**Token Usage:** ~168K / 200K
+**Last Updated:** 2025-11-02 (Session 20 - 3D ENCLOSURE COMPLETE - READY TO FABRICATE)
+**Session Status:** ✅ COMPLETE - Hardware design ready for 3D printing and assembly
+**Token Usage:** ~154K / 200K
 
-### Current Session Summary (Session 19)
+### Current Session Summary (Session 20)
+**What was accomplished:**
+- ✅ **COMPLETE 3D-PRINTABLE ENCLOSURE DESIGNED**
+  - Parametric OpenSCAD design: `hardware/enclosure/prisme_enclosure.scad`
+  - Semi-transparent PLA optimized (3.5mm walls for strength)
+  - Compact 90mm × 65mm × 57.5mm external dimensions
+  - Custom-cut 75mm × 50mm protoboards (from 97mm × 89mm ElectroCookie stock)
+  - All 8 back panel connectors aligned in professional 2-row grid layout
+- ✅ **STL FILES GENERATED (READY FOR 3D PRINTING)**
+  - `prisme_box.stl` (414KB) - Main enclosure with jack holes, screw posts, ventilation
+  - `prisme_lid.stl` (229KB) - Top cover with OLED window, button holes, countersinks
+  - Designed for 0.2mm layer height, 20% infill, no supports needed
+- ✅ **COMPREHENSIVE WIRING GUIDE CREATED**
+  - `docs/hardware/JACK_WIRING_GUIDE.md` - Complete assembly reference (400+ lines)
+  - All 10 jack connections documented with circuit paths and component values
+  - Step-by-step assembly sequence (6 phases)
+  - Power distribution strategy and current budget
+  - Troubleshooting guide for each subsystem
+- ✅ **PROTOBOARD LAYOUT FINALIZED**
+  - `docs/hardware/PROTOBOARD_LAYOUT.md` - Physical component placement
+  - OUTPUT Board (bottom): CV Out, V-Trig/S-Trig, Custom CC jacks at rear edge
+  - INPUT Board (top): CV In, Gate In, MIDI In/Out, USB-C at rear edge
+  - Professional-grade filtering and protection on all I/O
+  - Complete BOM for both boards
+- ✅ **ENCLOSURE DESIGN ITERATIONS**
+  - Initial size too large → User wanted "1/3 smaller"
+  - Fixed jack size error (1/4" → 1/8")
+  - Fixed output jack naming (V-Trig and S-Trig are ONE jack, not two)
+  - Added MIDI DIN connectors (user feedback: "where's our MIDI?")
+  - **Critical methodology change:** Design protoboards FIRST, then enclosure (user correction)
+  - Aligned USB-C with MIDI Out to form clean grid (user feedback)
+  - Dark colors for OpenSCAD visibility (dimgray/slategray)
+
+**Design Evolution:**
+- **Problem:** Initial enclosure design created jack overlaps, didn't match physical reality
+- **User Feedback:** "Ports are overlapping and you're not being diligent and considering the physical reality of our breadboards. This is a mess. Let's take a step back."
+- **Solution:** Complete redesign from protoboards up
+  - Calculated exact component footprints
+  - Positioned all jacks on protoboard rear edges with precise measurements
+  - Made enclosure holes EXACTLY match protoboard positions
+  - Result: Clean 2-row grid layout with all connectors aligned
+
+**Back Panel Layout (Final):**
+```
+TOP ROW:    [CV In] [Gate In] [MIDI In] [MIDI Out]
+             13mm    23mm      35.5mm    55.5mm
+
+BOTTOM ROW: [CV Out] [V/S-Trig] [Custom CC]        [USB-C]
+             13mm      23mm       33mm            58.5mm
+                                                  (aligned)
+```
+
+**Files Created (This Session):**
+- `hardware/enclosure/prisme_enclosure.scad` (NEW) - Parametric 3D model (404 lines)
+- `hardware/enclosure/prisme_box.stl` (NEW) - Print-ready box STL (414KB)
+- `hardware/enclosure/prisme_lid.stl` (NEW) - Print-ready lid STL (229KB)
+- `docs/hardware/JACK_WIRING_GUIDE.md` (NEW) - Complete wiring reference (400+ lines)
+- `docs/hardware/PROTOBOARD_LAYOUT.md` (UPDATED) - Finalized with rear edge jack positions
+- `docs/context/CONTEXT.md` (UPDATED) - This session handoff
+
+**Next Steps (Session 21 - Hardware Fabrication):**
+1. **[HIGH]** 3D print enclosure (box + lid) using semi-transparent PLA
+2. **[HIGH]** Order components from PROTOBOARD_LAYOUT.md BOM:
+   - 2× ElectroCookie protoboards (97mm × 89mm, will cut to 75mm × 50mm)
+   - 5× 1/8" (3.5mm) mono jacks (panel mount)
+   - 2× 5-pin DIN MIDI jacks (panel mount)
+   - 1× USB-C panel mount breakout
+   - Resistors, capacitors, diodes per BOM
+   - NPN transistor (2N3904) for S-Trig
+3. **[MEDIUM]** Cut protoboards to exact dimensions (75mm × 50mm)
+4. **[MEDIUM]** Populate OUTPUT board following JACK_WIRING_GUIDE.md
+5. **[MEDIUM]** Populate INPUT board following JACK_WIRING_GUIDE.md
+6. **[MEDIUM]** Test circuits before enclosure assembly
+7. **[LOW]** Final assembly and hardware integration testing
+
+**Git Status:**
+- **Branch:** feature/translation-hub
+- **Last Commit:** c15ec61 - docs: Update session handoff (Session 19 - OLED split-screen bug blocking)
+- **Working Tree:** Has uncommitted changes
+  - Modified: Multiple files from Sessions 19-20
+  - New: Complete hardware/ directory with enclosure design and STL files
+  - New: Comprehensive wiring and layout documentation
+- **Remote:** Behind origin/main (will commit after handoff)
+
+**Important Context for Next Session:**
+- Session 19 display bug still unresolved but no longer blocking
+- Hardware fabrication now takes priority (physical prototyping phase)
+- Once hardware assembled, can debug display on actual device
+- All software features complete (polyphonic routing, menu UI, CV/Gate)
+- Next phase: Build physical prototype, test with real hardware
+
+---
+
+### Previous Session Summary (Session 19)
 **What was accomplished:**
 - ✅ **DEPLOYMENT SCRIPT UPDATED FOR PRISME RENAME**
   - Fixed `scripts/deploy.py` file mapping from `arp/` → `prisme/` paths
@@ -512,6 +605,32 @@ dac.channel_a.raw_value = 4095  # Direct 12-bit control → Full 4.83V
 ---
 
 ## Session History
+
+### Session 20 (2025-11-02)
+- **Focus:** Complete 3D enclosure design and comprehensive wiring documentation
+- **Outcome:** ✅ **FULL SUCCESS** - Hardware design ready for fabrication!
+- **Major Achievements:**
+  - Created parametric OpenSCAD enclosure (90mm × 65mm × 57.5mm)
+  - Generated print-ready STL files (box + lid)
+  - Wrote complete wiring guide for all 10 connectors
+  - Finalized protoboard layout with exact jack positions
+  - Fixed multiple design issues through iterative user feedback
+- **Key Learning:** Design protoboards FIRST, then enclosure (don't guess connector positions)
+- **Deliverables:**
+  - `prisme_enclosure.scad` - Parametric 3D model
+  - `prisme_box.stl` + `prisme_lid.stl` - Print-ready files
+  - `JACK_WIRING_GUIDE.md` - 400+ line assembly reference
+  - `PROTOBOARD_LAYOUT.md` - Component placement with BOM
+- **Design Iterations:** 7 major revisions based on user feedback
+  - Size reduction (1/3 smaller than initial)
+  - Jack size correction (1/4" → 1/8")
+  - Output naming fix (V-Trig/S-Trig = ONE jack)
+  - Added MIDI DIN connectors
+  - Methodology change (protoboards before enclosure)
+  - Grid alignment (USB-C aligned with MIDI Out)
+  - Dark colors for visibility
+- **Status:** ✅ Complete - Ready for 3D printing and hardware assembly
+- **Documentation:** CONTEXT.md updated, JACK_WIRING_GUIDE.md created, PROTOBOARD_LAYOUT.md finalized
 
 ### Session 19 (2025-11-02)
 - **Focus:** Testing Translation Hub on hardware (polyphonic routing + menu UI)
