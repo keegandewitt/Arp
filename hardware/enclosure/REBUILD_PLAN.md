@@ -7,31 +7,36 @@ Based on hand-drawn sketch dated 2025-11-02
 
 ## 1. BACK PANEL LAYOUT (Definitive)
 
-### TOP ROW - INPUT BOARD JACKS (2 jacks)
+### TOP ROW - INPUT BOARD JACKS (2 jacks + 2 LEDs)
 ```
-CV IN        TRIG IN
-  ●            ●
+CV IN  ○        TRIG IN  ○
+  ●                ●
 ```
 - **CV IN:** 1/8" mono jack, 6mm hole
 - **TRIG IN:** 1/8" mono jack, 6mm hole
-- **Spacing:** 12mm center-to-center
+- **Activity LEDs:** 3mm white LEDs, 3mm holes, 7mm right of each jack
+- **Spacing:** 12mm jack center-to-center
 - **Position:** Center-left of back panel
 
-### BOTTOM ROW - OUTPUT BOARD JACKS (6 jacks)
+### BOTTOM ROW - OUTPUT BOARD JACKS (6 jacks + 5 LEDs)
 ```
-USB-C    CV OUT   TRIG OUT   CC OUT      MIDI OUT   MIDI IN
- ▭         ●         ●         ●            ◯          ◯
+USB-C    CV OUT ○   TRIG OUT ○   CC OUT ○      MIDI OUT ○   MIDI IN ○
+ ▭         ●            ●           ●              ◯             ◯
 ```
-- **USB-C:** Panel mount, 9.5mm × 3.8mm rectangular cutout
-- **CV OUT:** 1/8" mono jack, 6mm hole
-- **TRIG OUT:** 1/8" mono jack, 6mm hole
-- **CC OUT:** 1/8" mono jack, 6mm hole
-- **MIDI OUT:** 5-pin DIN, 15.5mm hole
-- **MIDI IN:** 5-pin DIN, 15.5mm hole
+- **USB-C:** Panel mount, 9.5mm × 3.8mm rectangular cutout (no LED)
+- **CV OUT:** 1/8" mono jack, 6mm hole + 3mm LED
+- **TRIG OUT:** 1/8" mono jack, 6mm hole + 3mm LED
+- **CC OUT:** 1/8" mono jack, 6mm hole + 3mm LED
+- **MIDI OUT:** 5-pin DIN, 15.5mm hole + 3mm LED
+- **MIDI IN:** 5-pin DIN, 15.5mm hole + 3mm LED
+- **Activity LEDs:** 3mm white LEDs, 3mm holes, 7mm right of each jack
 
 **Spacing:**
 - 1/8" jacks: 12mm center-to-center
 - MIDI jacks: 20mm center-to-center (standard MIDI spacing)
+- LEDs: 7mm offset right from jack center
+
+**Total indicators:** 7 activity LEDs (white, 3mm clear)
 
 ---
 
@@ -110,8 +115,19 @@ COMPONENT AREA:
        Stack on Feather via headers
        Position: Right side of board
 
+  ACTIVITY LED CIRCUITS (5 LEDs on OUTPUT board):
+    [D12] ──[150Ω]──→ LED1 (CV OUT) ──→ GND
+    [A0]  ──[150Ω]──→ LED2 (TRIG OUT) ──→ GND
+    [A1]  ──[150Ω]──→ LED3 (CC OUT) ──→ GND
+    [A2]  ──[150Ω]──→ LED4 (MIDI OUT) ──→ GND
+    [A5]  ──[150Ω]──→ LED5 (MIDI IN) ──→ GND
+
+    LEDs: 3mm white, clear lens
+    Position: 7mm right of each jack
+    Each LED passes through back panel hole
+
   CONNECTIONS TO FEATHER:
-    [SDA][SCL][5V][GND][D10] ← Header to Feather stack
+    [SDA][SCL][5V][GND][D10][D12][A0][A1][A2][A5] ← Header to Feather stack
 ```
 
 **Bill of Materials - OUTPUT BOARD:**
@@ -125,9 +141,11 @@ COMPONENT AREA:
 | 4 | Ceramic Cap | 100nF 50V | Output smoothing (3 used, 1 spare) |
 | 4 | Resistor | 100Ω 1/4W | Output protection |
 | 1 | Resistor | 1kΩ 1/4W | NPN base |
+| 5 | Resistor | 150Ω 1/4W | LED current limiting |
 | 1 | NPN Transistor | 2N3904 | S-Trig switching |
 | 3 | 1/8" mono jack | 3.5mm panel | CV/TRIG/CC outputs |
-| 1 | 5-pin header | Male 0.1" | To Feather stack |
+| 5 | LED | 3mm white clear | Activity indicators |
+| 1 | 10-pin header | Male 0.1" | To Feather stack (expanded for LEDs) |
 | 4 | M2.5 standoffs | 10mm | MCP4728 mounting |
 
 ### INPUT BOARD (Top Protoboard)
@@ -178,8 +196,16 @@ COMPONENT AREA:
                                       22kΩ    │
                                              GND
 
+  ACTIVITY LED CIRCUITS (2 LEDs on INPUT board):
+    [D4]  ──[150Ω]──→ LED6 (CV IN) ──→ GND
+    [D11] ──[150Ω]──→ LED7 (TRIG IN) ──→ GND
+
+    LEDs: 3mm white, clear lens
+    Position: 7mm right of each jack
+    Each LED passes through back panel hole
+
   CONNECTIONS TO FEATHER:
-    [A3][A4][3.3V][GND] ← Header to Feather stack
+    [A3][A4][3.3V][GND][D4][D11] ← Header to Feather stack
 ```
 
 **Bill of Materials - INPUT BOARD:**
@@ -191,9 +217,11 @@ COMPONENT AREA:
 | 4 | Resistor | 10kΩ 1/4W | Voltage divider (series) |
 | 2 | Resistor | 22kΩ 1/4W | Voltage divider (to GND) |
 | 2 | Resistor | 10kΩ 1/4W | Series protection |
+| 2 | Resistor | 150Ω 1/4W | LED current limiting |
 | 2 | Schottky Diode | BAT85 | Overvoltage clamp |
 | 2 | 1/8" mono jack | 3.5mm panel | CV/TRIG inputs |
-| 1 | 4-pin header | Male 0.1" | To Feather stack |
+| 2 | LED | 3mm white clear | Activity indicators |
+| 1 | 6-pin header | Male 0.1" | To Feather stack (expanded for LEDs) |
 
 ---
 
@@ -348,6 +376,41 @@ Feather D10 ──→ S-Trig circuit (OUTPUT board)
 Feather TX/RX ──→ MIDI FeatherWing (via stacking headers)
 ```
 
+### Activity LED Control
+
+**GPIO Pin Allocation for LEDs:**
+
+| Jack | LED Pin | Detection Logic | Software Implementation |
+|------|---------|-----------------|-------------------------|
+| CV IN | D4 | Monitor A3 ADC | LED on when voltage > 0.1V |
+| TRIG IN | D11 | Monitor A4 ADC | LED on when gate HIGH (>2V) |
+| CV OUT | D12 | Software controlled | LED on when DAC Ch A outputting |
+| TRIG OUT | A0 | Software controlled | LED on when DAC Ch C or D10 active |
+| CC OUT | A1 | Software controlled | LED on when DAC Ch B outputting |
+| MIDI OUT | A2 | Monitor UART TX | LED pulse on TX activity |
+| MIDI IN | A5 | Monitor UART RX | LED pulse on RX activity |
+
+**Detection Methods:**
+
+1. **Input Monitoring (CV IN, TRIG IN):**
+   - Periodic ADC reads (100Hz sampling)
+   - Threshold detection
+   - LED on while signal present
+
+2. **Output Status (CV OUT, TRIG OUT, CC OUT):**
+   - Software-controlled based on internal state
+   - LED mirrors output activity directly
+
+3. **MIDI Activity (MIDI IN, MIDI OUT):**
+   - Monitor UART buffer activity
+   - LED pulse (50-100ms) on message detection
+   - Debounce to prevent flickering
+
+**Power Consumption:**
+- 7 LEDs × 20mA = 140mA max (all LEDs on)
+- Typical usage: 2-3 LEDs active = 40-60mA
+- Well within Feather M4's capabilities
+
 ---
 
 ## 7. ASSEMBLY ORDER
@@ -395,23 +458,30 @@ Feather TX/RX ──→ MIDI FeatherWing (via stacking headers)
 ### Step 1: Update OpenSCAD File
 - Set correct internal dimensions (95 × 65 × 60mm)
 - Define all 8 jack positions (2 top, 6 bottom)
+- **Add 7 LED holes (3mm diameter, 7mm right of each jack)**
 - Add proper labels for all jacks
 - Ensure USB-C rectangular cutout
 - Verify MIDI jack spacing
 
 ### Step 2: Rewrite PROTOBOARD_LAYOUT.md
 - Document 90mm × 55mm custom board size
-- Complete OUTPUT board layout with MIDI FeatherWing
-- Complete INPUT board layout
+- Complete OUTPUT board layout with MIDI FeatherWing + **5 LEDs**
+- Complete INPUT board layout + **2 LEDs**
 - Include battery specifications and placement
-- Update all BOMs
+- Update all BOMs with LEDs and resistors
 
 ### Step 3: Update JACK_WIRING_GUIDE.md
 - Document all 8 jacks with correct positions
+- **Document 7 LED indicators with positions**
 - Wire color assignments
 - Connection diagrams
 
-### Step 4: Generate Preview Renders
+### Step 4: Update PIN_ALLOCATION_MATRIX.md
+- **Allocate 7 GPIO pins for LEDs (D4, D11, D12, A0, A1, A2, A5)**
+- Mark pins as "In Use" for LED control
+- Document detection logic for each LED
+
+### Step 5: Generate Preview Renders
 - Full assembly view
 - Back panel detail view
 - Top panel view
@@ -426,6 +496,16 @@ Feather TX/RX ──→ MIDI FeatherWing (via stacking headers)
 3. **USB-C breakout specific model?** Need part number for exact mounting holes
 4. **Jack spacing refinement?** Proposed positions - verify they're comfortable for patching
 
+## ✅ CONFIRMED ADDITIONS
+
+**Activity LED System (Added 2025-11-02):**
+- 7× 3mm white clear LEDs (ordered)
+- 7× 150Ω current limiting resistors
+- 7 GPIO pins allocated (D4, D11, D12, A0, A1, A2, A5)
+- 3mm holes positioned 7mm right of each jack
+- Simple on/off activity indication
+- Detection logic defined for inputs, outputs, and MIDI
+
 ---
 
-**Status:** PLAN COMPLETE - AWAITING APPROVAL BEFORE IMPLEMENTATION
+**Status:** PLAN COMPLETE WITH LED SYSTEM - AWAITING APPROVAL BEFORE IMPLEMENTATION
