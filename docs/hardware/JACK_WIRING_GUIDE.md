@@ -544,12 +544,247 @@ Feather M4 USB-C
 
 ---
 
-**Last Updated:** 2025-11-02
-**Status:** Complete Wiring Reference
-**Revision:** 1.0
+## LED Indicator System (Added 2025-11-02)
+
+### Overview
+
+The PRISME Translation Hub includes 7 LED activity indicators positioned next to each jack (except USB-C):
+- **5× White LEDs** (3mm flat-top): CV IN, CV OUT, CC OUT, MIDI OUT, MIDI IN
+- **2× RGB LEDs** (3mm flat-top): TRIG IN, TRIG OUT
+
+**All LEDs positioned 7mm to the right of their respective jacks**
+
+---
+
+### LED Physical Mounting
+
+**Installation Process:**
+1. Insert LED from OUTSIDE of enclosure through 3.2mm back panel hole
+2. LED should sit flush or slightly recessed (flat-top style)
+3. Bend leads 90° inside enclosure
+4. Solder leads to protoboard traces
+5. **Polarity:** Longer lead = Anode (+), Shorter lead = Cathode (-)
+
+**LED Hole Positions (from left edge):**
+- CV IN LED: 27mm (top row)
+- TRIG IN RGB: 39mm (top row)
+- CV OUT LED: 27mm (bottom row)
+- TRIG OUT RGB: 39mm (bottom row)
+- CC OUT LED: 51mm (bottom row)
+- MIDI OUT LED: 72mm (bottom row)
+- MIDI IN LED: 92mm (bottom row)
+
+---
+
+### White LED Wiring (5 total)
+
+**Circuit (same for all white LEDs):**
+```
+GPIO Pin → [150Ω resistor] → LED Anode (+)
+LED Cathode (-) → GND
+```
+
+**Individual LED Connections:**
+
+**1. CV IN LED (INPUT board):**
+```
+D4 → [R9 150Ω] → LED Anode (+)
+LED Cathode (-) → GND
+```
+
+**2. CV OUT LED (OUTPUT board):**
+```
+D12 → [R7 150Ω] → LED Anode (+)
+LED Cathode (-) → GND
+```
+
+**3. CC OUT LED (OUTPUT board):**
+```
+D25 → [R8 150Ω] → LED Anode (+)
+LED Cathode (-) → GND
+```
+
+**4. MIDI OUT LED (OUTPUT board):**
+```
+CAN_TX → [R9 150Ω] → LED Anode (+)
+LED Cathode (-) → GND
+```
+
+**5. MIDI IN LED (OUTPUT board):**
+```
+A5 → [R10 150Ω] → LED Anode (+)
+LED Cathode (-) → GND
+```
+
+**White LED Specifications:**
+- Type: 3mm flat-top clear high-efficiency
+- Forward voltage: ~3.0V
+- Operating current: ~2mA @ 3.3V GPIO
+- Power: ~7mW per LED
+
+---
+
+### RGB LED Wiring (2 total)
+
+**Circuit (common cathode):**
+```
+GPIO Red → [150Ω] → RED channel anode
+GPIO Green → [150Ω] → GREEN channel anode
+GPIO Blue → [150Ω] → BLUE channel anode
+All cathodes → Common cathode → GND
+```
+
+**RGB LED Pinout (flat side up, looking from back):**
+```
+ [R]  [G]  [B]  [Common Cathode]
+  1    2    3         4 (longest pin)
+```
+
+**1. TRIG IN RGB LED (INPUT board):**
+```
+D11 → [R10 150Ω] → RED channel anode
+D23 → [R11 150Ω] → GREEN channel anode
+D24 → [R12 150Ω] → BLUE channel anode
+Common Cathode → GND
+```
+
+**Color Behavior:**
+- **GREEN:** V-Trig mode detected (input voltage > 2.0V)
+- **RED:** S-Trig mode detected (input voltage < 1.0V)
+- **OFF:** No gate signal present
+
+**2. TRIG OUT RGB LED (OUTPUT board):**
+```
+A0 → [R11 150Ω] → RED channel anode
+A1 → [R12 150Ω] → GREEN channel anode
+A2 → [R13 150Ω] → BLUE channel anode
+Common Cathode → GND
+```
+
+**Color Behavior:**
+- **GREEN:** V-Trig mode active (DAC Ch C outputting 0-5V)
+- **RED:** S-Trig mode active (NPN pulling to GND)
+- **OFF:** No gate output
+
+**RGB LED Specifications:**
+- Type: 3mm flat-top clear common cathode
+- Forward voltage: Red ~2.0V, Green/Blue ~3.0V
+- Operating current: Red ~8.7mA, Green/Blue ~2mA @ 3.3V GPIO
+- Power: ~15-30mW (only one color active at a time)
+
+---
+
+### LED Wire Routing
+
+**Best Practices:**
+1. **Keep LED wires short** (<50mm) to minimize voltage drop
+2. **Route along board edges** to avoid interference with jacks
+3. **Use consistent color coding:**
+   - GPIO control wires: ORANGE
+   - GND returns: BLACK
+   - RGB channels: RED/GREEN/BLUE wires
+4. **Secure wires** with small zip ties or adhesive clips
+5. **Avoid crossing** analog signal traces
+
+**Physical Layout:**
+```
+BACK PANEL (outside view):
+[Jack] 7mm gap [LED]
+  ○               ●
+  └───────────────┘
+        wires routed inside enclosure
+```
+
+---
+
+### LED Resistor Summary
+
+**Total 150Ω resistors needed per build:**
+- 5× for white LEDs (single resistor each)
+- 6× for RGB LEDs (3 resistors × 2 LEDs)
+- **Total: 11× 150Ω 1/4W resistors**
+
+**Power Budget:**
+- 5 white LEDs: 5 × 2mA = 10mA
+- 2 RGB LEDs: 2 × 3mA (avg) = 6mA
+- **Total typical: ~16-20mA** (negligible battery impact)
+
+---
+
+### LED Testing Checklist
+
+After LED installation:
+
+1. ✓ All LEDs press-fit securely in 3.2mm holes
+2. ✓ LEDs sit flush or slightly recessed (not protruding)
+3. ✓ Polarity correct (longer lead = anode, to resistor)
+4. ✓ All 150Ω resistors installed (11 total)
+5. ✓ No shorts between adjacent LED pins
+6. ✓ White LEDs illuminate when GPIO driven HIGH
+7. ✓ RGB LEDs show red/green/blue when respective pins driven
+8. ✓ RGB common cathodes tied to GND
+9. ✓ LEDs visible from patching angle (side view)
+10. ✓ No flickering (indicates loose connection)
+
+**Test Procedure:**
+```python
+# Test white LED (e.g., CV IN on D4)
+import board
+import digitalio
+
+led = digitalio.DigitalInOut(board.D4)
+led.direction = digitalio.Direction.OUTPUT
+led.value = True  # Should illuminate
+
+# Test RGB LED (e.g., TRIG OUT on A0/A1/A2)
+red = digitalio.DigitalInOut(board.A0)
+green = digitalio.DigitalInOut(board.A1)
+blue = digitalio.DigitalInOut(board.A2)
+
+red.direction = digitalio.Direction.OUTPUT
+green.direction = digitalio.Direction.OUTPUT
+blue.direction = digitalio.Direction.OUTPUT
+
+red.value = True   # Should show RED
+green.value = True # Should show GREEN
+blue.value = True  # Should show BLUE
+```
+
+---
+
+### LED Troubleshooting
+
+**LED Not Illuminating:**
+- Check polarity (anode to resistor, cathode to GND)
+- Verify 150Ω resistor installed
+- Test GPIO pin output with multimeter (should be 3.3V when HIGH)
+- Check for cold solder joints on LED leads
+
+**LED Too Dim:**
+- Verify 150Ω resistor value (not higher)
+- Check for voltage drop in wiring (use shorter wires)
+- Ensure GPIO pin providing full 3.3V
+
+**RGB LED Wrong Color:**
+- Verify pin assignments (R/G/B to correct GPIO pins)
+- Check common cathode connection to GND
+- Test each channel individually
+
+**LED Flickering:**
+- Check for loose wire connections
+- Verify solid solder joints
+- Ensure GND connection stable
+- Check for software PWM interference
+
+---
+
+**Last Updated:** 2025-11-02 (added LED system)
+**Status:** Complete Wiring Reference with LED Indicators
+**Revision:** 2.0
 
 **Related Documents:**
-- `PROTOBOARD_LAYOUT.md` - Component placement maps
+- `PROTOBOARD_LAYOUT.md` - Component placement maps with LED positions
 - `CV_INPUT_SYSTEM.md` - Input circuit specifications
-- `PIN_ALLOCATION_MATRIX.md` - Feather pin assignments
+- `PIN_ALLOCATION_MATRIX.md` - Complete pin assignments including LEDs
 - `OUTPUT_JACK_WIRING.md` - Output jack color conventions
+- `REBUILD_PLAN.md` - Complete hardware design with LED system

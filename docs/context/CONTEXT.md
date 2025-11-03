@@ -9,11 +9,38 @@
 
 ## Session Handoff
 
-**Last Updated:** 2025-11-02 (Session 20 - 3D ENCLOSURE COMPLETE - READY TO FABRICATE)
-**Session Status:** ✅ COMPLETE - Hardware design ready for 3D printing and assembly
-**Token Usage:** ~154K / 200K
+**Last Updated:** 2025-11-02 (Session 21 - LED INDICATOR SYSTEM ADDED TO HARDWARE DESIGN)
+**Session Status:** 🔧 IN PROGRESS - Adding visual feedback system to enclosure/protoboards
+**Token Usage:** ~100K / 200K
 
-### Current Session Summary (Session 20)
+### Current Session Summary (Session 21)
+**What was accomplished:**
+- ✅ **LED INDICATOR SYSTEM FULLY INTEGRATED**
+  - 7 LED activity indicators added to hardware design:
+    - 5× white 3mm flat-top LEDs: CV IN, CV OUT, CC OUT, MIDI OUT, MIDI IN
+    - 2× RGB 3mm flat-top LEDs: TRIG IN, TRIG OUT (mode + activity indication)
+  - RGB LEDs show V-Trig (green) vs S-Trig (red) mode visually
+  - All LEDs positioned 7mm to right of respective jacks
+  - 11× 150Ω current limiting resistors (total power: ~16-20mA)
+- ✅ **ENCLOSURE DESIGN UPDATED WITH LED HOLES**
+  - `hardware/enclosure/prisme_enclosure.scad` completely rewritten
+  - Internal dimensions increased: 95mm × 65mm × 60mm (from 83mm × 58mm × 50mm)
+  - NEW back panel layout: 2 rows (TOP: CV IN, TRIG IN | BOTTOM: USB-C, CV OUT, TRIG OUT, CC OUT, MIDI OUT, MIDI IN)
+  - 7× 3.2mm LED holes added (press-fit for flat-top 3mm LEDs)
+  - All jack positions recalculated with exact 12mm/20mm spacing
+  - New protoboard size: 90mm × 55mm (custom cut from ElectroCookie stock)
+- ✅ **ALL HARDWARE DOCUMENTATION UPDATED**
+  - `PROTOBOARD_LAYOUT.md`: Completely rewritten with LED circuits, updated BOMs, LED power budget
+  - `PIN_ALLOCATION_MATRIX.md`: 11 GPIO pins allocated for LEDs (D4, D11-12, D23-25, A0-2, A5, CAN_TX)
+  - `JACK_WIRING_GUIDE.md`: Added complete LED wiring section (white + RGB circuits, testing, troubleshooting)
+  - `REBUILD_PLAN.md`: RGB LED specifications and mode indication documented
+- ✅ **DETAILED MEASUREMENTS CALCULATED**
+  - Exact jack X-positions from left edge: 8, 20, 32, 44, 65, 85mm (bottom row); 20, 32mm (top row)
+  - Jack Y-heights from base: 15mm (bottom row), 27mm (top row)
+  - LED positions: Jack X + 7mm offset
+  - Verified all components fit within 95mm width (92mm + 3mm margin = 95mm internal)
+
+### Previous Session Summary (Session 20)
 **What was accomplished:**
 - ✅ **COMPLETE 3D-PRINTABLE ENCLOSURE DESIGNED**
   - Parametric OpenSCAD design: `hardware/enclosure/prisme_enclosure.scad`
