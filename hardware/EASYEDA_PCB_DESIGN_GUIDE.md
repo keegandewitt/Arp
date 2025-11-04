@@ -46,23 +46,25 @@ No battery, powerboost, JST connectors, or power switch needed!
 | Qty | Component | Description | Supplier | Part# | Notes |
 |-----|-----------|-------------|----------|-------|-------|
 | 1 | Feather M4 CAN Express | Main MCU | Adafruit | 4759 | ATSAMD51J19 |
-| 1 | MIDI FeatherWing | MIDI I/O | Adafruit | 4740 | UART-based |
 | 1 | OLED FeatherWing | 128×64 display | Adafruit | 4650 | I2C 0x3C |
 | 1 | MCP4728 | 4-ch 12-bit DAC | Adafruit | 4470 | I2C 0x60 |
+| ~~1~~ | ~~MIDI FeatherWing~~ | ~~MIDI I/O~~ | ~~Adafruit~~ | ~~4740~~ | **REMOVED - using discrete circuits** |
 
 ### Semiconductors:
 | Qty | Component | Description | Package | Supplier | Part# |
 |-----|-----------|-------------|---------|----------|-------|
-| 2 | BAT85 | Schottky diode 30V 200mA | DO-35 | Amazon | [ALLECIN 100pcs](https://www.amazon.com/ALLECIN-BAT85-Schottky-Rectifier-Switching/dp/B0CKSNPVH8/) |
+| 1 | 6N138 | High-speed optocoupler | DIP-8 | Digikey/Mouser | Generic |
+| 3 | BAT85 | Schottky diode 30V 200mA | DO-35 | Amazon | [ALLECIN 100pcs](https://www.amazon.com/ALLECIN-BAT85-Schottky-Rectifier-Switching/dp/B0CKSNPVH8/) |
 | 1 | 2N3904 | NPN transistor | TO-92 | Any | Generic |
 | 7 | White LED | 3mm status LED | 3mm | Any | Generic | All indicators simplified to white |
 
 ### Resistors (1/4W, 5% or 1%):
 | Qty | Value | Purpose | Designators |
 |-----|-------|---------|-------------|
-| 4 | 10kΩ | Input voltage dividers | R1, R2, R4, R5 |
+| 4 | 10kΩ | Input voltage dividers (CV/TRIG) | R1, R2, R4, R5 |
 | 5 | 100Ω | Output series protection | R_OUT1-4, R_STRIG |
-| 1 | 1kΩ | Transistor base (S-Trig) | R_BASE |
+| 4 | 1kΩ | S-Trig transistor base + MIDI IN optocoupler | R_BASE, R_MIDI_IN1-3 |
+| 3 | 220Ω | MIDI circuits (1× IN, 2× OUT) | R_MIDI_IN4, R_MIDI_OUT1-2 |
 | 7 | **220Ω** | **LED current limiting (all white LEDs)** | **R_LED1-7** |
 
 ### Capacitors:
@@ -77,14 +79,17 @@ No battery, powerboost, JST connectors, or power switch needed!
 | 1 | 10µF | Electrolytic | 16V+ | 3.3V bulk (top) | C13 |
 | 1 | 0.1µF | Ceramic X7R | 50V | 3.3V bypass (top) | C14 |
 | 2 | 100nF | Ceramic X7R | 50V | ADC smoothing (optional) | C15, C16 |
+| 1 | 100nF | Ceramic X7R | 50V | 6N138 power decoupling | C_MIDI_IN |
+| 2 | 100pF | Ceramic | 50V | MIDI OUT EMI filter (optional) | C_MIDI_OUT1-2 |
 
 ### Connectors:
 | Qty | Type | Purpose | Notes |
 |-----|------|---------|-------|
-| 6-7 | 3.5mm TS Jack | CV/TRIG I/O | PJ-324M or equivalent |
-| 1 | USB-C Breakout | Power input | Adafruit 4090 |
-| 2 | DIN-5 (180°) | MIDI I/O | On MIDI FeatherWing |
+| 7 | 3.5mm TS Jack | CV/TRIG I/O | PJ-324M or equivalent (2 IN, 5 OUT) |
+| 1 | USB-C Breakout | Power input | Adafruit 4090 (bottom board) |
+| 2 | DIN-5 (180° female) | MIDI I/O | Panel mount (1 IN top, 1 OUT bottom) |
 | 1 | Stacking headers | Feather connection | Female headers |
+| 1 | 2×8 pin header | Inter-board bus | Male (bottom) + Female (top) |
 
 ### Hardware:
 | Qty | Part | Size | Purpose |

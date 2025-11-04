@@ -1,6 +1,6 @@
 # Current Production-Ready Schematics
 
-**Last Updated:** 2025-11-04 (Session 27)
+**Last Updated:** 2025-11-04 (Session 27 - Discrete MIDI Circuits)
 **Purpose:** These are the FINAL, clean schematics for PCB design in EasyEDA
 
 ---
@@ -155,10 +155,11 @@ All 7 LED indicators shown in unified schematic (all white 3mm LEDs with 220Ω r
 - Feather M4 CAN Express (main MCU)
 - MCP4728 4-channel 12-bit DAC (I2C 0x60)
 - OLED FeatherWing 128×64 (I2C 0x3C) - STACKED ON TOP BOARD
-- MIDI FeatherWing (UART TX/RX) - BOTTOM BOARD (not stacked, far left)
-- 2× BAT85 Schottky diodes (input protection)
-- 1× 2N3904 NPN transistor (S-Trig circuit)
+- 6N138 optocoupler (MIDI IN circuit, TOP BOARD)
+- 3× BAT85 Schottky diodes (2× CV/TRIG input protection, 1× MIDI IN protection)
+- 1× 2N3904 NPN transistor (S-Trig circuit, BOTTOM BOARD)
 - 7× white 3mm LEDs (all indicators simplified)
+- 2× 5-pin DIN jacks (MIDI IN on top, MIDI OUT on bottom)
 - Various resistors and capacitors (see schematics)
 
 ---

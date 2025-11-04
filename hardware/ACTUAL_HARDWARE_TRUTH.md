@@ -1,6 +1,6 @@
 # ACTUAL Hardware Truth - Reality vs Documentation Fiction
 
-**Date:** 2025-11-04 (Session 27 - Power System Simplified)
+**Date:** 2025-11-04 (Session 27 - Power Simplified + Discrete MIDI Circuits)
 **Purpose:** Single source of truth for what's ACTUALLY built
 **Status:** ✅ VERIFIED with user + breadboard photo analysis
 
@@ -43,11 +43,10 @@ Feather M4 USB pin
 - Regulator capacity: 500mA (more than sufficient)
 - Powers:
   - OLED FeatherWing (I2C display) - ~20mA
-  - MIDI FeatherWing (UART I/O) - ~15mA
-  - 4× White status LEDs - ~8mA
-  - 3× RGB LED channels (6 total) - ~20mA
+  - MIDI IN optocoupler (6N138 output side) - ~5mA
+  - 7× White status LEDs - ~14mA
   - BAT85 input clamps (if needed)
-  - **Total typical: ~65mA, max ~100mA**
+  - **Total typical: ~40mA, max ~60mA**
 - Decoupling caps: C9 (10µF electrolytic) + C10 (0.1µF ceramic)
 - Location: Both boards (distributed power)
 
@@ -203,35 +202,47 @@ Math: Output = Input × (R2 / (R1 + R2))
 - Buttons: A, B, C (GPIO pins)
 - Status: ✅ Working on breadboard
 
-### 6. MIDI FeatherWing
+### 6. MIDI Circuits (Discrete, No FeatherWing)
 
-**Model:** Adafruit MIDI FeatherWing
-- Connection: UART (Serial1)
-- MIDI IN: RX pin
-- MIDI OUT: TX pin
-- MIDI THRU: Optional (not currently used)
-- Power: 3.3V rail
-- Status: ✅ Working on breadboard
+**MIDI IN Circuit (TOP BOARD):**
+- 6N138 optocoupler (galvanic isolation)
+- 220Ω input current limiting resistor
+- 2× 1kΩ pull-up/base resistors
+- BAT85 reverse voltage protection diode
+- 100nF decoupling capacitor
+- 5-pin DIN jack (female)
+- Connection: M4 D0 (RX pin)
+- Power: 3.3V rail (output side only)
+- Status: 📋 Planned (replacing FeatherWing)
 
-### 7. Status LEDs
+**MIDI OUT Circuit (BOTTOM BOARD):**
+- Direct drive from UART TX
+- 2× 220Ω current limiting resistors
+- 2× 100pF EMI filter capacitors (optional)
+- 5-pin DIN jack (female)
+- Connection: M4 D1 (TX pin, via inter-board header)
+- Power: 5V rail (for MIDI current loop)
+- Status: 📋 Planned (replacing FeatherWing)
 
-**LED System (all powered by 3.3V):**
+### 7. Status LEDs (Simplified System)
 
-**White Status LEDs (4×):**
-- Power LED: Shows system on
-- MIDI activity LED: Blinks on MIDI messages
-- CV activity LED: Shows CV output active
-- Mode indicator LED: Shows current mode
+**LED System (all white 3mm LEDs, all powered by 3.3V):**
 
-**RGB LED Channels (3×):**
-- TRIG IN indicator: Shows external trigger input detected
-- TRIG OUT indicator: Shows trigger output active
-- Mode/status RGB: Multi-color status indication
+**TOP BOARD (3× white LEDs):**
+- CV IN LED (D4): Shows CV input activity
+- TRIG IN LED (D11): Shows trigger input activity
+- MIDI IN LED (A2): Pulse on MIDI RX activity
+
+**BOTTOM BOARD (4× white LEDs):**
+- CV OUT LED (D12): Shows CV output activity
+- TRIG OUT LED (A0): Shows trigger output activity
+- CC OUT LED (A1): Shows CC output activity
+- MIDI OUT LED (A5): Pulse on MIDI TX activity
 
 **Total 3.3V load:**
-- 7 LED channels (4 white + 3 RGB)
-- Each LED: ~2-10mA depending on brightness
-- Total max: ~70mA (within M4 3.3V regulator capacity of 500mA)
+- 7× white LEDs @ 220Ω each
+- Current per LED: ~2mA
+- Total: ~14mA (negligible load on 500mA regulator)
 
 ### 8. I2C Bus Architecture
 
@@ -327,43 +338,58 @@ Math: Output = Input × (R2 / (R1 + R2))
 
 **Main Boards:**
 - 1× Adafruit Feather M4 CAN Express
-- 1× Adafruit MIDI FeatherWing
 - 1× Adafruit OLED FeatherWing 128x64
+- ~~1× Adafruit MIDI FeatherWing~~ → Replaced with discrete circuits
 
 **DAC and Analog:**
 - 1× MCP4728 4-channel I2C DAC
 
+**ICs:**
+- 1× 6N138 optocoupler (MIDI IN circuit, TOP BOARD)
+
+**Diodes:**
+- 2× BAT85 Schottky diodes (CV/TRIG input protection)
+- 1× BAT85 Schottky diode (MIDI IN reverse voltage protection)
+
 **Transistors:**
-- 1× 2N3904 NPN transistor (for S-Trig)
+- 1× 2N3904 NPN transistor (S-Trig circuit, BOTTOM BOARD)
 
 **Resistors:**
-- 4× 10kΩ resistors (voltage dividers on inputs)
-- 4× 100Ω resistors (series protection on outputs)
-- 1× 1kΩ resistor (transistor base)
-- 7× 220Ω resistors for LED current limiting (one per white LED indicator)
+- 4× 10kΩ resistors (voltage dividers on CV/TRIG inputs)
+- 4× 100Ω resistors (series protection on DAC outputs)
+- 1× 1kΩ resistor (S-Trig transistor base)
+- 3× 1kΩ resistors (MIDI IN circuit: 1× input, 2× optocoupler)
+- 3× 220Ω resistors (MIDI circuits: 1× IN, 2× OUT)
+- 7× 220Ω resistors (LED current limiting, one per white LED indicator)
 
 **Capacitors:**
-- 1× 47µF electrolytic (C1, 5V bulk)
-- 1× 0.1µF ceramic (C2, 5V bypass)
-- 2× 100nF ceramic (possibly on ADC inputs, TBD)
+- 1× 47µF electrolytic (C1, 5V bulk, MCP4728 power)
+- 1× 0.1µF ceramic (C2, 5V bypass, MCP4728 power)
+- 1× 100nF ceramic (6N138 power decoupling)
+- 2× 100nF ceramic (possibly on CV/TRIG ADC inputs, TBD)
+- 2× 100pF ceramic (optional MIDI OUT EMI filtering)
 - 10µF + 0.1µF for 3.3V rail (likely present, needs verification)
 
 **Connectors:**
-- 6-7× 3.5mm mono jacks (TS connectors):
-  - CV OUT
-  - TRIG OUT (testing with VB currently)
-  - CC OUT (planned)
-  - CV IN
-  - TRIG IN
-  - Possibly 1-2 more
+- 7× 3.5mm mono jacks (TS connectors):
+  - CV OUT (BOTTOM)
+  - TRIG OUT (BOTTOM)
+  - S-TRIG OUT (BOTTOM)
+  - CC OUT (BOTTOM)
+  - CV IN (TOP)
+  - TRIG IN (TOP)
+  - USB-C (BOTTOM, power only)
+- 2× 5-pin DIN jacks (female, panel mount):
+  - MIDI IN (TOP)
+  - MIDI OUT (BOTTOM)
 
 **LEDs:**
-- 4× White LEDs (status indicators)
-- 3× RGB LED channels (or 3 separate RGB LEDs)
+- 7× White 3mm LEDs (all status indicators):
+  - 3× TOP BOARD (CV IN, TRIG IN, MIDI IN)
+  - 4× BOTTOM BOARD (CV OUT, TRIG OUT, CC OUT, MIDI OUT)
 
 **Power:**
-- USB cable (5V power source)
-- OR Adafruit Powerboost (LiPo battery to 5V)
+- USB-C cable (5V power source, USB-only design)
 
 ### Components Needed (Not Yet on Breadboard):
 

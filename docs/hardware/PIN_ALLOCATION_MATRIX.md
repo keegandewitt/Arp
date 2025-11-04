@@ -2,7 +2,7 @@
 
 **SINGLE SOURCE OF TRUTH for all pin assignments**
 
-**Last Updated:** 2025-11-02
+**Last Updated:** 2025-11-04
 **Hardware:** Adafruit Feather M4 CAN Express
 **Purpose:** Central reference for all pin usage - prevents conflicts
 
@@ -20,8 +20,8 @@ Any code that uses GPIO pins MUST reference this matrix.
 
 | Pin | Status | Function | Hardware | Notes |
 |-----|--------|----------|----------|-------|
-| **D0 (RX)** | 🔵 In Use | MIDI In (UART RX) | MIDI FeatherWing | **BOTTOM BOARD (not stacked)** |
-| **D1 (TX)** | 🔵 In Use | MIDI Out (UART TX) | MIDI FeatherWing | **BOTTOM BOARD (not stacked)** |
+| **D0 (RX)** | 🔵 In Use | MIDI In (UART RX) | 6N138 optocoupler circuit | **TOP BOARD (with other inputs)** |
+| **D1 (TX)** | 🔵 In Use | MIDI Out (UART TX) | Direct drive via 220Ω resistors | **BOTTOM BOARD (via header)** |
 | **D4** | 🔵 In Use | **CV IN LED** | **White LED (3mm)** | **Activity indicator** |
 | **D5** | 🔵 In Use | Button A | OLED FeatherWing | Fire gate pulse |
 | **D6** | 🔵 In Use | Button B | OLED FeatherWing | Toggle gate mode |
@@ -37,10 +37,10 @@ Any code that uses GPIO pins MUST reference this matrix.
 | **D25 (SCK)** | ✅ Available | - | - | Freed from CC OUT LED (moved to A1) |
 | **A0** | 🔵 In Use | **TRIG OUT LED** | **White LED (3mm)** | **Activity indicator** |
 | **A1** | 🔵 In Use | **CC OUT LED** | **White LED (3mm)** | **Activity indicator** |
-| **A2** | 🔵 In Use | **MIDI OUT LED** | **White LED (3mm)** | **TX activity indicator** |
-| **A3** | 🔵 In Use | **CV Pitch Input** | **Voltage Divider (20k/22k)** | **1V/octave (0-5V)** |
-| **A4** | 🔵 In Use | **Gate Input** | **Voltage Divider (20k/22k)** | **V-Trig/S-Trig modes** |
-| **A5** | 🔵 In Use | **MIDI IN LED** | **White LED (3mm)** | **RX activity indicator** |
+| **A2** | 🔵 In Use | **MIDI IN LED** | **White LED (3mm)** | **RX activity indicator (TOP BOARD)** |
+| **A3** | 🔵 In Use | **CV Pitch Input** | **Voltage Divider (10k/10k)** | **1V/octave (0-5V)** |
+| **A4** | 🔵 In Use | **Gate Input** | **Voltage Divider (10k/10k)** | **V-Trig/S-Trig modes** |
+| **A5** | 🔵 In Use | **MIDI OUT LED** | **White LED (3mm)** | **TX activity indicator (BOTTOM BOARD via header)** |
 | **NEOPIXEL** | 🔵 In Use | Onboard RGB LED | Built-in | Status indicator |
 | **CAN_RX** | ✅ Available | CAN Bus RX | - | Not currently used |
 | **CAN_TX** | ✅ Available | CAN Bus TX | - | Not currently used |
@@ -53,7 +53,6 @@ Any code that uses GPIO pins MUST reference this matrix.
 |---------|--------|--------|---------|
 | **0x3C** | SH1107 OLED | 🔵 In Use | 128x64 display |
 | **0x60** | MCP4728 DAC | 🔵 In Use | 4-channel CV/Gate output |
-| **0x4D** | MIDI FeatherWing | 🔶 Reserved | Not yet installed |
 
 ---
 
@@ -234,11 +233,11 @@ D10 (GPIO) → 1kΩ resistor → Transistor BASE
 |------|----------|----------|-------|----------|----------|
 | **CV IN** | White 3mm | D4 | TOP | 220Ω | ON when voltage detected on A3 |
 | **TRIG IN** | White 3mm | D11 | TOP | 220Ω | ON when voltage detected on A4 |
+| **MIDI IN** | White 3mm | A2 | TOP | 220Ω | Pulse on UART RX activity |
 | **CV OUT** | White 3mm | D12 | BOTTOM | 220Ω | ON when DAC Ch A active |
 | **TRIG OUT** | White 3mm | A0 | BOTTOM | 220Ω | ON when gate output active (Ch B) |
 | **CC OUT** | White 3mm | A1 | BOTTOM | 220Ω | ON when DAC Ch C active |
-| **MIDI OUT** | White 3mm | A2 | BOTTOM | 220Ω | Pulse on UART TX activity |
-| **MIDI IN** | White 3mm | A5 | BOTTOM | 220Ω | Pulse on UART RX activity |
+| **MIDI OUT** | White 3mm | A5 | BOTTOM | 220Ω | Pulse on UART TX activity |
 
 ### Hardware Specifications
 
