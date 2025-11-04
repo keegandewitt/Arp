@@ -59,7 +59,7 @@
 ### UNIFIED_SYSTEM_SCHEMATIC_V2.svg
 **What it shows:**
 - Complete system architecture
-- All 7 LED indicators (5 white, 2 RGB)
+- All 7 LED indicators (all white 3mm LEDs with 220Ω resistors)
 - Input circuits (CV IN, TRIG IN) with voltage dividers
 - Output circuits (CV OUT, TRIG OUT, CC OUT) with MCP4728 DAC
 - MIDI circuits (IN/OUT) via FeatherWing
@@ -71,6 +71,7 @@
 - All resistor values labeled
 - LED pin assignments clearly marked
 - Component summary table included
+- Simplified LED system (no RGB complexity)
 
 ### M4_PIN_ASSIGNMENTS.svg
 **What it shows:**
@@ -93,10 +94,10 @@
 **What it shows:**
 - TRIG IN jack → voltage divider (10kΩ + 10kΩ) → A4 ADC
 - BAT85 diode clamp to 3.3V
-- RGB LED indicator (D11/D23/D24) with 220Ω resistors
+- White LED indicator (D11) with 220Ω resistor
 - Optional 100nF smoothing capacitor
 
-**RGB colors:** Red (S-Trig mode), Green (V-Trig mode), Blue (reserved)
+**LED behavior:** Brightness proportional to gate voltage (PWM capable)
 
 ### BOTTOM_PCB_DAC_OUTPUTS.svg
 **What it shows:**
@@ -111,7 +112,7 @@
 **What it shows:**
 - GPIO D10 → 220Ω resistor → 2N3904 NPN transistor
 - Collector → 100Ω protection → S-Trig output jack
-- RGB LED indicator (A0/A1/A2) showing V-Trig vs S-Trig mode
+- White LED indicator (A0) with 220Ω resistor showing gate state
 
 **Operation:** GPIO HIGH = jack pulls to GND (true S-Trig)
 
@@ -129,20 +130,20 @@
 
 ## 🔍 LED Indicator Reference
 
-All 7 LED indicators shown in unified schematic:
+All 7 LED indicators shown in unified schematic (all white 3mm LEDs with 220Ω resistors):
 
 **Input LEDs (TOP PCB):**
-1. D4 - CV IN activity (white)
-2. D11/D23/D24 - TRIG IN mode indicator (RGB)
+1. D4 - CV IN activity (white, PWM capable for brightness proportional to voltage)
+2. D11 - TRIG IN activity (white, PWM capable for brightness proportional to gate)
 
 **Output LEDs (BOTTOM PCB):**
-3. D12 - CV OUT activity (white)
-4. A0/A1/A2 - TRIG OUT mode indicator (RGB)
-5. D25 - CC OUT activity (white)
+3. D12 - CV OUT activity (white, PWM capable for brightness proportional to voltage)
+4. A0 - TRIG OUT gate state (white, PWM capable for brightness proportional to gate)
+5. D25 - CC OUT activity (white, PWM capable for brightness proportional to voltage)
 
 **MIDI LEDs (MIDI FeatherWing):**
-6. CAN_TX - MIDI OUT activity (white)
-7. A5 - MIDI IN activity (white)
+6. CAN_TX - MIDI OUT activity (white, pulse on TX)
+7. A5 - MIDI IN activity (white, pulse on RX)
 
 ---
 
@@ -157,7 +158,7 @@ All 7 LED indicators shown in unified schematic:
 - MIDI FeatherWing (UART) - BREADBOARD
 - 2× BAT85 Schottky diodes (input protection)
 - 1× 2N3904 NPN transistor (S-Trig circuit)
-- 5× white 3mm LEDs + 2× RGB 5mm LEDs
+- 7× white 3mm LEDs (all indicators simplified)
 - Various resistors and capacitors (see schematics)
 
 ---
@@ -191,6 +192,6 @@ Before using these schematics for PCB design:
 
 ---
 
-**Status:** ✅ Production-ready
+**Status:** ✅ Production-ready (LED system simplified to 7 white LEDs)
 **Session:** 27 (2025-11-04)
 **Next:** Use these schematics to design PCBs in EasyEDA

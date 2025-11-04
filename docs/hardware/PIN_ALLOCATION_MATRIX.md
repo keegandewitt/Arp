@@ -27,17 +27,17 @@ Any code that uses GPIO pins MUST reference this matrix.
 | **D6** | 🔵 In Use | Button B | OLED FeatherWing | Toggle gate mode |
 | **D9** | 🔵 In Use | Button C | OLED FeatherWing | (Future: pattern select) |
 | **D10** | 🔵 In Use | **S-Trig GPIO** | **NPN Transistor Circuit** | **True S-Trig output** |
-| **D11** | 🔵 In Use | **TRIG IN LED (Red)** | **RGB LED channel** | **S-Trig mode indicator** |
+| **D11** | 🔵 In Use | **TRIG IN LED** | **White LED (3mm)** | **Activity indicator** |
 | **D12** | 🔵 In Use | **CV OUT LED** | **White LED (3mm)** | **Activity indicator** |
 | **D13** | 🔵 In Use | LED Status | Onboard LED | Visual feedback |
 | **D21 (SDA)** | 🔵 In Use | I2C Data | OLED + MCP4728 | Shared bus |
 | **D22 (SCL)** | 🔵 In Use | I2C Clock | OLED + MCP4728 | Shared bus |
-| **D23 (MOSI)** | 🔵 In Use | **TRIG IN LED (Green)** | **RGB LED channel** | **V-Trig mode indicator** |
-| **D24 (MISO)** | 🔵 In Use | **TRIG IN LED (Blue)** | **RGB LED channel** | **Reserved (unused)** |
+| **D23 (MOSI)** | ✅ Available | - | - | Freed from RGB LED |
+| **D24 (MISO)** | ✅ Available | - | - | Freed from RGB LED |
 | **D25 (SCK)** | 🔵 In Use | **CC OUT LED** | **White LED (3mm)** | **Activity indicator** |
-| **A0** | 🔵 In Use | **TRIG OUT LED (Red)** | **RGB LED channel** | **S-Trig mode indicator** |
-| **A1** | 🔵 In Use | **TRIG OUT LED (Green)** | **RGB LED channel** | **V-Trig mode indicator** |
-| **A2** | 🔵 In Use | **TRIG OUT LED (Blue)** | **RGB LED channel** | **Reserved (unused)** |
+| **A0** | 🔵 In Use | **TRIG OUT LED** | **White LED (3mm)** | **Activity indicator** |
+| **A1** | ✅ Available | - | - | Freed from RGB LED |
+| **A2** | ✅ Available | - | - | Freed from RGB LED |
 | **A3** | 🔵 In Use | **CV Pitch Input** | **Voltage Divider (20k/22k)** | **1V/octave (0-5V)** |
 | **A4** | 🔵 In Use | **Gate Input** | **Voltage Divider (20k/22k)** | **V-Trig/S-Trig modes** |
 | **A5** | 🔵 In Use | **MIDI IN LED** | **White LED (3mm)** | **RX activity indicator** |
@@ -129,15 +129,15 @@ External Input (0-5V)
 ## Pin Usage Statistics
 
 - **Total GPIO Pins:** 26
-- **Currently In Use:** 21 pins
+- **Currently In Use:** 17 pins
   - **Buttons:** D5, D6, D9 (3 pins)
   - **S-Trig Circuit:** D10 (1 pin)
   - **I2C Bus:** D21, D22 (2 pins)
   - **CV/Gate Inputs:** A3, A4 (2 pins)
-  - **LED Indicators:** D4, D11, D12, D23, D24, D25, A0, A1, A2, A5, CAN_TX (11 pins)
+  - **LED Indicators:** D4, D11, D12, D25, A0, A5, CAN_TX (7 pins - all white LEDs)
   - **Status LEDs:** D13, NEOPIXEL (2 pins)
 - **Reserved:** 2 (D0, D1 for MIDI)
-- **Available:** 3 pins remaining (CAN_RX + 2 others)
+- **Available:** 7 pins (CAN_RX, D23, D24, A1, A2, + 2 others)
 
 ---
 
@@ -226,54 +226,32 @@ D10 (GPIO) → 1kΩ resistor → Transistor BASE
 
 ---
 
-## LED Indicator System (Added 2025-11-02)
+## LED Indicator System (Simplified 2025-11-04)
 
-### Complete LED Pin Mapping
+### Complete LED Pin Mapping - All White 3mm LEDs
 
-| Jack | LED Type | Pins Used | Board | Detection Logic | Behavior |
-|------|----------|-----------|-------|-----------------|----------|
-| **CV IN** | White 3mm | D4 | INPUT | Monitor A3 ADC @ 100Hz | ON when voltage > 0.1V |
-| **TRIG IN** | RGB 3mm | D11 (R), D23 (G), D24 (B) | INPUT | Monitor A4 ADC + mode | GREEN (V-Trig >2V), RED (S-Trig <1V) |
-| **CV OUT** | White 3mm | D12 | OUTPUT | Software controlled | ON when DAC Ch A active |
-| **TRIG OUT** | RGB 3mm | A0 (R), A1 (G), A2 (B) | OUTPUT | Software controlled + mode | GREEN (V-Trig mode), RED (S-Trig mode) |
-| **CC OUT** | White 3mm | D25 | OUTPUT | Software controlled | ON when DAC Ch B active |
-| **MIDI OUT** | White 3mm | CAN_TX | OUTPUT | Monitor UART TX buffer | Pulse 50ms on TX activity |
-| **MIDI IN** | White 3mm | A5 | OUTPUT | Monitor UART RX buffer | Pulse 50ms on RX activity |
+| Jack | LED Type | GPIO Pin | Board | Resistor | Behavior |
+|------|----------|----------|-------|----------|----------|
+| **CV IN** | White 3mm | D4 | TOP | 220Ω | ON when voltage detected on A3 |
+| **TRIG IN** | White 3mm | D11 | TOP | 220Ω | ON when voltage detected on A4 |
+| **CV OUT** | White 3mm | D12 | BOTTOM | 220Ω | ON when DAC Ch A active |
+| **TRIG OUT** | White 3mm | A0 | BOTTOM | 220Ω | ON when gate output active |
+| **CC OUT** | White 3mm | D25 | BOTTOM | 220Ω | ON when DAC Ch D active |
+| **MIDI OUT** | White 3mm | CAN_TX | BOTTOM | 220Ω | Pulse on UART TX activity |
+| **MIDI IN** | White 3mm | A5 | BOTTOM | 220Ω | Pulse on UART RX activity |
 
 ### Hardware Specifications
 
-**White LEDs (5 total):**
+**White LEDs (7 total):**
 - Type: 3mm flat-top clear high-efficiency
 - Forward voltage: ~3.0V
 - Current limiting: 220Ω resistor per LED
 - Operating current: ~2mA @ 3.3V GPIO
 - Power per LED: ~7mW
 
-**RGB LEDs (2 total):**
-- Type: 3mm flat-top clear common cathode
-- Forward voltage: Red ~2.0V, Green/Blue ~3.0V
-- Current limiting: 220Ω resistor per channel (6 resistors total)
-- Operating current: Red ~8.7mA, Green/Blue ~2mA @ 3.3V GPIO
-- Power per LED: ~15-30mW (one channel active at a time)
-
 **Total Power Budget:**
-- White LEDs: 5 × 2mA = 10mA
-- RGB LEDs: 2 × ~3mA (avg) = 6mA
-- **Total typical: ~16-20mA** (negligible load on USB 3.3V regulator)
-
-### RGB LED Color Codes
-
-**TRIG IN (monitoring external gate input):**
-- **GREEN:** V-Trig mode detected (voltage > 2.0V)
-- **RED:** S-Trig mode detected (voltage < 1.0V)
-- **OFF:** No gate signal present
-- **Brightness:** Varies with signal strength
-
-**TRIG OUT (software-controlled gate output):**
-- **GREEN:** V-Trig mode active (DAC Ch C outputting 0-5V)
-- **RED:** S-Trig mode active (NPN transistor pulling to GND)
-- **OFF:** No gate output
-- **Brightness:** Varies with gate activity
+- White LEDs: 7 × 2mA = 14mA
+- **Total typical: ~14mA** (negligible load on USB 3.3V regulator)
 
 ### Physical Mounting
 
@@ -288,11 +266,12 @@ D10 (GPIO) → 1kΩ resistor → Transistor BASE
 1. **Input Monitoring (CV IN, TRIG IN):**
    - Periodic ADC sampling @ 100Hz
    - Threshold detection for activity
-   - Mode awareness for RGB (V-Trig vs S-Trig)
+   - Optional: PWM brightness proportional to voltage level
 
 2. **Output Status (CV OUT, TRIG OUT, CC OUT):**
    - Direct software control based on internal state
    - Real-time reflection of DAC/GPIO output state
+   - Optional: PWM brightness proportional to output voltage
 
 3. **MIDI Activity (MIDI IN, MIDI OUT):**
    - UART buffer monitoring
@@ -301,7 +280,7 @@ D10 (GPIO) → 1kΩ resistor → Transistor BASE
 
 ---
 
-**Last Updated:** 2025-11-02 (added LED system)
+**Last Updated:** 2025-11-04 (simplified to 7 white LEDs, removed RGB complexity)
 **Status:** Active - reference this document for ALL pin usage decisions
 
 **END OF MATRIX**

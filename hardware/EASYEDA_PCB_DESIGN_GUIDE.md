@@ -55,8 +55,7 @@ No battery, powerboost, JST connectors, or power switch needed!
 |-----|-----------|-------------|---------|----------|-------|
 | 2 | BAT85 | Schottky diode 30V 200mA | DO-35 | Amazon | [ALLECIN 100pcs](https://www.amazon.com/ALLECIN-BAT85-Schottky-Rectifier-Switching/dp/B0CKSNPVH8/) |
 | 1 | 2N3904 | NPN transistor | TO-92 | Any | Generic |
-| 4 | White LED | 3mm status LED | 3mm | Any | Generic |
-| 3 | RGB LED | Common cathode | 5mm | Any | Generic |
+| 7 | White LED | 3mm status LED | 3mm | Any | Generic | All indicators simplified to white |
 
 ### Resistors (1/4W, 5% or 1%):
 | Qty | Value | Purpose | Designators |
@@ -64,7 +63,7 @@ No battery, powerboost, JST connectors, or power switch needed!
 | 4 | 10kΩ | Input voltage dividers | R1, R2, R4, R5 |
 | 5 | 100Ω | Output series protection | R_OUT1-4, R_STRIG |
 | 1 | 1kΩ | Transistor base (S-Trig) | R_BASE |
-| 11 | **220Ω** | **LED current limiting (ALL LEDs)** | **R_LED1-11** |
+| 7 | **220Ω** | **LED current limiting (all white LEDs)** | **R_LED1-7** |
 
 ### Capacitors:
 | Qty | Value | Type | Voltage | Purpose | Designators |

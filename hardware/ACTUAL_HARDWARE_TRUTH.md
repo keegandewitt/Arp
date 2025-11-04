@@ -340,7 +340,7 @@ Math: Output = Input × (R2 / (R1 + R2))
 - 4× 10kΩ resistors (voltage dividers on inputs)
 - 4× 100Ω resistors (series protection on outputs)
 - 1× 1kΩ resistor (transistor base)
-- 11× 220Ω resistors for LED current limiting (standardized value for all 7 LEDs)
+- 7× 220Ω resistors for LED current limiting (one per white LED indicator)
 
 **Capacitors:**
 - 1× 47µF electrolytic (C1, 5V bulk)
