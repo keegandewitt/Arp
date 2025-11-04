@@ -31,29 +31,55 @@
 
 ## Session Handoff
 
-**Last Updated:** 2025-11-03 20:10 PST (Session 26 - Unified Schematic Work)
-**Session Status:** ⏳ IN PROGRESS - Need to solve coordinate-based layout for unified schematic
-**Token Usage:** ~82K / 200K
+**Last Updated:** 2025-11-04 (Session 27 - Power System Simplified)
+**Session Status:** ✅ MAJOR CHANGE COMPLETE - Removed battery and powerboost
+**Token Usage:** ~93K / 200K
 
-### Current Session Summary (Session 26 - Unified Schematic Work)
+### Current Session Summary (Session 27 - Power System Simplification)
+**What was accomplished:**
+- ✅ **MAJOR ARCHITECTURAL DECISION: USB-ONLY POWER**
+  - User decision: "Let's get rid of our battery, we don't need it and we can simply use our USB pin and also ditch the power boost"
+  - **Removed:** LiPo battery (500-2000mAh), Powerboost 1000C, JST connector, power switch
+  - **New architecture:** USB-C → M4 USB pin → 5V/3.3V rails (direct)
+  - **Benefits:** Simpler design, lower cost, more reliable, safer (no LiPo fire risk)
+  - **Trade-off:** No portable operation (must be plugged in, but acceptable for studio use)
+
+- ✅ **COMPREHENSIVE DOCUMENTATION UPDATED**
+  - Created `hardware/POWER_SYSTEM_SIMPLIFICATION.md` - Complete rationale and architecture
+  - Updated `hardware/ACTUAL_HARDWARE_TRUTH.md` - Section 1 rewritten for USB-only
+  - Updated `hardware/EASYEDA_PCB_DESIGN_GUIDE.md` - BOM notes, power connections verified
+  - Updated `docs/hardware/PIN_ALLOCATION_MATRIX.md` - Removed battery references
+  - Regenerated `hardware/enclosure/POWER_DISTRIBUTION.svg` - USB-only schematic
+  - Created `generate_usb_power_distribution.py` - Clean schematic generation script
+
+**Power Budget (USB-Only):**
+- USB Input: 5V @ 500mA min (USB 2.0), up to 3A (USB 3.0/PD)
+- 5V Rail: ~5mA typical (MCP4728 DAC)
+- 3.3V Rail: ~65mA typical (OLED, MIDI, LEDs)
+- Total Load: ~75mA typical, ~120mA max
+- **Margin: 4× safety factor on USB 2.0 minimum**
+
+**Files created/modified this session:**
+- `hardware/POWER_SYSTEM_SIMPLIFICATION.md` (NEW) - 250+ lines, complete documentation
+- `hardware/enclosure/generate_usb_power_distribution.py` (NEW) - Clean power schematic
+- `hardware/enclosure/POWER_DISTRIBUTION.svg` (UPDATED) - USB-only power diagram
+- `hardware/ACTUAL_HARDWARE_TRUTH.md` (UPDATED) - Power section rewritten
+- `hardware/EASYEDA_PCB_DESIGN_GUIDE.md` (UPDATED) - BOM and notes updated
+- `docs/hardware/PIN_ALLOCATION_MATRIX.md` (UPDATED) - Battery reference removed
+
+**Git commit:** d3a2256 - feat: Simplify power system - remove battery and powerboost (USB-only)
+
+### Previous Session Summary (Session 26 - Unified Schematic Work)
+**Status:** ⚠️ PAUSED - Unified schematic work interrupted by power system decision
 **What was attempted:**
-- ⏳ **IN PROGRESS: Unified system schematic for EasyEDA**
+- ⏳ **Unified system schematic for EasyEDA** (still needed)
   - User requested: "if i'm going to begin in EasyEDA, what do i need from you?"
   - Goal: Single complete schematic showing all hardware interconnections
   - **Technical challenge:** Right-side outputs (4 LEDs + S-Trig) from 5 vertically stacked M4 pins
   - Multiple iterations with overlapping components
   - **Actual problem:** Failed to calculate and use proper absolute coordinates for component placement
-  - Used improvisational `.right()` and `.down()` instead of planned `.at(x, y)` positioning
 
-**What needs to be solved:**
-1. Calculate exact Y-coordinates for M4 pins based on IC spacing parameter
-2. Plan horizontal X positions for each output component to prevent overlap
-3. Use absolute coordinate positioning instead of relative positioning
-4. Verify layout mathematically before generating
-
-**Files created this session:**
-- Multiple generate_*.py scripts (coordinate planning needed)
-- UNIFIED_SYSTEM_SCHEMATIC.svg (needs proper layout)
+**Note:** The 6 clean schematics from Session 25 are still valid and ready for EasyEDA, just need power schematic updated (now done in Session 27)
 
 ### Previous Session Summary (Session 25 - HARDWARE DOCUMENTATION OVERHAUL & PCB SCHEMATICS)
 **What was accomplished:**
