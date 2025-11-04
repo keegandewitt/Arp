@@ -385,11 +385,11 @@ Math: Output = Input × (R2 / (R1 + R2))
 1. **CV IN** → A3 ADC (with voltage divider)
 2. **TRIG IN** → A4 ADC (with voltage divider)
 
-### Outputs (3 total):
+### Outputs (3-4 total):
 1. **CV OUT** → MCP4728 Channel A (0-5V, 1V/octave)
-2. **TRIG OUT** → MCP4728 Channel C OR GPIO D10 (V-Trig or S-Trig)
-3. **CC OUT** → MCP4728 Channel D (0-5V, CC to voltage)
-4. **Channel B** → Unused/floating (reserved for future expansion)
+2. **TRIG OUT** → MCP4728 Channel B OR GPIO D10 (V-Trig or S-Trig)
+3. **CC OUT** → MCP4728 Channel C (0-5V, CC to voltage)
+4. **Future** → MCP4728 Channel D (available)
 
 ### Display/UI:
 1. **OLED** → I2C (0x3C)
@@ -442,7 +442,7 @@ MCP4728 Channel A (VA pin) → 100Ω resistor (R1) → Jack TIP
 
 ### TRIG OUT V-Trig (Actual, Currently Testing):
 ```
-MCP4728 Channel C (VC pin) → 100Ω resistor (R2) → White Jack TIP
+MCP4728 Channel B (VB pin) → 100Ω resistor (R2) → White Jack TIP
                                                      White Jack SLEEVE → GND
 ```
 

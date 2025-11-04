@@ -302,11 +302,9 @@ LED Indicator:
 - Resolution: 12-bit (4096 steps)
 - MIDI mapping: Note 0 = 0V, Note 60 = 5V
 
-**Note:** MCP4728 Channel B (VB pin) is **unused/floating** and reserved for future expansion.
-
-#### TRIG OUT - V-Trig Mode (Channel C):
+#### TRIG OUT - V-Trig Mode (Channel B):
 ```
-MCP4728 VC Pin
+MCP4728 VB Pin
     ↓
   R2 (100Ω)
     ↓
@@ -347,9 +345,9 @@ Jack SLEEVE → GND
   M4 Pin A2 → (220Ω) → LED4 Blue → GND
 ```
 
-#### CC OUT (Channel D - MIDI CC to Voltage):
+#### CC OUT (Channel C - MIDI CC to Voltage):
 ```
-MCP4728 VD Pin
+MCP4728 VC Pin
     ↓
   R3 (100Ω)
     ↓

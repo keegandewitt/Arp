@@ -62,9 +62,9 @@ Any code that uses GPIO pins MUST reference this matrix.
 | Channel | Status | Function | Output Type | Voltage Range |
 |---------|--------|----------|-------------|---------------|
 | **Channel A** | 🔵 In Use | CV Pitch | 1V/octave | 0-5V (0-10V with LM358N) |
-| **Channel B** | ⚪ Unused | (Reserved for future) | Unused/Floating | Leave unconnected |
+| **Channel B** | ✅ Available | CV Velocity | (Future) | 0-5V |
 | **Channel C** | 🔵 In Use | **V-Trig Gate** | Standard gate | 0V idle, 5V active |
-| **Channel D** | 🔵 In Use | **CC OUT** | MIDI CC → Voltage | 0-5V |
+| **Channel D** | ✅ Available | Trigger/Accent | (Future) | 0-5V |
 
 ---
 
