@@ -259,7 +259,7 @@ D10 (GPIO) → 1kΩ resistor → Transistor BASE
 **Total Power Budget:**
 - White LEDs: 5 × 2mA = 10mA
 - RGB LEDs: 2 × ~3mA (avg) = 6mA
-- **Total typical: ~16-20mA** (negligible battery impact)
+- **Total typical: ~16-20mA** (negligible load on USB 3.3V regulator)
 
 ### RGB LED Color Codes
 

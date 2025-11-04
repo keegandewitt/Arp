@@ -1,6 +1,6 @@
 # ACTUAL Hardware Truth - Reality vs Documentation Fiction
 
-**Date:** 2025-11-03 (Session 25)
+**Date:** 2025-11-04 (Session 27 - Power System Simplified)
 **Purpose:** Single source of truth for what's ACTUALLY built
 **Status:** ✅ VERIFIED with user + breadboard photo analysis
 
@@ -17,27 +17,57 @@ Previous Claudes added components and features to documentation that were NEVER 
 
 ## ✅ WHAT YOU ACTUALLY HAVE (Verified)
 
-### 1. Power Supply System
+### 1. Power Supply System (USB-Only - Simplified!)
+
+**⚠️ MAJOR CHANGE (Session 27):** Removed battery and powerboost - USB-C only!
+
+**Power Architecture:**
+```
+USB-C Connector (5V DC)
+    ↓
+Feather M4 USB pin
+    ├──→ M4 onboard 3.3V regulator → 3.3V Rail
+    └──→ 5V Rail (direct passthrough)
+```
 
 **5V Rail:**
-- Source: Feather M4 USB pin (5V from USB or Powerboost)
-- Powers: MCP4728 DAC (VDD pin)
+- Source: **USB-C connector → Feather M4 USB pin** (direct, no battery/boost)
+- Input: 5V DC from USB port (500mA USB 2.0, up to 3A USB 3.0)
+- Powers: MCP4728 DAC (VDD pin) + future 5V devices
+- Typical load: <50mA (plenty of headroom)
 - Decoupling caps: C1 (47µF electrolytic) + C2 (0.1µF ceramic)
 - Location: Bottom board (output circuits)
 
 **3.3V Rail:**
-- Source: Feather M4 3V3 pin (onboard regulator)
+- Source: Feather M4 3V3 pin (onboard LDO from USB 5V)
+- Regulator capacity: 500mA (more than sufficient)
 - Powers:
-  - MIDI FeatherWing (entire board)
-  - 4× White status LEDs
-  - 3× RGB LED channels (TRIG IN indicator, TRIG OUT indicator, power LED)
-  - Total: 7 LED channels
-- Decoupling caps: **NEEDED but not yet documented** (should add C9 + C10)
-- Location: Bottom board
+  - OLED FeatherWing (I2C display) - ~20mA
+  - MIDI FeatherWing (UART I/O) - ~15mA
+  - 4× White status LEDs - ~8mA
+  - 3× RGB LED channels (6 total) - ~20mA
+  - BAT85 input clamps (if needed)
+  - **Total typical: ~65mA, max ~100mA**
+- Decoupling caps: C9 (10µF electrolytic) + C10 (0.1µF ceramic)
+- Location: Both boards (distributed power)
 
 **Ground:**
 - Common ground for all circuits
-- Connected to USB ground via M4
+- Connected to USB-C ground via M4 GND pins
+
+**What Was Removed:**
+- ❌ LiPo battery (500-2000mAh)
+- ❌ Powerboost 1000C module
+- ❌ JST battery connector
+- ❌ Power switch
+- ❌ Battery monitoring circuits
+
+**Why USB-Only:**
+- Simpler design (fewer components)
+- Lower cost (no battery/charger)
+- More reliable (no battery degradation)
+- Safer (no LiPo fire risk)
+- Studio/desktop use case (always plugged in)
 
 ### 2. CV/TRIG Outputs (DAC-based)
 

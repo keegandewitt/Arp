@@ -1,8 +1,15 @@
 # EasyEDA PCB Design Guide - PRISME Hardware
 
-**Date:** 2025-11-03 (Session 25)
+**Date:** 2025-11-04 (Session 27 - Power System Simplified)
 **Purpose:** Complete reference for designing custom PCBs in EasyEDA
-**Schematics:** TOP_BOARD_FINAL.svg + BOTTOM_BOARD_FINAL.svg
+**Schematics:** TOP_BOARD_FINAL.svg + BOTTOM_BOARD_FINAL.svg + POWER_DISTRIBUTION.svg
+
+---
+
+## ⚠️ MAJOR CHANGE (Session 27): Power System Simplified
+
+**Removed:** LiPo battery, Powerboost module, power switch, JST connectors
+**Now:** **USB-C power only** - much simpler design!
 
 ---
 
@@ -11,16 +18,20 @@
 ### Schematics Generated:
 1. **`hardware/enclosure/TOP_BOARD_FINAL.svg`** - Input board with protection
 2. **`hardware/enclosure/BOTTOM_BOARD_FINAL.svg`** - Output board with DAC
+3. **`hardware/enclosure/POWER_DISTRIBUTION.svg`** - USB-only power system
 
 ### Board Specifications:
 - **Size:** 90mm × 55mm each (custom-cut ElectroCookie size)
 - **Boards:** 2× stacked vertically with 10mm standoffs
 - **Main Controller:** Feather M4 CAN Express (stacks on top)
-- **Power:** USB-C 5V input, 3.3V from M4 regulator
+- **Power:** **USB-C 5V input only** (no battery!), 3.3V from M4 onboard regulator
 
 ---
 
 ## 🔧 COMPLETE BILL OF MATERIALS (BOM)
+
+**Power System Note:** This BOM reflects the **simplified USB-only design** (Session 27).
+No battery, powerboost, JST connectors, or power switch needed!
 
 ### Main Boards & Modules:
 | Qty | Component | Description | Supplier | Part# | Notes |
@@ -77,12 +88,71 @@
 
 ---
 
+## 🔌 FEATHER M4 PIN CONNECTIONS (CRITICAL!)
+
+### All Connections Between M4 and PCBs:
+
+This table shows EVERY connection you need to make on your PCBs. Each PCB connection point must have a header pin or wire pad to connect to the M4.
+
+#### Power Connections:
+| M4 Pin | Signal | Goes To | PCB Board | Notes |
+|--------|--------|---------|-----------|-------|
+| USB | 5V | 5V Rail | Both boards | Powers MCP4728 DAC |
+| 3V3 | 3.3V | 3.3V Rail | Both boards | Powers MIDI, OLED, LEDs, BAT85 clamps |
+| GND | Ground | Common GND | Both boards | Multiple GND pins available |
+
+#### I2C Bus (Shared):
+| M4 Pin | Signal | Goes To | Device Address | PCB Board |
+|--------|--------|---------|----------------|-----------|
+| SDA | I2C Data | OLED Wing | 0x3C | Pre-built (stacked) |
+| SDA | I2C Data | MCP4728 DAC | 0x60 | Bottom PCB |
+| SCL | I2C Clock | OLED Wing | 0x3C | Pre-built (stacked) |
+| SCL | I2C Clock | MCP4728 DAC | 0x60 | Bottom PCB |
+
+#### UART (MIDI):
+| M4 Pin | Signal | Goes To | PCB Board | Notes |
+|--------|--------|---------|-----------|-------|
+| RX | Serial RX | MIDI Wing RX | Pre-built (stacked) | MIDI IN data |
+| TX | Serial TX | MIDI Wing TX | Pre-built (stacked) | MIDI OUT data |
+
+#### ADC Inputs (Input PCB):
+| M4 Pin | Signal | Comes From | PCB Board | Notes |
+|--------|--------|------------|-----------|-------|
+| A3 | ADC Input | CV IN voltage divider TAP | Top PCB | 0-3.3V from 0-5V input |
+| A4 | ADC Input | TRIG IN voltage divider TAP | Top PCB | 0-3.3V from 0-5V input |
+
+#### GPIO Outputs (LEDs):
+| M4 Pin | Signal | Goes To | PCB Board | Current Limit |
+|--------|--------|---------|-----------|---------------|
+| D4 | GPIO Out | CV IN LED (white) | Top PCB | 1kΩ resistor |
+| D10 | GPIO Out | S-Trig transistor base | Bottom PCB | 1kΩ resistor |
+| D11 | GPIO Out | TRIG IN LED R (RGB) | Top PCB | 330Ω resistor |
+| D23 | GPIO Out | TRIG IN LED G (RGB) | Top PCB | 330Ω resistor |
+| D24 | GPIO Out | TRIG IN LED B (RGB) | Top PCB | 330Ω resistor |
+
+### How to Connect in EasyEDA:
+
+1. **On each PCB schematic**, add connection points (test pads or headers) labeled:
+   - `M4_A3`, `M4_A4` (top board ADC inputs)
+   - `M4_SDA`, `M4_SCL` (bottom board I2C)
+   - `M4_D4`, `M4_D10`, `M4_D11`, `M4_D23`, `M4_D24` (GPIO outputs)
+   - `M4_5V`, `M4_3V3`, `M4_GND` (power on both boards)
+
+2. **These are OFF-BOARD connections** - they won't route to other components on the PCB itself
+
+3. **In the physical build**, you'll connect these PCB pads to M4 pins using:
+   - Stacking headers (if PCBs mount directly)
+   - Wire jumpers (if PCBs are separate)
+
+---
+
 ## 📐 TOP BOARD (Input) - Detailed Schematic
 
 ### Purpose:
 - CV IN and TRIG IN protection circuits
 - Input LEDs
 - Power rail decoupling for top section
+- **Connection points to M4 pins: A3, A4, D4, D11, D23, D24, 5V, 3V3, GND**
 
 ### Circuits:
 
@@ -166,6 +236,7 @@ TRIG IN RGB LED:
 - Power distribution and decoupling
 - USB-C power input
 - MIDI FeatherWing connections
+- **Connection points to M4 pins: SDA, SCL, D10, 5V, 3V3, GND**
 
 ### Circuits:
 
