@@ -245,14 +245,14 @@ D10 (GPIO) → 1kΩ resistor → Transistor BASE
 **White LEDs (5 total):**
 - Type: 3mm flat-top clear high-efficiency
 - Forward voltage: ~3.0V
-- Current limiting: 150Ω resistor per LED
+- Current limiting: 220Ω resistor per LED
 - Operating current: ~2mA @ 3.3V GPIO
 - Power per LED: ~7mW
 
 **RGB LEDs (2 total):**
 - Type: 3mm flat-top clear common cathode
 - Forward voltage: Red ~2.0V, Green/Blue ~3.0V
-- Current limiting: 150Ω resistor per channel (6 resistors total)
+- Current limiting: 220Ω resistor per channel (6 resistors total)
 - Operating current: Red ~8.7mA, Green/Blue ~2mA @ 3.3V GPIO
 - Power per LED: ~15-30mW (one channel active at a time)
 
@@ -281,7 +281,7 @@ D10 (GPIO) → 1kΩ resistor → Transistor BASE
 - **Hole diameter:** 3.2mm (press-fit for 3mm LEDs)
 - **LED style:** Flat-top (wide viewing angle, flush mounting)
 - **Wiring:** Leads soldered directly to protoboard traces
-- **Current limiting:** 150Ω resistors on each LED/channel
+- **Current limiting:** 220Ω resistors on each LED/channel
 
 ### Software Detection Logic
 

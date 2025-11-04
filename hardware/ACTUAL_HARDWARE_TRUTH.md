@@ -340,7 +340,7 @@ Math: Output = Input × (R2 / (R1 + R2))
 - 4× 10kΩ resistors (voltage dividers on inputs)
 - 4× 100Ω resistors (series protection on outputs)
 - 1× 1kΩ resistor (transistor base)
-- Various resistors for LEDs (exact values TBD)
+- 11× 220Ω resistors for LED current limiting (standardized value for all 7 LEDs)
 
 **Capacitors:**
 - 1× 47µF electrolytic (C1, 5V bulk)
@@ -553,7 +553,7 @@ Jack SLEEVE → GND
    - [ ] Confirm voltage dividers on A3 and A4 exist
    - [ ] Check if smoothing caps (100nF) are present
    - [ ] Verify 3.3V decoupling caps on breadboard
-   - [ ] List exact LED resistor values
+   - [x] List exact LED resistor values (220Ω for all 11 LED resistors)
    - [ ] Confirm which jacks are actually wired
 
 2. **Documentation cleanup:**

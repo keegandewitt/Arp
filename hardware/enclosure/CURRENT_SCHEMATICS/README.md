@@ -84,7 +84,7 @@
 **What it shows:**
 - CV IN jack → voltage divider (10kΩ + 10kΩ) → A3 ADC
 - BAT85 diode clamp to 3.3V
-- White LED indicator (D4) with 1kΩ resistor
+- White LED indicator (D4) with 220Ω resistor
 - Optional 100nF smoothing capacitor
 
 **Protection level:** Safe up to 40V+ input
@@ -93,7 +93,7 @@
 **What it shows:**
 - TRIG IN jack → voltage divider (10kΩ + 10kΩ) → A4 ADC
 - BAT85 diode clamp to 3.3V
-- RGB LED indicator (D11/D23/D24) with 330Ω resistors
+- RGB LED indicator (D11/D23/D24) with 220Ω resistors
 - Optional 100nF smoothing capacitor
 
 **RGB colors:** Red (S-Trig mode), Green (V-Trig mode), Blue (reserved)
@@ -109,7 +109,7 @@
 
 ### BOTTOM_PCB_STRIG.svg
 **What it shows:**
-- GPIO D10 → 1kΩ resistor → 2N3904 NPN transistor
+- GPIO D10 → 220Ω resistor → 2N3904 NPN transistor
 - Collector → 100Ω protection → S-Trig output jack
 - RGB LED indicator (A0/A1/A2) showing V-Trig vs S-Trig mode
 

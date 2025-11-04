@@ -62,10 +62,9 @@ No battery, powerboost, JST connectors, or power switch needed!
 | Qty | Value | Purpose | Designators |
 |-----|-------|---------|-------------|
 | 4 | 10kΩ | Input voltage dividers | R1, R2, R4, R5 |
-| 7 | 100Ω | Output series protection | R1-R4 (outputs), R9 (S-Trig) |
-| 1 | 1kΩ | Transistor base (S-Trig) | R8 |
-| 4 | 1kΩ | White LED current limiting | R3, R7, R11, + extras |
-| 3 | 330Ω | RGB LED current limiting | R6, R10, + extras |
+| 5 | 100Ω | Output series protection | R_OUT1-4, R_STRIG |
+| 1 | 1kΩ | Transistor base (S-Trig) | R_BASE |
+| 11 | **220Ω** | **LED current limiting (ALL LEDs)** | **R_LED1-11** |
 
 ### Capacitors:
 | Qty | Value | Type | Voltage | Purpose | Designators |
@@ -133,11 +132,11 @@ This table shows EVERY connection you need to make on your PCBs. Each PCB connec
 #### GPIO Outputs (LEDs):
 | M4 Pin | Signal | Goes To | PCB Board | Current Limit |
 |--------|--------|---------|-----------|---------------|
-| D4 | GPIO Out | CV IN LED (white) | Top PCB | 1kΩ resistor |
+| D4 | GPIO Out | CV IN LED (white) | Top PCB | 220Ω resistor |
 | D10 | GPIO Out | S-Trig transistor base | Bottom PCB | 1kΩ resistor |
-| D11 | GPIO Out | TRIG IN LED R (RGB) | Top PCB | 330Ω resistor |
-| D23 | GPIO Out | TRIG IN LED G (RGB) | Top PCB | 330Ω resistor |
-| D24 | GPIO Out | TRIG IN LED B (RGB) | Top PCB | 330Ω resistor |
+| D11 | GPIO Out | TRIG IN LED R (RGB) | Top PCB | 220Ω resistor |
+| D23 | GPIO Out | TRIG IN LED G (RGB) | Top PCB | 220Ω resistor |
+| D24 | GPIO Out | TRIG IN LED B (RGB) | Top PCB | 220Ω resistor |
 
 ### How to Connect in EasyEDA:
 
@@ -218,12 +217,12 @@ TRIG IN Jack SLEEVE → GND
 #### Input LEDs:
 ```
 CV IN LED:
-  M4 Pin D4 → R3 (1kΩ) → LED1 (White) → GND
+  M4 Pin D4 → R3 (220Ω) → LED1 (White) → GND
 
 TRIG IN RGB LED:
-  M4 Pin D11 → R6 (330Ω) → LED2 Red → GND
-  M4 Pin D23 → (330Ω) → LED2 Green → GND
-  M4 Pin D24 → (330Ω) → LED2 Blue → GND
+  M4 Pin D11 → R6 (220Ω) → LED2 Red → GND
+  M4 Pin D23 → (220Ω) → LED2 Green → GND
+  M4 Pin D24 → (220Ω) → LED2 Blue → GND
 ```
 
 #### Power Decoupling (Top Board):
@@ -294,7 +293,7 @@ MCP4728 VA Pin
    Jack SLEEVE → GND
 
 LED Indicator:
-  CV OUT → R7 (1kΩ) → LED3 (White) → GND
+  CV OUT → R7 (220Ω) → LED3 (White) → GND
   (Driven by M4 Pin D12)
 ```
 
@@ -342,9 +341,9 @@ Jack SLEEVE → GND
 
 **RGB LED Indicator:**
 ```
-  M4 Pin A0 → R10 (330Ω) → LED4 Red → GND
-  M4 Pin A1 → (330Ω) → LED4 Green → GND
-  M4 Pin A2 → (330Ω) → LED4 Blue → GND
+  M4 Pin A0 → R10 (220Ω) → LED4 Red → GND
+  M4 Pin A1 → (220Ω) → LED4 Green → GND
+  M4 Pin A2 → (220Ω) → LED4 Blue → GND
 ```
 
 #### CC OUT (Channel C - MIDI CC to Voltage):
@@ -358,7 +357,7 @@ MCP4728 VC Pin
    Jack SLEEVE → GND
 
 LED Indicator:
-  CC OUT → R11 (1kΩ) → LED5 (White) → GND
+  CC OUT → R11 (220Ω) → LED5 (White) → GND
 ```
 
 **Output Specs:**
