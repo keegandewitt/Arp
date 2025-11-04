@@ -15,10 +15,19 @@
 
 ## 📋 QUICK START
 
-### Schematics Generated:
-1. **`hardware/enclosure/TOP_BOARD_FINAL.svg`** - Input board with protection
-2. **`hardware/enclosure/BOTTOM_BOARD_FINAL.svg`** - Output board with DAC
-3. **`hardware/enclosure/POWER_DISTRIBUTION.svg`** - USB-only power system
+### Schematics Location:
+**All current schematics:** `hardware/enclosure/CURRENT_SCHEMATICS/`
+
+**Production-ready schematics (7 total):**
+1. **`UNIFIED_SYSTEM_SCHEMATIC_V2.svg`** - Complete system overview
+2. **`M4_PIN_ASSIGNMENTS.svg`** - Pin reference table
+3. **`TOP_PCB_CV_IN.svg`** - CV input circuit
+4. **`TOP_PCB_TRIG_IN.svg`** - TRIG input circuit
+5. **`BOTTOM_PCB_DAC_OUTPUTS.svg`** - DAC output circuits
+6. **`BOTTOM_PCB_STRIG.svg`** - S-Trig transistor circuit
+7. **`POWER_DISTRIBUTION.svg`** - USB-only power system
+
+See `CURRENT_SCHEMATICS/README.md` for detailed descriptions.
 
 ### Board Specifications:
 - **Size:** 90mm × 55mm each (custom-cut ElectroCookie size)
