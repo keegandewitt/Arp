@@ -34,16 +34,16 @@ Any code that uses GPIO pins MUST reference this matrix.
 | **D22 (SCL)** | 🔵 In Use | I2C Clock | OLED + MCP4728 | Shared bus |
 | **D23 (MOSI)** | ✅ Available | - | - | Freed from RGB LED |
 | **D24 (MISO)** | ✅ Available | - | - | Freed from RGB LED |
-| **D25 (SCK)** | 🔵 In Use | **CC OUT LED** | **White LED (3mm)** | **Activity indicator** |
+| **D25 (SCK)** | ✅ Available | - | - | Freed from CC OUT LED (moved to A1) |
 | **A0** | 🔵 In Use | **TRIG OUT LED** | **White LED (3mm)** | **Activity indicator** |
-| **A1** | ✅ Available | - | - | Freed from RGB LED |
-| **A2** | ✅ Available | - | - | Freed from RGB LED |
+| **A1** | 🔵 In Use | **CC OUT LED** | **White LED (3mm)** | **Activity indicator** |
+| **A2** | 🔵 In Use | **MIDI OUT LED** | **White LED (3mm)** | **TX activity indicator** |
 | **A3** | 🔵 In Use | **CV Pitch Input** | **Voltage Divider (20k/22k)** | **1V/octave (0-5V)** |
 | **A4** | 🔵 In Use | **Gate Input** | **Voltage Divider (20k/22k)** | **V-Trig/S-Trig modes** |
 | **A5** | 🔵 In Use | **MIDI IN LED** | **White LED (3mm)** | **RX activity indicator** |
 | **NEOPIXEL** | 🔵 In Use | Onboard RGB LED | Built-in | Status indicator |
 | **CAN_RX** | ✅ Available | CAN Bus RX | - | Not currently used |
-| **CAN_TX** | 🔵 In Use | **MIDI OUT LED** | **White LED (3mm)** | **TX activity indicator** |
+| **CAN_TX** | ✅ Available | CAN Bus TX | - | Not currently used |
 
 ---
 
@@ -134,10 +134,10 @@ External Input (0-5V)
   - **S-Trig Circuit:** D10 (1 pin)
   - **I2C Bus:** D21, D22 (2 pins)
   - **CV/Gate Inputs:** A3, A4 (2 pins)
-  - **LED Indicators:** D4, D11, D12, D25, A0, A5, CAN_TX (7 pins - all white LEDs)
+  - **LED Indicators:** D4, D11, D12, A0, A1, A2, A5 (7 pins - all white LEDs)
   - **Status LEDs:** D13, NEOPIXEL (2 pins)
 - **Reserved:** 2 (D0, D1 for MIDI)
-- **Available:** 7 pins (CAN_RX, D23, D24, A1, A2, + 2 others)
+- **Available:** 7 pins (CAN_RX, CAN_TX, D23, D24, D25, + 2 others)
 
 ---
 
@@ -236,8 +236,8 @@ D10 (GPIO) → 1kΩ resistor → Transistor BASE
 | **TRIG IN** | White 3mm | D11 | TOP | 220Ω | ON when voltage detected on A4 |
 | **CV OUT** | White 3mm | D12 | BOTTOM | 220Ω | ON when DAC Ch A active |
 | **TRIG OUT** | White 3mm | A0 | BOTTOM | 220Ω | ON when gate output active (Ch B) |
-| **CC OUT** | White 3mm | D25 | BOTTOM | 220Ω | ON when DAC Ch C active |
-| **MIDI OUT** | White 3mm | CAN_TX | BOTTOM | 220Ω | Pulse on UART TX activity |
+| **CC OUT** | White 3mm | A1 | BOTTOM | 220Ω | ON when DAC Ch C active |
+| **MIDI OUT** | White 3mm | A2 | BOTTOM | 220Ω | Pulse on UART TX activity |
 | **MIDI IN** | White 3mm | A5 | BOTTOM | 220Ω | Pulse on UART RX activity |
 
 ### Hardware Specifications
