@@ -61,10 +61,10 @@ Any code that uses GPIO pins MUST reference this matrix.
 
 | Channel | Status | Function | Output Type | Voltage Range |
 |---------|--------|----------|-------------|---------------|
-| **Channel A** | 🔵 In Use | CV Pitch | 1V/octave | 0-5V (0-10V with LM358N) |
-| **Channel B** | ✅ Available | CV Velocity | (Future) | 0-5V |
-| **Channel C** | 🔵 In Use | **V-Trig Gate** | Standard gate | 0V idle, 5V active |
-| **Channel D** | ✅ Available | Trigger/Accent | (Future) | 0-5V |
+| **Channel A (VA)** | 🔵 In Use | **CV OUT** | 1V/octave pitch | 0-5V |
+| **Channel B (VB)** | 🔵 In Use | **TRIG OUT (V-Trig)** | Standard gate | 0V idle, 5V active |
+| **Channel C (VC)** | 🔵 In Use | **CC OUT** | MIDI CC → Voltage | 0-5V |
+| **Channel D (VD)** | ⚪ Unused | (Reserved for future) | Unused/Floating | Leave unconnected |
 
 ---
 
@@ -235,8 +235,8 @@ D10 (GPIO) → 1kΩ resistor → Transistor BASE
 | **CV IN** | White 3mm | D4 | TOP | 220Ω | ON when voltage detected on A3 |
 | **TRIG IN** | White 3mm | D11 | TOP | 220Ω | ON when voltage detected on A4 |
 | **CV OUT** | White 3mm | D12 | BOTTOM | 220Ω | ON when DAC Ch A active |
-| **TRIG OUT** | White 3mm | A0 | BOTTOM | 220Ω | ON when gate output active |
-| **CC OUT** | White 3mm | D25 | BOTTOM | 220Ω | ON when DAC Ch D active |
+| **TRIG OUT** | White 3mm | A0 | BOTTOM | 220Ω | ON when gate output active (Ch B) |
+| **CC OUT** | White 3mm | D25 | BOTTOM | 220Ω | ON when DAC Ch C active |
 | **MIDI OUT** | White 3mm | CAN_TX | BOTTOM | 220Ω | Pulse on UART TX activity |
 | **MIDI IN** | White 3mm | A5 | BOTTOM | 220Ω | Pulse on UART RX activity |
 

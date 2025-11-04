@@ -302,6 +302,8 @@ LED Indicator:
 - Resolution: 12-bit (4096 steps)
 - MIDI mapping: Note 0 = 0V, Note 60 = 5V
 
+**Note:** MCP4728 Channel D (VD pin) is **unused/floating** and reserved for future expansion.
+
 #### TRIG OUT - V-Trig Mode (Channel B):
 ```
 MCP4728 VB Pin
