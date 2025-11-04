@@ -243,7 +243,7 @@ TRIG IN RGB LED:
 - Power distribution and decoupling
 - USB-C power input
 - MIDI FeatherWing connections
-- **Connection points to M4 pins: SDA, SCL, D10, 5V, 3V3, GND**
+- **Connection points to M4 pins (via 2×7 bus): TX, RX, SDA, SCL, D10, D12, A0, A1, A2, A5, 5V, 3V3, GND**
 
 ### Circuits:
 
@@ -428,10 +428,13 @@ All M4 pins pass through to FeatherWings:
    - BAT85 diodes (near ADC connection points)
    - LED indicators (front edge)
 
-3. FEATHER M4 STACK
+3. FEATHER M4 STACK (TOP BOARD)
    - Feather M4 CAN Express
-   - MIDI FeatherWing
-   - OLED FeatherWing (top)
+   - OLED FeatherWing (stacked on top)
+
+4. MIDI FEATHERWING (BOTTOM BOARD)
+   - NOT stacked - mounted separately on bottom board
+   - Connects via UART (TX/RX) through inter-board bus
 ```
 
 ### Spacing:

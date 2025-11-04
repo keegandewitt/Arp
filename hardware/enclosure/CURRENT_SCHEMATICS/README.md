@@ -154,8 +154,8 @@ All 7 LED indicators shown in unified schematic (all white 3mm LEDs with 220Ω r
 **Key components:**
 - Feather M4 CAN Express (main MCU)
 - MCP4728 4-channel 12-bit DAC (I2C 0x60)
-- OLED FeatherWing 128×64 (I2C 0x3C) - STACKED
-- MIDI FeatherWing (UART) - BREADBOARD
+- OLED FeatherWing 128×64 (I2C 0x3C) - STACKED ON TOP BOARD
+- MIDI FeatherWing (UART TX/RX) - BOTTOM BOARD (not stacked, far left)
 - 2× BAT85 Schottky diodes (input protection)
 - 1× 2N3904 NPN transistor (S-Trig circuit)
 - 7× white 3mm LEDs (all indicators simplified)

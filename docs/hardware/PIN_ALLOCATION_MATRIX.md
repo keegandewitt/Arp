@@ -20,8 +20,8 @@ Any code that uses GPIO pins MUST reference this matrix.
 
 | Pin | Status | Function | Hardware | Notes |
 |-----|--------|----------|----------|-------|
-| **D0 (RX)** | 🔶 Reserved | MIDI In (UART RX) | MIDI FeatherWing | Not yet installed |
-| **D1 (TX)** | 🔶 Reserved | MIDI Out (UART TX) | MIDI FeatherWing | Not yet installed |
+| **D0 (RX)** | 🔵 In Use | MIDI In (UART RX) | MIDI FeatherWing | **BOTTOM BOARD (not stacked)** |
+| **D1 (TX)** | 🔵 In Use | MIDI Out (UART TX) | MIDI FeatherWing | **BOTTOM BOARD (not stacked)** |
 | **D4** | 🔵 In Use | **CV IN LED** | **White LED (3mm)** | **Activity indicator** |
 | **D5** | 🔵 In Use | Button A | OLED FeatherWing | Fire gate pulse |
 | **D6** | 🔵 In Use | Button B | OLED FeatherWing | Toggle gate mode |
