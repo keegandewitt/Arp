@@ -9,7 +9,7 @@
 ## What Was Created
 
 ### 1. Global Reference Document (600+ lines)
-**Location:** `~/.claude/references/CIRCUITPYTHON_MASTERY.md`
+**Location:** `project documentation: CIRCUITPYTHON_MASTERY.md`
 
 **Content:**
 - Critical crash prevention rules (8 golden rules)
@@ -32,15 +32,15 @@
 - Design guidelines
 
 ### 2. Global Instructions Updated
-**Location:** `~/.claude/CLAUDE.md`
+**Location:** `project documentation`
 
-Added mandatory instructions for ALL future Claude sessions working on CircuitPython:
+Added mandatory instructions for ALL future the assistant sessions working on CircuitPython:
 - Must read CIRCUITPYTHON_MASTERY.md before writing code
 - Reference library system established
 - Explains why this matters (previous sessions struggled)
 
 ### 3. Reference Library System
-**Location:** `~/.claude/references/`
+**Location:** `project documentation: `
 
 Created infrastructure for future reference documents:
 - README.md documenting the library system
@@ -57,12 +57,12 @@ Both Arp project and global config now point to this comprehensive guide.
 
 ## Impact on Future Projects
 
-### For Future Claude Sessions
+### For Future the assistant Sessions
 
 **ANY CircuitPython project:**
-1. Claude reads `~/.claude/CLAUDE.md` (global instructions)
+1. the assistant reads `project documentation` (global instructions)
 2. Sees mandatory CircuitPython reference requirement
-3. Reads `~/.claude/references/CIRCUITPYTHON_MASTERY.md`
+3. Reads `project documentation: CIRCUITPYTHON_MASTERY.md`
 4. Becomes CircuitPython expert before writing first line of code
 
 **Result:**
@@ -79,7 +79,7 @@ Both Arp project and global config now point to this comprehensive guide.
 
 **Next CircuitPython project:**
 - No setup required - reference is already global
-- Just mention it's CircuitPython, Claude will reference the guide
+- Just mention it's CircuitPython, the assistant will reference the guide
 - Optionally add project-specific note in README pointing to it
 
 **This Arp project:**
@@ -121,14 +121,14 @@ See previous message for detailed fixes, but priority order:
 cd ~/Projects
 mkdir my_new_circuitpython_project
 
-# 2. Start Claude Code session
-claude-code
+# 2. Start the development environment session
+the development environment
 
 # 3. Mention it's CircuitPython
-# Claude will automatically:
-# - Read ~/.claude/CLAUDE.md
+# the assistant will automatically:
+# - Read project documentation
 # - See CircuitPython instruction
-# - Read ~/.claude/references/CIRCUITPYTHON_MASTERY.md
+# - Read project documentation: CIRCUITPYTHON_MASTERY.md
 # - Write expert-level code from the start
 ```
 
@@ -143,13 +143,13 @@ Option C: Read remaining files (Settings, Display, Buttons) to audit everything
 ## Files Created/Modified This Session
 
 ### Created
-- `~/.claude/references/CIRCUITPYTHON_MASTERY.md` (600+ lines, GLOBAL)
-- `~/.claude/references/README.md` (Reference library documentation)
+- `project documentation: CIRCUITPYTHON_MASTERY.md` (600+ lines, GLOBAL)
+- `project documentation: README.md` (Reference library documentation)
 - `docs/context/CIRCUITPYTHON_MASTERY.md` (local copy)
 - `docs/context/CIRCUITPYTHON_SETUP_COMPLETE.md` (this file)
 
 ### Modified
-- `~/.claude/CLAUDE.md` (added CircuitPython instructions)
+- `project documentation` (added CircuitPython instructions)
 - `docs/context/CONTEXT.md` (added CircuitPython expertise section)
 
 ---
@@ -158,10 +158,10 @@ Option C: Read remaining files (Settings, Display, Buttons) to audit everything
 
 To verify it works in future sessions:
 
-1. **Start new Claude Code session** (not this one)
+1. **Start new the development environment session** (not this one)
 2. **Create test CircuitPython project** or open this one
-3. **Claude should proactively mention** having CircuitPython expertise
-4. **Ask Claude to reference crash prevention rules** - should cite CIRCUITPYTHON_MASTERY.md
+3. **the assistant should proactively mention** having CircuitPython expertise
+4. **Ask the assistant to reference crash prevention rules** - should cite CIRCUITPYTHON_MASTERY.md
 
 ---
 
@@ -207,6 +207,6 @@ To verify it works in future sessions:
 
 **You are now set up for CircuitPython mastery across ALL projects forever.**
 
-No more crashes. No more struggling with basic issues. Every Claude session starts as a CircuitPython expert.
+No more crashes. No more struggling with basic issues. Every the assistant session starts as a CircuitPython expert.
 
 🎓 **Mission Accomplished.**

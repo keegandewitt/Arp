@@ -1,6 +1,6 @@
 # prisme - MIDI/CV Translation Hub - Living Context
 
-**Purpose:** This file maintains session-to-session continuity for Claude instances.
+**Purpose:** This file maintains session-to-session continuity for the assistant instances.
 **Update Frequency:** After every significant milestone or before session end.
 
 **Project Vision:** prisme is a full-service USB-C powered MIDI/CV translation hub that applies real-time transformations (Scale, Arp, Clock) to musical data, bridging DAWs, hardware synths, and Eurorack modular systems with imperceptible latency.
@@ -31,11 +31,38 @@
 
 ## Session Handoff
 
-**Last Updated:** 2025-11-04 (Session 27 - Power System Simplified)
-**Session Status:** ✅ MAJOR CHANGE COMPLETE - Removed battery and powerboost
-**Token Usage:** ~93K / 200K
+**Last Updated:** 2025-11-09 (Session 28 - PCB Design Approach Change)
+**Session Status:** ✅ WORKFLOW CHANGE - User creating PCBs directly in EasyEDA
+**Token Usage:** ~72K / 200K
 
-### Current Session Summary (Session 27 - Power System Simplification)
+### Current Session Summary (Session 28 - PCB Design Workflow Change)
+**What was accomplished:**
+- ✅ **PCB DESIGN WORKFLOW CHANGE**
+  - User decision: Create boards directly in EasyEDA themselves
+  - the assistant's new role: Walk through board designs verbally/conceptually
+  - No more schematic generation - provide guidance and verification instead
+  - Existing schematics (Session 25) remain as reference documentation only
+
+- ✅ **MIDI CIRCUIT COMPONENT VERIFICATION**
+  - Verified 6N138 optocoupler pinout (user caught wrong EasyEDA symbol)
+  - Documented SDS-50J DIN-5 jack complete pinout (7 pins total: 5 signal + 2 shield)
+  - Updated BOM and documentation with correct pin assignments
+  - Key finding: Pins 6 & 7 are mounting/shield terminals, connect to GND for proper shielding
+
+**New Workflow:**
+- User creates PCB layouts in EasyEDA
+- the assistant provides:
+  - Component placement guidance
+  - Circuit verification
+  - Pin allocation confirmation
+  - Trace routing suggestions
+  - Design review and troubleshooting
+
+**Files modified this session:**
+- `docs/context/CONTEXT.md` (UPDATED) - Session 28 summary
+- `hardware/EASYEDA_PCB_DESIGN_GUIDE.md` (UPDATED) - DIN-5 jack pinout details, BOM notes
+
+### Previous Session Summary (Session 27 - Power System Simplification)
 **What was accomplished:**
 - ✅ **MAJOR ARCHITECTURAL DECISION: USB-ONLY POWER**
   - User decision: "Let's get rid of our battery, we don't need it and we can simply use our USB pin and also ditch the power boost"
@@ -70,21 +97,21 @@
 **Git commit:** d3a2256 - feat: Simplify power system - remove battery and powerboost (USB-only)
 
 ### Previous Session Summary (Session 26 - Unified Schematic Work)
-**Status:** ⚠️ PAUSED - Unified schematic work interrupted by power system decision
+**Status:** ❌ CANCELLED - User creating boards directly in EasyEDA
 **What was attempted:**
-- ⏳ **Unified system schematic for EasyEDA** (still needed)
+- ⏳ **Unified system schematic for EasyEDA** (no longer needed)
   - User requested: "if i'm going to begin in EasyEDA, what do i need from you?"
   - Goal: Single complete schematic showing all hardware interconnections
   - **Technical challenge:** Right-side outputs (4 LEDs + S-Trig) from 5 vertically stacked M4 pins
   - Multiple iterations with overlapping components
   - **Actual problem:** Failed to calculate and use proper absolute coordinates for component placement
 
-**Note:** The 6 clean schematics from Session 25 are still valid and ready for EasyEDA, just need power schematic updated (now done in Session 27)
+**Note:** Session 28 (2025-11-09) - User decided to create boards directly in EasyEDA themselves. the assistant's role is now to walk through board designs verbally/conceptually rather than generate schematics. The 6 clean schematics from Session 25 remain as reference documentation only.
 
 ### Previous Session Summary (Session 25 - HARDWARE DOCUMENTATION OVERHAUL & PCB SCHEMATICS)
 **What was accomplished:**
 - ✅ **SEPARATED DOCUMENTATION TRUTH FROM FICTION**
-  - User discovered: Previous Claudes added BAT85 diodes + op-amp to docs (never built)
+  - User discovered: Previous development sessions added BAT85 diodes + op-amp to docs (never built)
   - Created ACTUAL_HARDWARE_TRUTH.md as single source of truth
   - Created HARDWARE_AUDIT_CORRECTIONS.md to fix polluted documentation
   - User quote: "this is the first i'm hearing of BAT85 clamps"
@@ -1223,7 +1250,7 @@ class Arpeggiator:
 ### CircuitPython Expertise
 
 **🎓 CRITICAL:** Before writing ANY CircuitPython code, read:
-- **`~/.claude/references/CIRCUITPYTHON_MASTERY.md`** - Comprehensive crash prevention guide
+- **`project documentation: CIRCUITPYTHON_MASTERY.md`** - Comprehensive crash prevention guide
 - **Local copy:** `docs/context/CIRCUITPYTHON_MASTERY.md`
 
 This 600+ line reference covers:
@@ -1318,4 +1345,4 @@ python3 scripts/backup.py
 
 **End of Context Document**
 
-**Next Claude Instance:** Read START_HERE.md first, then this file's "Session Handoff" section.
+**Next Development Session:** Read START_HERE.md first, then this file's "Session Handoff" section.

@@ -54,3 +54,4 @@ VintageCapture/Builds/*
 *.vst3
 *.component
 *.app
+.claude/

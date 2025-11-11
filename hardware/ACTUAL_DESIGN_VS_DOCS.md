@@ -14,7 +14,7 @@
 
 ### CV/TRIG Outputs (FROM BREADBOARD DOCS)
 - **CV OUT:** MCP4728 Channel A → 0-5V direct output
-  - **No op-amp** (you eliminated it per Claude's advice)
+  - **No op-amp** (you eliminated it per the assistant's advice)
   - **0-5V = 5 octaves at 1V/octave** (valid for Eurorack!)
   - **Works with:** Most Eurorack (limited to 5 octave range)
 
@@ -43,7 +43,7 @@ CV IN → voltage divider → BAT85 diode → 3.3V clamp → A3 ADC
 
 **Reality:**
 - You have NO diodes on breadboard
-- A previous Claude added this without your knowledge
+- A previous the assistant added this without your knowledge
 - **Decision needed:** Keep the protection design, or remove it?
 
 ### 2. Op-Amp for 0-10V Output (USER: "Eliminated it")
@@ -155,7 +155,7 @@ Unless you decide you want overvoltage protection (valid choice!), in which case
    - Yes → keep current design
    - No → need to add op-amp back + 12V power
 
-4. **CLAUDE: Based on answers, create accurate schematics**
+4. **NEXT STEP: Based on answers, create accurate schematics**
    - Remove fictional components (BAT85 if not wanted)
    - Add actual power distribution (both 5V and 3.3V)
    - Add actual input protection (if exists)

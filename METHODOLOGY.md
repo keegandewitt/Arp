@@ -9,7 +9,7 @@
 ## Table of Contents
 1. [Git Workflow & Version Control](#git-workflow--version-control)
 2. [Backup Strategy](#backup-strategy)
-3. [Claude Instance Handoff Protocol](#claude-instance-handoff-protocol)
+3. [Development Session Handoff Protocol](#development-session-continuity-protocol)
 4. [Development Guidelines](#development-guidelines)
 5. [Testing Procedures](#testing-procedures)
 6. [Documentation Standards](#documentation-standards)
@@ -86,12 +86,12 @@ The following are excluded from backups:
 
 ---
 
-## Claude Instance Handoff Protocol
+## Development Session Handoff Protocol
 
-### Token Budget Management
-Claude Code sessions have a token budget that auto-compacts when exceeded. To ensure smooth continuity:
+### Session budget Management
+the development environment sessions have a token budget that auto-compacts when exceeded. To ensure smooth continuity:
 
-**When token usage reaches 90% (180,000 of 200,000 tokens):**
+**When session progress reaches 90% (90% of session capacity):**
 
 1. **Stop at a Clean Checkpoint**
    - Complete current task if nearly done
@@ -103,7 +103,7 @@ Claude Code sessions have a token budget that auto-compacts when exceeded. To en
    Create `HANDOFF.md` in the project root with the following sections:
 
    ```markdown
-   # Claude Instance Handoff
+   # Development Session Handoff
 
    **Date:** YYYY-MM-DD HH:MM
    **Token Usage at Handoff:** XXX,XXX / 200,000
@@ -138,7 +138,7 @@ Claude Code sessions have a token budget that auto-compacts when exceeded. To en
    3. [Nice to have]
 
    ## Important Context for Next Instance
-   Critical information the next Claude needs to know:
+   Critical information the next the assistant needs to know:
    - Architectural decisions and rationale
    - Gotchas or tricky areas to be aware of
    - Dependencies between components
@@ -174,20 +174,20 @@ Claude Code sessions have a token budget that auto-compacts when exceeded. To en
 4. **Stage and Commit Handoff**
    ```bash
    git add HANDOFF.md
-   git commit -m "docs: Add Claude instance handoff document"
+   git commit -m "docs: Add development session handoff document"
    git push origin main
    ```
 
 5. **Inform User**
    Tell the user:
-   - Token budget is at 90%
+   - Session budget is at 90%
    - Handoff document has been created
    - Current work status (complete, paused, blocked)
    - What the next instance should do first
 
 ### Starting a New Session (After Handoff)
 
-When a new Claude instance begins and finds a `HANDOFF.md`:
+When a new development session begins and finds a `HANDOFF.md`:
 
 1. **Read `HANDOFF.md` FIRST** - Before doing anything else
 2. **Read `METHODOLOGY.md`** - Understand the project workflows
@@ -218,7 +218,7 @@ When a new Claude instance begins and finds a `HANDOFF.md`:
 
 If a session is interrupted unexpectedly (crash, user needs to stop immediately):
 
-The user can ask the next Claude instance to check:
+The user can ask the next development session to check:
 - Latest commit message (often contains context)
 - Git diff for uncommitted changes
 - The `todo` file
@@ -974,11 +974,11 @@ See `ENCLOSURE_ROADMAP.md` for current enclosure development status and plans.
 
 ---
 
-## Onboarding New Claude Instances
+## Onboarding New the assistant Instances
 
-When starting a new Claude Code session:
+When starting a new the development environment session:
 
-1. **Check for `HANDOFF.md`** - If present, read it FIRST (see [Claude Instance Handoff Protocol](#claude-instance-handoff-protocol))
+1. **Check for `HANDOFF.md`** - If present, read it FIRST (see [Development Session Handoff Protocol](#development-session-continuity-protocol))
 2. **Read this document** - Understand our methodologies
 3. **Check `git status`** - Understand current state
 4. **Review `todo`** - See active tasks
@@ -1068,8 +1068,8 @@ git reset --hard origin/main
   - Documented comprehensive validation requirements
   - Added failure analysis procedures
 
-- **v1.1** (2025-10-21) - Added Claude instance handoff protocol
-  - Token budget management at 90% threshold
+- **v1.1** (2025-10-21) - Added development session handoff protocol
+  - Session budget management at 90% threshold
   - Detailed handoff document template
   - Best practices for session continuity
   - Emergency handoff procedures
@@ -1085,6 +1085,6 @@ git reset --hard origin/main
 ## Notes
 
 - This document should be updated as the project evolves
-- All team members (and Claude instances) should follow these guidelines
+- All team members (and the assistant instances) should follow these guidelines
 - When in doubt, refer to this document or ask for clarification
 - Consistency is key to maintainable code and smooth collaboration

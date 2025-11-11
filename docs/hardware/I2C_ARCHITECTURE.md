@@ -194,4 +194,4 @@ See `tests/` directory:
 - CircuitPython busio documentation: https://docs.circuitpython.org/en/latest/shared-bindings/busio/
 - MCP4728 library: https://docs.circuitpython.org/projects/mcp4728/
 - SH1107 display library: https://docs.circuitpython.org/projects/displayio-sh1107/
-- `~/.claude/references/CIRCUITPYTHON_MASTERY.md` - Section "busio Module"
+- `project documentation: CIRCUITPYTHON_MASTERY.md` - Section "busio Module"

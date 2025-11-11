@@ -95,18 +95,18 @@
 
 **Bad (Assumption):**
 ```
-Claude: "I'll configure the display for 128x32..."
+the assistant: "I'll configure the display for 128x32..."
 [Writes code without asking]
 ```
 
 **Good (Verification):**
 ```
-Claude: "I see the documentation mentions both 128x32 and 128x64 displays.
+the assistant: "I see the documentation mentions both 128x32 and 128x64 displays.
         Which OLED FeatherWing do you have installed?"
 
 User: "128x64"
 
-Claude: "Thank you! I'll configure for 128x64.
+the assistant: "Thank you! I'll configure for 128x64.
         I'll also update the documentation to be consistent."
 ```
 

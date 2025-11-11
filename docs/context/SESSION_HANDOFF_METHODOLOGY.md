@@ -1,6 +1,6 @@
 # Session Handoff Methodology
 
-**Purpose:** Ensures smooth continuity between Claude Code sessions through systematic documentation updates.
+**Purpose:** Ensures smooth continuity between the development environment sessions through systematic documentation updates.
 
 ---
 
@@ -207,7 +207,7 @@ Token usage: ~XXK / 200K
 
 ## Starting a New Session (Handoff Receipt)
 
-When a new Claude instance starts:
+When a new development session starts:
 
 ### 1. Read START_HERE.md
 Quick 30-second orientation.
@@ -271,10 +271,10 @@ Even with full context, **always ask user:**
 If session is interrupted unexpectedly (crash, must stop immediately):
 
 ### User Action:
-Tell next Claude instance:
+Tell next development session:
 > "Previous session was interrupted. Check git log, git diff, and docs/context/CONTEXT.md for context."
 
-### Next Claude Action:
+### Next the assistant Action:
 1. Read docs/context/CONTEXT.md (may be outdated)
 2. Check `git log -10 --oneline` for recent commits
 3. Check `git diff` for uncommitted changes

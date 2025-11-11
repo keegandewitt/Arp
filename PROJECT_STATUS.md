@@ -4,7 +4,7 @@
 **Project:** prisme - MIDI/CV Translation Hub
 **Current Version:** Hardware v1.0, Software v3.0 (Translation Hub architecture planned)
 
-> **Purpose:** This is a living document that tracks project state, key decisions, and roadmap. Update this regularly to ensure continuity across Claude instances and recovery from crashes/compacts.
+> **Purpose:** This is a living document that tracks project state, key decisions, and roadmap. Update this regularly to ensure continuity across the assistant instances and recovery from crashes/compacts.
 
 ---
 
@@ -261,9 +261,9 @@
   - Documented pin-by-pin testing approach
 
 ### 2025-10-21
-- **Claude Instance Handoff Protocol**
+- **Development Session Handoff Protocol**
   - Added handoff procedure to METHODOLOGY.md (v1.1)
-  - Token budget management at 90% threshold
+  - Session budget management at 90% threshold
   - Ensures continuity across sessions
 
 - **CV/Gate Integration**
@@ -382,9 +382,9 @@ See: `METHODOLOGY.md` for complete workflow
 
 ## Emergency Recovery
 
-### If Claude Instance Crashes/Compacts
+### If Development Session Crashes/Compacts
 1. Run `/start` command (or manually read this file)
-2. Check for `HANDOFF.md` in root (created at 90% token usage)
+2. Check for `HANDOFF.md` in root (created at 90% session progress)
 3. Review `git status` and recent commits
 4. Check `todo` file for active tasks
 5. Review recent backups in `/Users/keegandewitt/Cursor/_Backups/`
@@ -414,7 +414,7 @@ Use clear, specific questions with options:
 
 ## Next Session Checklist
 
-When starting a new Claude instance:
+When starting a new development session:
 - [ ] Run `/start` (or read this file + METHODOLOGY.md)
 - [ ] Check for HANDOFF.md
 - [ ] Review git status

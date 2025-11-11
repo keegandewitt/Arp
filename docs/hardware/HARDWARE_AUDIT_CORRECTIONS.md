@@ -8,7 +8,7 @@
 
 ## 🚨 CRITICAL CORRECTIONS
 
-The COMPREHENSIVE_HARDWARE_AUDIT.md document contains components that were **NEVER actually built** on the breadboard. Multiple previous Claudes added these to documentation without user knowledge.
+The COMPREHENSIVE_HARDWARE_AUDIT.md document contains components that were **NEVER actually built** on the breadboard. Multiple previous development sessions added these to documentation without user knowledge.
 
 **This document corrects the record.**
 
@@ -74,7 +74,7 @@ Range: 5 octaves (C0-C5, MIDI 0-60)
 ```
 
 ### User Quote:
-> "we eliminated the op amp because Claude told me I only needed 5V for the DAC"
+> "we eliminated the op amp because the assistant told me I only needed 5V for the DAC"
 
 ### Why Eliminated:
 1. 0-5V gives 5 octaves at 1V/octave (still Eurorack compliant!)
@@ -118,7 +118,7 @@ Decoupling needed: Both rails require proper caps
 ```
 
 ### User Quote:
-> "you're not the first Claude to miss this, maybe it's an error in our context/documentation"
+> "you're not the first the assistant to miss this, maybe it's an error in our context/documentation"
 
 ### Correction:
 **5V Rail (documented, correct):**

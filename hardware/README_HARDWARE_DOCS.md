@@ -8,7 +8,7 @@
 
 ## 🚨 IMPORTANT: Documentation Reality Check
 
-**Problem Discovered:** Previous Claudes added components to documentation that were NEVER built on the actual breadboard. This session (25) identified and corrected these issues.
+**Problem Discovered:** Previous development sessions added components to documentation that were NEVER built on the actual breadboard. This session (25) identified and corrected these issues.
 
 **Solution:** This index shows you which docs are verified truth vs which contain fiction that needs correction.
 
@@ -47,7 +47,7 @@
 
 4. **`HARDWARE_AUDIT_CORRECTIONS.md`**
    - Corrections to COMPREHENSIVE_HARDWARE_AUDIT.md
-   - Lists fiction added by previous Claudes:
+   - Lists fiction added by previous development sessions:
      - BAT85 diodes (not built, recommended upgrade)
      - Op-amp for 0-10V (eliminated design)
      - Missing 3.3V power rail documentation
@@ -124,7 +124,7 @@
     - Op-amp for 0-10V output
     - **Problem:** This circuit was ELIMINATED from design
     - **Use:** Archival reference only (not current design)
-    - **Status:** ⚠️ ELIMINATED (user removed per Claude advice)
+    - **Status:** ⚠️ ELIMINATED (user removed per the assistant advice)
 
 15. **`SCHEMATIC_STATUS.md`**
     - Status of generated schematics from Session 24
@@ -170,7 +170,7 @@
 ### 2. Op-Amp for 0-10V CV Output
 - **Docs claim:** TL072 or LM358N for 0-10V output (10 octaves)
 - **Reality:** Eliminated from design, using 0-5V direct (5 octaves)
-- **User quote:** "we eliminated the op amp because Claude told me I only needed 5V for the DAC"
+- **User quote:** "we eliminated the op amp because the assistant told me I only needed 5V for the DAC"
 - **Status:** Not planned for current design
 - **Why:** 5 octaves is plenty, simpler circuit, no +12V needed
 - **See:** `ACTUAL_HARDWARE_TRUTH.md` Section "What You Don't Have"
@@ -178,7 +178,7 @@
 ### 3. 3.3V Power Rail Documentation
 - **Docs claim:** Only 5V rail documented
 - **Reality:** Both 5V and 3.3V in use (MIDI + OLED + 7 LEDs on 3.3V)
-- **User quote:** "you're not the first Claude to miss this"
+- **User quote:** "you're not the first the assistant to miss this"
 - **Status:** Needs C9 + C10 capacitors added to docs
 - **See:** `HARDWARE_AUDIT_CORRECTIONS.md` Correction 3
 
@@ -278,7 +278,7 @@
 ## 💡 LESSONS LEARNED
 
 **Why This Happened:**
-1. Multiple Claudes added features to docs without building them
+1. Multiple development iterations added features to docs without building them
 2. No verification against physical breadboard
 3. Documentation assumed to be truth (it wasn't)
 
@@ -297,7 +297,7 @@
 **User's wisdom:**
 > "Don't use any of this as objective truth. There is plenty of context for you to multi-point verify this stuff."
 
-> "You're not the first Claude to miss this, maybe it's an error in our context/documentation."
+> "You're not the first the assistant to miss this, maybe it's an error in our context/documentation."
 
 ---
 

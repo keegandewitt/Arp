@@ -2,7 +2,7 @@
 # Automatically imports and positions all hardware components with exact dimensions
 # from CORRECT_STACK_LAYOUT.md and PROTOBOARD_LAYOUT.md
 #
-# Author: Claude Code
+# Author: the development environment
 # Date: 2025-11-03
 # License: MIT
 

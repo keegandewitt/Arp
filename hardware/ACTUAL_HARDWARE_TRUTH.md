@@ -9,7 +9,7 @@
 ## 🚨 CRITICAL: Documentation Has Been Polluted
 
 **Problem discovered:**
-Previous Claudes added components and features to documentation that were NEVER built on the breadboard. This created confusion between what documentation says vs what actually exists.
+Previous development sessions added components and features to documentation that were NEVER built on the breadboard. This created confusion between what documentation says vs what actually exists.
 
 **This file is the TRUTH.**
 
@@ -83,7 +83,7 @@ Feather M4 USB pin
 - Purpose: 1V/octave pitch CV
 - Range: 5 octaves (MIDI notes 0-60, C0 to C5)
 - Jack: 3.5mm mono (tip = CV, sleeve = GND)
-- **NO op-amp** (user eliminated it per previous Claude's advice)
+- **NO op-amp** (user eliminated it per previous the assistant's advice)
 
 **Channel B - TRIG OUT (V-Trig mode):**
 - Output: 0-5V direct from DAC
@@ -270,7 +270,7 @@ Math: Output = Input × (R2 / (R1 + R2))
 **Reality:**
 - User said: "This is the first I'm hearing of BAT85 clamps"
 - **NOT on breadboard**
-- A previous Claude added this to docs without building it
+- A previous the assistant added this to docs without building it
 
 **Status:**
 - Recommended upgrade for 100% safety
@@ -285,7 +285,7 @@ Math: Output = Input × (R2 / (R1 + R2))
 - 0-10V output range (10 octaves)
 
 **Reality:**
-- User said: "We eliminated the op amp because Claude told me I only needed 5V for the DAC"
+- User said: "We eliminated the op amp because the assistant told me I only needed 5V for the DAC"
 - **NOT on breadboard**
 - Direct 0-5V output from MCP4728 instead
 
@@ -618,7 +618,7 @@ Jack SLEEVE → GND
 ## 💡 Key Insights
 
 **What we learned:**
-1. Documentation != Reality (multiple Claudes added features)
+1. Documentation != Reality (multiple development sessions added features)
 2. Always verify with user before trusting docs
 3. Simpler designs are often better (0-5V works fine)
 4. Protection is critical (voltage dividers mandatory)
@@ -634,7 +634,7 @@ Jack SLEEVE → GND
 **User's wisdom:**
 - "Don't use any of this as objective truth"
 - "There is plenty of context for you to multi-point verify"
-- "You're not the first Claude to miss this"
+- "You're not the first the assistant to miss this"
 
 **Conclusion:**
 This breadboard design works. Keep what's proven, add safety where needed, skip the fiction. Design PCBs that match REALITY.

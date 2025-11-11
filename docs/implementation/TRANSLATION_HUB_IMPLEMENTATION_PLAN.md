@@ -1058,9 +1058,9 @@ git commit -m "feat: Implement Translation Hub architecture with user-definable 
 - Preserve Custom CC integration (Session 14)
 - All tests passing (unit + hardware validation)
 
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
-Co-Authored-By: Claude <noreply@anthropic.com>"
+
+Co-Authored-By: the assistant <noreply@anthropic.com>"
 
 # Merge to main
 git checkout main

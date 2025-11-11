@@ -290,7 +290,7 @@ Once these are done: **Hardware is production-ready for arpeggiator software!**
 
 ---
 
-## 💡 For Next Claude Instance
+## 💡 For Next Development Session
 
 **Start by:**
 1. Reading this handoff document

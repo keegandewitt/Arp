@@ -49,7 +49,7 @@
 ### What's NOT Included (Fiction Removed):
 - ❌ **No op-amp** for 0-10V (eliminated design)
 - ❌ **No +12V** power supply (not needed)
-- ❌ **No fictional components** added by previous Claudes
+- ❌ **No fictional components** added by previous development sessions
 
 ---
 

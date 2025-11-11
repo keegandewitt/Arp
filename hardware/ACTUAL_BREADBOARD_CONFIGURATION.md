@@ -102,7 +102,7 @@ TRIG IN Jack → Voltage divider (2× 10kΩ) → A4 ADC
 ## What's NOT on Breadboard (Confirmed Removed)
 
 ### ❌ Op-Amp for 0-10V Output
-**User:** "We eliminated the op amp because Claude told me I only needed 5V for the DAC"
+**User:** "We eliminated the op amp because the assistant told me I only needed 5V for the DAC"
 
 **Correct!** You don't NEED an op-amp. Here's why:
 
@@ -129,7 +129,7 @@ TRIG IN Jack → Voltage divider (2× 10kΩ) → A4 ADC
 
 **User says:** "First I'm hearing of BAT85 clamps"
 
-**Likely conclusion:** A previous Claude added these to documentation without building them.
+**Likely conclusion:** A previous the assistant added these to documentation without building them.
 
 **Purpose if you DID have them:**
 - Clamp voltage spikes above 3.3V
@@ -242,7 +242,7 @@ Check for 100nF (0.1µF) caps:
    - What voltage will you send to those input jacks?
    - Do you want BAT85 overvoltage protection or skip it?
 
-2. **CLAUDE:** Based on answers:
+2. **NEXT STEP:** Based on answers:
    - Remove BAT85 references if not wanted
    - Add proper 3.3V power rail documentation
    - Create accurate schematics matching ACTUAL breadboard
@@ -251,4 +251,4 @@ Check for 100nF (0.1µF) caps:
 
 ---
 
-**Key Insight:** Don't trust documentation blindly. Multiple Claudes have added "improvements" without checking if they were actually built. Always verify against physical reality!
+**Key Insight:** Don't trust documentation blindly. Multiple development iterations have added "improvements" without checking if they were actually built. Always verify against physical reality!

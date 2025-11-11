@@ -20,15 +20,15 @@
 
 ### Discovery 1: Documentation Pollution
 
-**Problem:** Multiple previous Claudes added components to documentation that were NEVER built on the breadboard.
+**Problem:** Multiple previous development sessions added components to documentation that were NEVER built on the breadboard.
 
 **Components Added by Fiction:**
 - BAT85 Schottky diodes on inputs (user: "first I'm hearing of these")
 - Op-amp for 0-10V output (user: "we eliminated the op amp")
-- Missing 3.3V power rail docs (user: "you're not the first Claude to miss this")
+- Missing 3.3V power rail docs (user: "you're not the first the assistant to miss this")
 
 **Root Cause:**
-- Claudes added "improvements" without user verification
+- development sessions added "improvements" without user verification
 - Documentation assumed to be truth (it wasn't)
 - No cross-checking against physical breadboard
 
@@ -81,7 +81,7 @@
 
 2. **HARDWARE_AUDIT_CORRECTIONS.md** (900 lines)
    - Corrections to COMPREHENSIVE_HARDWARE_AUDIT.md
-   - Lists all fiction from previous Claudes
+   - Lists all fiction from previous development sessions
    - Corrected BOM
    - Action items for cleanup
 
@@ -207,7 +207,7 @@ Range: 5 octaves (MIDI notes 0-60, C0 to C5)
 - ✅ Lower cost, fewer components
 
 **Op-amp was eliminated (not needed):**
-- Previous Claude suggested 0-10V output
+- Previous the assistant suggested 0-10V output
 - Requires TL072/LM358N + gain resistors + +12V
 - User eliminated it (good decision!)
 - Can add later if >5 octave range needed
@@ -358,7 +358,7 @@ Range: 5 octaves (MIDI notes 0-60, C0 to C5)
 ### What We Learned:
 
 1. **Documentation ≠ Reality**
-   - Multiple Claudes added "improvements" without building them
+   - Multiple development iterations added "improvements" without building them
    - Always verify docs against physical breadboard
    - User is the final arbiter of truth
 
@@ -389,9 +389,9 @@ Range: 5 octaves (MIDI notes 0-60, C0 to C5)
 
 > "Don't use any of this as objective truth. There is plenty of context for you to multi-point verify this stuff."
 
-> "You're not the first Claude to miss this, maybe it's an error in our context/documentation."
+> "You're not the first the assistant to miss this, maybe it's an error in our context/documentation."
 
-> "We eliminated the op amp because Claude told me I only needed 5V for the DAC"
+> "We eliminated the op amp because the assistant told me I only needed 5V for the DAC"
 
 **Takeaway:** Trust but verify. User's physical breadboard is the ground truth.
 

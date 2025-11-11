@@ -208,7 +208,7 @@ User selects mode in settings → DAC inverts output for S-trig mode.
 - Verify no other code is using the same UART/SPI/I2C bus
 - Check for address conflicts on I2C
 
-**When onboarding new Claude instances:**
+**When onboarding new the assistant instances:**
 - Read this document to understand hardware allocation
 - Refer to "Arpeggio Translation Loop" for MIDI note+clock path
 - Check occupancy before suggesting pin assignments

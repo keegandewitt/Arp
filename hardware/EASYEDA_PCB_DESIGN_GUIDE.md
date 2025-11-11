@@ -87,7 +87,7 @@ No battery, powerboost, JST connectors, or power switch needed!
 |-----|------|---------|-------|
 | 7 | 3.5mm TS Jack | CV/TRIG I/O | PJ-324M or equivalent (2 IN, 5 OUT) |
 | 1 | USB-C Breakout | Power input | Adafruit 4090 (bottom board) |
-| 2 | DIN-5 (180° female) | MIDI I/O | Panel mount (1 IN top, 1 OUT bottom) |
+| 2 | DIN-5 (180° female) | MIDI I/O | SDS-50J or equivalent, 7 total pins: 5 signal + 2 shield (1 IN top, 1 OUT bottom) |
 | 1 | Stacking headers | Feather connection | Female headers |
 | 1 | 2×8 pin header | Inter-board bus | Male (bottom) + Female (top) |
 
@@ -412,6 +412,34 @@ All M4 pins pass through to FeatherWings:
 - SDA, SCL (I2C bus for DAC + OLED)
 - RX, TX (UART for MIDI)
 - All GPIO pins available
+```
+
+### DIN-5 MIDI Jacks (SDS-50J):
+```
+5-pin DIN female connector with 7 total terminals:
+
+SIGNAL PINS (standard MIDI):
+  Pin 1: N/C (not connected)
+  Pin 2: Shield/Signal Ground → GND
+  Pin 3: N/C (not connected)
+  Pin 4: MIDI data (current sink)
+  Pin 5: MIDI data (current source)
+
+MOUNTING/SHIELD PINS:
+  Pin 6: Shield terminal → GND (recommended for proper shielding)
+  Pin 7: Shield terminal → GND (recommended for proper shielding)
+
+MIDI IN (6N138 optocoupler circuit):
+  Pin 2 → GND
+  Pin 4 → 220Ω → 6N138 Pin 3 (Cathode)
+  Pin 5 → 220Ω → 6N138 Pin 2 (Anode)
+  Pins 6, 7 → GND (shield)
+
+MIDI OUT (direct drive circuit):
+  Pin 2 → GND
+  Pin 4 → 220Ω → M4 TX (D1)
+  Pin 5 → 220Ω → M4 TX (D1)
+  Pins 6, 7 → GND (shield)
 ```
 
 ---
