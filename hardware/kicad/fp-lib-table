@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "PJ-320A")(type "KiCad")(uri "${KIPRJMOD}/libraries/PJ-320A/PJ-320A_Library.pretty")(options "")(descr "3.5mm audio jack footprints"))
+)

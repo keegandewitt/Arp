@@ -79,15 +79,27 @@
 - Connector_Audio (3.5mm jacks)
 - Connector (DIN, headers, etc.)
 
-**Adafruit Libraries:**
+**Project Libraries (hardware/kicad/libraries/):**
+- **THIS IS THE STANDARD LOCATION FOR ALL CUSTOM LIBRARIES**
+- PJ-320A: 3.5mm audio jack (symbol + footprint)
+- Add any new custom libraries here
+- Automatically loaded via sym-lib-table and fp-lib-table
+
+**Adafruit Libraries (Global):**
 - `/Users/keegandewitt/Documents/KiCad/Adafruit_3D_Models/` (3D models)
 - `/Users/keegandewitt/Documents/KiCad/Adafruit_Eagle_Library/` (Eagle files)
-- `hardware/kicad/eagle_imports/` (project-local Eagle imports)
-- `hardware/kicad/Prisme-eagle-import.kicad_sym` (converted symbols)
 
-**Custom/Downloaded:**
+**Project Eagle Imports (hardware/kicad/eagle_imports/):**
 - MCP4728: Available in `eagle_imports/mcp4728/`
 - USB-C 4090: Available in `eagle_imports/usb_c_4090/`
+- `Prisme-eagle-import.kicad_sym` (converted symbols in root)
+
+**Adding New Libraries:**
+1. Clone/download library to `hardware/kicad/libraries/[library-name]/`
+2. Edit `hardware/kicad/sym-lib-table` to add symbol library
+3. Edit `hardware/kicad/fp-lib-table` to add footprint library
+4. Commit to git (libraries are part of project)
+5. Use `${KIPRJMOD}/libraries/...` for portable paths
 
 ---
 
