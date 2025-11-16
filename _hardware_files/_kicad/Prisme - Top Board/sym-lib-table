@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "Prisme")(type "KiCad")(uri "/Users/keegandewitt/Cursor/prisme/hardware/kicad/Prisme-eagle-import.kicad_sym")(options "")(descr ""))
+)
