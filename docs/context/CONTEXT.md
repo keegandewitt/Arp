@@ -31,11 +31,78 @@
 
 ## Session Handoff
 
-**Last Updated:** 2025-11-09 (Session 28 - PCB Design Approach Change)
-**Session Status:** ✅ WORKFLOW CHANGE - User creating PCBs directly in EasyEDA
-**Token Usage:** ~72K / 200K
+**Last Updated:** 2025-11-15 (Session 29 - KiCad Schematic Design & Verification)
+**Session Status:** ✅ COMPLETE - Both PCB schematics designed and verified
+**Token Usage:** ~118K / 200K
 
-### Current Session Summary (Session 28 - PCB Design Workflow Change)
+### Current Session Summary (Session 29 - KiCad Schematic Design & Verification)
+**What was accomplished:**
+- ✅ **COMPLETE TOP & BOTTOM BOARD SCHEMATICS DESIGNED IN KICAD**
+  - User created both boards in KiCad (separate projects)
+  - Real-time verification and correction during design process
+  - All circuits verified against PIN_ALLOCATION_MATRIX.md and ACTUAL_HARDWARE_TRUTH.md
+  - Schematics ready for PCB layout phase
+
+- ✅ **TOP BOARD (INPUT CIRCUITS) - 100% VERIFIED**
+  - **CV IN:** 20kΩ/22kΩ voltage divider + BAT85 overvoltage protection (0-5V → 0-2.62V)
+  - **TRIG IN:** 20kΩ/22kΩ voltage divider + BAT85 protection (handles up to 10V Eurorack gates)
+  - **MIDI IN:** 6N138 optocoupler circuit with 220Ω current limiting (standard MIDI spec)
+  - **LED Indicators:** D4 (CV IN), D11 (TRIG IN), A2 (MIDI IN) - all 220Ω resistors
+  - **Key fixes:** Added BAT85 to TRIG IN, removed unnecessary protection diode from MIDI circuit
+
+- ✅ **BOTTOM BOARD (OUTPUT CIRCUITS) - 100% VERIFIED**
+  - **MCP4728 DAC:** Powered at 5V for full 0-5V output range (I2C on SDA/SCL)
+  - **CV/TRIG/CC Outputs:** 100Ω series resistors + LED indicators (220Ω)
+  - **MIDI OUT:** Direct drive with 220Ω resistors + proper decoupling (100pF caps)
+  - **S-Trig Circuit:** 2N3904 NPN transistor (1kΩ base, 100Ω collector)
+  - **USB-C Power:** Breakout for 5V input
+  - **Key fixes:** Corrected MIDI OUT caps from series to parallel, fixed resistor values
+
+- ✅ **COMPREHENSIVE CIRCUIT VERIFICATION**
+  - Verified all component pinouts using MCPs (6N138, MCP4728, Adafruit 1134 MIDI jack)
+  - Corrected voltage divider values for safe ADC protection
+  - Confirmed MIDI circuits match industry standards
+  - All power distribution verified (5V for DAC, 3.3V for MIDI/logic)
+
+**Circuit Review Process:**
+1. User shared schematic screenshots
+2. Real-time verification against documentation
+3. Identified errors (voltage dividers, component values, connections)
+4. User corrected in KiCad
+5. Final "last looks" comprehensive review
+6. Both boards approved for PCB layout
+
+**Critical Corrections Made:**
+- **Input voltage dividers:** 10kΩ/10kΩ → 20kΩ/22kΩ (safe for 5V inputs)
+- **TRIG IN protection:** Added BAT85 clamp for 10V Eurorack compatibility
+- **LED resistors:** Fixed 220kΩ → 220Ω (correct current limiting)
+- **MIDI OUT caps:** Moved from signal path (series) to power rails (parallel)
+- **MIDI IN diode:** Removed unnecessary series diode (optocoupler provides protection)
+
+**Files created this session:**
+- `_hardware_files/_kicad/Prisme - Top Board/` (NEW) - Complete top board KiCad project
+- `_hardware_files/_kicad/Prisme - Bottom Board/` (NEW) - Complete bottom board KiCad project
+- `docs/context/CONTEXT.md` (UPDATED) - Session 29 handoff
+
+**Git commits:**
+- 8713b04 - feat: Complete and verify top/bottom board schematics
+- 226e164 - chore: Reorganize KiCad bottom board files
+
+**Next Steps (Session 30):**
+1. **[HIGH]** Begin PCB layout in KiCad for both boards
+2. **[HIGH]** Component placement (following best practices: decoupling near ICs, signal integrity)
+3. **[HIGH]** Trace routing (ground planes, power distribution, signal traces)
+4. **[MEDIUM]** Design rule checks (DRC) and electrical rule checks (ERC)
+5. **[MEDIUM]** Generate Gerber files for PCB manufacturing
+6. **[LOW]** Order PCBs from JLCPCB/PCBWay
+
+**Git Status:**
+- **Branch:** main
+- **Last Commit:** 226e164 - chore: Reorganize KiCad bottom board files
+- **Working Tree:** Clean (CONTEXT.md update pending)
+- **Remote:** Up to date with origin/main
+
+### Previous Session Summary (Session 28 - PCB Design Approach Change)
 **What was accomplished:**
 - ✅ **PCB DESIGN WORKFLOW CHANGE**
   - User decision: Create boards directly in EasyEDA themselves
